@@ -1,0 +1,76 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "Build Debug",
+            "program": "${workspaceFolder}/llama-console-chat",
+            "args": [
+              "--conversation",
+              "--interactive",
+              "-m", "models/granite-3.1-1b-a400m-instruct/granite-3.1-1B-a400M-instruct-Q8_0.gguf", 
+//            "-p", "\"I believe the meaning of life is\"", 
+              "-p", "\"Please list one IBM Research laboratory located in the United States. You should only output its name and location.\"",
+              "-n", "512",
+              "--seed", "1",
+              "--chat-template", "granite"
+            ],
+            "environment": [{ "name": "config", "value": "Debug" }],
+            "cwd": "${workspaceFolder}",
+            "targetArchitecture": "arm64",
+            "stopAtEntry": false,
+            "linux": {
+              "MIMode": "gdb",
+              "miDebuggerPath": "/usr/bin/gdb"
+            },
+            "osx": {
+              "MIMode": "lldb"
+            },
+            "windows": {
+              "MIMode": "gdb",
+              "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
+            },
+            "externalConsole": false,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+          "name": "Run",
+          "type": "cppdbg",
+          "request": "launch",
+          "preLaunchTask": "Build Release",
+          "program": "${workspaceFolder}/llama-console-chat",
+          "args": ["models/granite-3.1-1b-a400m-instruct/granite-3.1-1B-a400M-instruct-Q8_0.gguf"],
+          "environment": [{ "name": "config", "value": "Debug" }],
+          "cwd": "${workspaceFolder}",
+          "targetArchitecture": "arm64",
+          "stopAtEntry": false,
+          "linux": {
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb"
+          },
+          "osx": {
+            "MIMode": "lldb"
+          },
+          "windows": {
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
+          },
+          "externalConsole": false,
+          "setupCommands": [
+              {
+                  "description": "Enable pretty-printing for gdb",
+                  "text": "-enable-pretty-printing",
+                  "ignoreFailures": true
+              }
+          ]
+    }
+  ]
+}
