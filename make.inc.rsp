@@ -1,0 +1,5 @@
+-I./llama.cpp/include
+-I./llama.cpp/ggml/include
+-I./llama.cpp/ggml/src
+-I./llama.cpp/ggml/src/ggml-cpu
+-I./llama.cpp/common
