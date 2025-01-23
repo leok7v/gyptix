@@ -1,0 +1,457 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B30518582D1CE9470009362D /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B30518572D1CE9470009362D /* WebKit.framework */; };
+		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
+		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
+		B3756DEB2D41D45700BCF111 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B3756DEA2D41D45700BCF111 /* AppIcon.icns */; };
+		B3756DF22D41D46B00BCF111 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DF02D41D46B00BCF111 /* WebView.swift */; };
+		B3756DF42D41D46B00BCF111 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */; };
+		B3756DF52D41D46B00BCF111 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DEE2D41D46B00BCF111 /* Gyptix.swift */; };
+		B3756DF62D41D46B00BCF111 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DEC2D41D46B00BCF111 /* ContentView.swift */; };
+		B3756E052D41D47600BCF111 /* hyperapp.html.js in Resources */ = {isa = PBXBuildFile; fileRef = B3756DFA2D41D47600BCF111 /* hyperapp.html.js */; };
+		B3756E062D41D47600BCF111 /* hyperapp.js in Resources */ = {isa = PBXBuildFile; fileRef = B3756DF72D41D47600BCF111 /* hyperapp.js */; };
+		B3756E072D41D47600BCF111 /* pure-min.css in Resources */ = {isa = PBXBuildFile; fileRef = B3756DFE2D41D47600BCF111 /* pure-min.css */; };
+		B3756E082D41D47600BCF111 /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = B3756E012D41D47600BCF111 /* app.js */; };
+		B3756E092D41D47600BCF111 /* hyperapp.dom.js in Resources */ = {isa = PBXBuildFile; fileRef = B3756DF82D41D47600BCF111 /* hyperapp.dom.js */; };
+		B3756E0A2D41D47600BCF111 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = B3756E022D41D47600BCF111 /* index.html */; };
+		B3756E0B2D41D47600BCF111 /* hyperapp.svg.js in Resources */ = {isa = PBXBuildFile; fileRef = B3756DFB2D41D47600BCF111 /* hyperapp.svg.js */; };
+		B3756E0C2D41D47600BCF111 /* hyperapp.events.js in Resources */ = {isa = PBXBuildFile; fileRef = B3756DF92D41D47600BCF111 /* hyperapp.events.js */; };
+		B3756E0D2D41D47600BCF111 /* hyperapp.time.js in Resources */ = {isa = PBXBuildFile; fileRef = B3756DFC2D41D47600BCF111 /* hyperapp.time.js */; };
+		B3756E0E2D41D47600BCF111 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3756E002D41D47600BCF111 /* app.css */; };
+		B3756E0F2D41D47600BCF111 /* svgs.css in Resources */ = {isa = PBXBuildFile; fileRef = B3756E032D41D47600BCF111 /* svgs.css */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B30518572D1CE9470009362D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
+		B323E3632D1CDAB2007BA38C /* gyptix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gyptix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B36EBB442D275258005972FF /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
+		B3756DE82D41D43100BCF111 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B3756DEA2D41D45700BCF111 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		B3756DEC2D41D46B00BCF111 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSchemeHandler.swift; sourceTree = "<group>"; };
+		B3756DEE2D41D46B00BCF111 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gyptix.swift; sourceTree = "<group>"; };
+		B3756DF02D41D46B00BCF111 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		B3756DF72D41D47600BCF111 /* hyperapp.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.js; sourceTree = "<group>"; };
+		B3756DF82D41D47600BCF111 /* hyperapp.dom.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.dom.js; sourceTree = "<group>"; };
+		B3756DF92D41D47600BCF111 /* hyperapp.events.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.events.js; sourceTree = "<group>"; };
+		B3756DFA2D41D47600BCF111 /* hyperapp.html.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.html.js; sourceTree = "<group>"; };
+		B3756DFB2D41D47600BCF111 /* hyperapp.svg.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.svg.js; sourceTree = "<group>"; };
+		B3756DFC2D41D47600BCF111 /* hyperapp.time.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.time.js; sourceTree = "<group>"; };
+		B3756DFE2D41D47600BCF111 /* pure-min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "pure-min.css"; sourceTree = "<group>"; };
+		B3756E002D41D47600BCF111 /* app.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app.css; sourceTree = "<group>"; };
+		B3756E012D41D47600BCF111 /* app.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app.js; sourceTree = "<group>"; };
+		B3756E022D41D47600BCF111 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		B3756E032D41D47600BCF111 /* svgs.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = svgs.css; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B323E3602D1CDAB2007BA38C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B36EBB452D275258005972FF /* Network.framework in Frameworks */,
+				B30518582D1CE9470009362D /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B30518562D1CE9470009362D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B36EBB442D275258005972FF /* Network.framework */,
+				B30518572D1CE9470009362D /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B323E35A2D1CDAB2007BA38C = {
+			isa = PBXGroup;
+			children = (
+				B323E3642D1CDAB2007BA38C /* Products */,
+				B3756DE82D41D43100BCF111 /* Assets.xcassets */,
+				B3756E042D41D47600BCF111 /* javascript */,
+				B3756DF12D41D46B00BCF111 /* swift */,
+				B3756DEA2D41D45700BCF111 /* AppIcon.icns */,
+				B30518562D1CE9470009362D /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		B323E3642D1CDAB2007BA38C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B323E3632D1CDAB2007BA38C /* gyptix.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B3756DF12D41D46B00BCF111 /* swift */ = {
+			isa = PBXGroup;
+			children = (
+				B3756DEC2D41D46B00BCF111 /* ContentView.swift */,
+				B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */,
+				B3756DEE2D41D46B00BCF111 /* Gyptix.swift */,
+				B3756DF02D41D46B00BCF111 /* WebView.swift */,
+			);
+			path = swift;
+			sourceTree = "<group>";
+		};
+		B3756DFD2D41D47600BCF111 /* hyperapp */ = {
+			isa = PBXGroup;
+			children = (
+				B3756DF72D41D47600BCF111 /* hyperapp.js */,
+				B3756DF82D41D47600BCF111 /* hyperapp.dom.js */,
+				B3756DF92D41D47600BCF111 /* hyperapp.events.js */,
+				B3756DFA2D41D47600BCF111 /* hyperapp.html.js */,
+				B3756DFB2D41D47600BCF111 /* hyperapp.svg.js */,
+				B3756DFC2D41D47600BCF111 /* hyperapp.time.js */,
+			);
+			path = hyperapp;
+			sourceTree = "<group>";
+		};
+		B3756DFF2D41D47600BCF111 /* pure */ = {
+			isa = PBXGroup;
+			children = (
+				B3756DFE2D41D47600BCF111 /* pure-min.css */,
+			);
+			path = pure;
+			sourceTree = "<group>";
+		};
+		B3756E042D41D47600BCF111 /* javascript */ = {
+			isa = PBXGroup;
+			children = (
+				B3756DFD2D41D47600BCF111 /* hyperapp */,
+				B3756DFF2D41D47600BCF111 /* pure */,
+				B3756E002D41D47600BCF111 /* app.css */,
+				B3756E012D41D47600BCF111 /* app.js */,
+				B3756E022D41D47600BCF111 /* index.html */,
+				B3756E032D41D47600BCF111 /* svgs.css */,
+			);
+			path = javascript;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B323E3622D1CDAB2007BA38C /* gyptix */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "gyptix" */;
+			buildPhases = (
+				B323E35F2D1CDAB2007BA38C /* Sources */,
+				B323E3602D1CDAB2007BA38C /* Frameworks */,
+				B323E3612D1CDAB2007BA38C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = gyptix;
+			packageProductDependencies = (
+			);
+			productName = hyperapp;
+			productReference = B323E3632D1CDAB2007BA38C /* gyptix.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B323E35B2D1CDAB2007BA38C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					B323E3622D1CDAB2007BA38C = {
+						CreatedOnToolsVersion = 16.2;
+					};
+				};
+			};
+			buildConfigurationList = B323E35E2D1CDAB2007BA38C /* Build configuration list for PBXProject "gyptix" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B323E35A2D1CDAB2007BA38C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B323E3642D1CDAB2007BA38C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B323E3622D1CDAB2007BA38C /* gyptix */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B323E3612D1CDAB2007BA38C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
+				B3756DEB2D41D45700BCF111 /* AppIcon.icns in Resources */,
+				B3756E052D41D47600BCF111 /* hyperapp.html.js in Resources */,
+				B3756E062D41D47600BCF111 /* hyperapp.js in Resources */,
+				B3756E072D41D47600BCF111 /* pure-min.css in Resources */,
+				B3756E082D41D47600BCF111 /* app.js in Resources */,
+				B3756E092D41D47600BCF111 /* hyperapp.dom.js in Resources */,
+				B3756E0A2D41D47600BCF111 /* index.html in Resources */,
+				B3756E0B2D41D47600BCF111 /* hyperapp.svg.js in Resources */,
+				B3756E0C2D41D47600BCF111 /* hyperapp.events.js in Resources */,
+				B3756E0D2D41D47600BCF111 /* hyperapp.time.js in Resources */,
+				B3756E0E2D41D47600BCF111 /* app.css in Resources */,
+				B3756E0F2D41D47600BCF111 /* svgs.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B323E35F2D1CDAB2007BA38C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B3756DF22D41D46B00BCF111 /* WebView.swift in Sources */,
+				B3756DF42D41D46B00BCF111 /* FileSchemeHandler.swift in Sources */,
+				B3756DF52D41D46B00BCF111 /* Gyptix.swift in Sources */,
+				B3756DF62D41D46B00BCF111 /* ContentView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B323E3752D1CDAB3007BA38C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
+				DEVELOPMENT_TEAM = 692R843P25;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		B323E3762D1CDAB3007BA38C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
+				DEVELOPMENT_TEAM = 692R843P25;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+		B323E3772D1CDAB3007BA38C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B323E3782D1CDAB3007BA38C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B323E35E2D1CDAB2007BA38C /* Build configuration list for PBXProject "gyptix" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B323E3772D1CDAB3007BA38C /* Debug */,
+				B323E3782D1CDAB3007BA38C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "gyptix" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B323E3752D1CDAB3007BA38C /* Debug */,
+				B323E3762D1CDAB3007BA38C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B323E35B2D1CDAB2007BA38C /* Project object */;
+}

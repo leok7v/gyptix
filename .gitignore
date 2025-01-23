@@ -1,5 +1,7 @@
 *.o
 /**.o
+**/*.xcuserstate
+**/DerivedData
 models/**/*.gguf
 models/**/*.safetensors
 .DS_Store
