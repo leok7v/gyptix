@@ -1,13 +1,11 @@
 import SwiftUI
 import SwiftData
-import Network
-import Combine
-
-// see: https://medium.com/hyperapp/a-walk-through-hyperapp-2-b1f642fca172
 
 @main
 struct Gyptix: App {
-    
+
+    @Environment(\.scenePhase) private var scenePhase
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
@@ -21,10 +19,30 @@ struct Gyptix: App {
     var body: some Scene {
         WindowGroup {
             ContentView().frame(minWidth: 240, minHeight: 320)
-            .onAppear {
+            .onAppear { start(); setupTerminationObserver() }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .background || newPhase == .inactive {
+                    inactive();
+                }
             }
         }
         .modelContainer(sharedModelContainer)
     }
 
+    private func setupTerminationObserver() {
+        #if os(macOS)
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in stop() }
+        #elseif os(iOS)
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in stop() }
+        #endif
+    }
+    
 }
