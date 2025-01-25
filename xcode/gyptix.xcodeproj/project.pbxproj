@@ -80,14 +80,14 @@
 		B323E35A2D1CDAB2007BA38C = {
 			isa = PBXGroup;
 			children = (
-				B323E3642D1CDAB2007BA38C /* Products */,
 				B3756DE82D41D43100BCF111 /* Assets.xcassets */,
+				B3756DEA2D41D45700BCF111 /* AppIcon.icns */,
 				B3756E042D41D47600BCF111 /* javascript */,
 				B3756DF12D41D46B00BCF111 /* swift */,
-				B3756DEA2D41D45700BCF111 /* AppIcon.icns */,
 				B37754A92D41E38900B7B4C5 /* gyptix.h */,
 				B37754AA2D41E38900B7B4C5 /* gyptix.cpp */,
 				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
+				B323E3642D1CDAB2007BA38C /* Products */,
 				B30518562D1CE9470009362D /* Frameworks */,
 			);
 			sourceTree = "<group>";

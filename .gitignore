@@ -1,5 +1,9 @@
 *.o
 /**.o
+*.so
+/**.so
+*.dylib
+/**.dylib
 **/*.xcuserstate
 **/DerivedData
 models/**/*.gguf
@@ -7,4 +11,3 @@ models/**/*.safetensors
 .DS_Store
 **/.DS_Store
 llama-console-chat
-llama.so

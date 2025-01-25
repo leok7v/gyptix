@@ -91,13 +91,16 @@ MAIN_OBJECTS         := $(MAIN_SOURCE:.cpp=.o)
 
 OBJECTS := $(MAIN_OBJECTS) $(LLAMA_OBJECTS) $(GGML_C_OBJECTS) $(GGML_CPP_OBJECTS) $(GGML_CPU_CPP_OBJECT) $(LLAMA_COMMON_OBJECTS)
 
-all: llama-console-chat llama.so
+all: llama-console-chat llama.so llama.dylib
 
 llama-console-chat: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@ -lpthread -ldl
 
 llama.so: $(OBJECTS) $(LLAMA_SO_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LLAMA_SO_OBJECTS) -shared -o $@ -lpthread -ldl
+
+llama.dylib: $(OBJECTS) $(LLAMA_SO_OBJECTS)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LLAMA_SO_OBJECTS) -dynamiclib -o $@ -lpthread -ldl
 
 $(GGML_CPU_CPP_OBJECT): $(GGML_CPU_CPP_SOURCE)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
