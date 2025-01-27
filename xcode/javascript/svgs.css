@@ -107,13 +107,46 @@
     }
 }
 
+
+.circle-stop-icon {
+  width: 1em;
+  height: 1em;
+  background: url('data:image/svg+xml;utf8,\
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">\
+    <path fill="black" d="M464 256A208 208 0 1 0 48 256a208 208\
+    0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256\
+    0 1 1 0 256zm192-96l128 0c17.7 0 32 14.3 32 32l0 128c0 \
+    17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-128c0-17.7 \
+    14.3-32 32-32z"/>\
+    </svg>') no-repeat center;
+  background-size: contain;
+}
+
+@media (prefers-color-scheme: dark) {
+    .circle-stop-icon {
+      width: 1em;
+      height: 1em;
+      background: url('data:image/svg+xml;utf8,\
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">\
+        <path fill="white" d="M464 256A208 208 0 1 0 48 256a208 208\
+        0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256\
+        0 1 1 0 256zm192-96l128 0c17.7 0 32 14.3 32 32l0 128c0 \
+        17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-128c0-17.7 \
+        14.3-32 32-32z"/>\
+        </svg>') no-repeat center;
+      background-size: contain;
+    }
+}
+
 .lucky:disabled,
 .pen-to-square-icon:disabled,
 .magnifying-glass-icon:disabled,
-.up-arrow-icon:disabled { opacity: 0.5; pointer-events: none; }
+.up-arrow-icon:disabled,
+.circle-stop-icon:disabled { opacity: 0.5; pointer-events: none; }
 
 .lucky:enabled,
 .pen-to-square-icon:enabled,
 .magnifying-glass-icon:enabled,
-.up-arrow-icon:enabled { opacity: 1; cursor: pointer; }
+.up-arrow-icon:enabled,
+.circle-stop-icon:enabled { opacity: 1; cursor: pointer; }
 

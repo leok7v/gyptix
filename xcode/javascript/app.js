@@ -91,7 +91,7 @@ const refresh = (state, { question, answer }) => {
     }
 }
 
-const appendToLatestAnswer = (state, newText) => {
+const append = (state, newText) => { // append to latest answer
     if (state.list.length === 0) { return state }
     let list = [...state.list]
     let lastIndex = list.length - 1
@@ -122,13 +122,13 @@ const poll = (dispatch, getState) => {
             dispatch(setAnswering, false)
         } else {
             if (text !== "") {
-                dispatch(appendToLatestAnswer, text)
+                dispatch(append, text)
             }
             setTimeout(() => poll(dispatch, getState), 10)
         }
     })
     .catch(error => {
-        console.error("Polling failed:", error)
+        console.error("poll failed:", error)
         dispatch(setAnswering, false)
     })
 }
@@ -140,7 +140,7 @@ const effect = (dispatch, { value }) => {
             dispatch(setAnswering, true)
             poll(dispatch)
         } else {
-            dispatch(appendToLatestAnswer, answer)
+            dispatch(append, answer)
         }
     })
 }
@@ -151,15 +151,40 @@ const add = (state) => [
     delay(33, scroll)
 ]
 
+const interrupt = (dispatch, { answering }) => {
+    fetch("gyptix://./poll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "<--interrupt-->",
+    })
+    .then(() => {
+        dispatch(setAnswering, true)
+    })
+    .catch(error => {
+        console.error("poll failed:", error)
+    })
+}
+
+const stop = (state) => [
+    state,
+    [interrupt, { answering: state.answering} ],
+    delay(33, scroll)
+]
+
+const add_or_stop = (state) => {
+    return  state.answering ? stop(state) : add(state)
+}
+
 app({
     init: {
         list: [],
-        value: ""
+        value: "",
+        answering: false
     },
     subscriptions: (state) => [
         [update, { value: state.value }]
     ],
-    view: ({ list, value }) =>
+    view: ({ list, value, answering }) =>
         main([
             div({ class: "header" }, [
                 button({ class: "magnifying-glass-icon",
@@ -183,9 +208,10 @@ app({
                             disabled: value.trim() !== "",
                             onclick: lucky
                         }, text("💬")),
-                        button({ class: "up-arrow-icon",
-                            disabled: value.trim() === "",
-                            onclick: add
+                        button({ class: answering ?
+                            "circle-stop-icon" : "up-arrow-icon",
+                            disabled: value.trim() === "" && !answering,
+                            onclick: add_or_stop
                         }),
                     ])
                 ]),

@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 extern char* (*read_line)(void); // returns malloc()ed string
-extern void  (*output_text)(const char* s);
+extern bool  (*output_text)(const char* s); // returns false on stop interruption
 
 int run(int argc, char** argv);
 

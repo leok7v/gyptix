@@ -88,7 +88,7 @@ static void sigint_handler(int signo) {
 extern "C" {
 
 char* (*read_line)(void); // returns NULL on EOF
-void  (*output_text)(const char* s);
+bool  (*output_text)(const char* s);
 bool  (*interrupt)(void);
 
 int run(int argc, char* argv[]) {
@@ -703,16 +703,16 @@ std::ostringstream output_ss;     g_output_ss     = &output_ss;
                 }
             }
         }
-
-        // display text
+        bool interrupted = false;
         if (input_echo && display) {
             for (auto id : embd) {
                 const std::string token_str = common_token_to_piece(ctx, id, params.special);
-
                 // Console/Stream Output
 //              LOG("%s", token_str.c_str());
-                output_text(token_str.c_str());
-
+                if (!output_text(token_str.c_str())) {
+                    interrupted  = true;
+                    break;
+                }
                 // Record Displayed Tokens To Log
                 // Note: Generated tokens are created one by one hence this check
                 if (embd.size() > 1) {
@@ -733,7 +733,7 @@ std::ostringstream output_ss;     g_output_ss     = &output_ss;
         }
 
         // if not currently processing queued inputs;
-        if ((int) embd_inp.size() <= n_consumed) {
+        if ((int)embd_inp.size() <= n_consumed) {
             // check for reverse prompt in the last n_prev tokens
             if (!params.antiprompt.empty()) {
                 const int n_prev = 32;
@@ -793,25 +793,24 @@ std::ostringstream output_ss;     g_output_ss     = &output_ss;
                     LOG("\n");
                 }
             }
-
             // if current token is not EOG, we add it to current assistant message
             if (params.conversation_mode) {
                 const auto id = common_sampler_last(smpl);
                 assistant_ss << common_token_to_piece(ctx, id, false);
             }
-
+            if (interrupted) {
+                output_text("<--done-->");
+                is_interacting = true;
+            }
             if (n_past > 0 && is_interacting) {
                 LOG_DBG("waiting for user input\n");
-                
                 if (params.conversation_mode) {
                     LOG("\n> ");
                 }
-                
                 if (params.input_prefix_bos) {
                     LOG_DBG("adding input prefix BOS token\n");
                     embd_inp.push_back(llama_vocab_bos(vocab));
                 }
-                
                 std::string buffer;
                 if (!params.input_prefix.empty() && !params.conversation_mode) {
                     LOG_DBG("appending input prefix: '%s'\n", params.input_prefix.c_str());
@@ -823,75 +822,57 @@ std::ostringstream output_ss;     g_output_ss     = &output_ss;
                 if (!line) {
                     break;
                 }
-                if (strcmp(line, "<--interrupt-->") == 0) {
-                    is_interacting = true;
-                } else {
-                    
-                    buffer += line;
-                    free((void*)line);
-                    // done taking input, reset color
-                    console::set_display(console::reset);
-                    display = true;
-                    
-                    // Add tokens to embd only if the input buffer is non-empty
-                    // Entering a empty line lets the user pass control back
-                    if (buffer.length() > 1) {
-                        // append input suffix if any
-                        if (!params.input_suffix.empty() && !params.conversation_mode) {
-                            LOG_DBG("appending input suffix: '%s'\n", params.input_suffix.c_str());
-                            LOG("%s", params.input_suffix.c_str());
-                        }
-                        
-                        LOG_DBG("buffer: '%s'\n", buffer.c_str());
-                        
-                        const size_t original_size = embd_inp.size();
-                        
-                        if (params.escape) {
-                            string_process_escapes(buffer);
-                        }
-                        
-                        bool format_chat = params.conversation_mode && params.enable_chat_template;
-                        std::string user_inp = format_chat
-                        ? chat_add_and_format("user", std::move(buffer))
-                        : std::move(buffer);
-                        // TODO: one inconvenient of current chat template
-                        // implementation is that we can't distinguish between
-                        // user input and special tokens (prefix/postfix)
-                        const auto line_pfx = common_tokenize(ctx, params.input_prefix, false, true);
-                        const auto line_inp = common_tokenize(ctx, user_inp,            false, format_chat);
-                        const auto line_sfx = common_tokenize(ctx, params.input_suffix, false, true);
-                        
-                        LOG_DBG("input tokens: %s\n", string_from(ctx, line_inp).c_str());
-                        
-                        // if user stop generation mid-way, we must add EOT to finish model's last response
-                        if (need_insert_eot && format_chat) {
-                            llama_token eot = llama_vocab_eot(vocab);
-                            embd_inp.push_back(eot == LLAMA_TOKEN_NULL ? llama_vocab_eos(vocab) : eot);
-                            need_insert_eot = false;
-                        }
-                        
-                        embd_inp.insert(embd_inp.end(), line_pfx.begin(), line_pfx.end());
-                        embd_inp.insert(embd_inp.end(), line_inp.begin(), line_inp.end());
-                        embd_inp.insert(embd_inp.end(), line_sfx.begin(), line_sfx.end());
-                        
-                        for (size_t i = original_size; i < embd_inp.size(); ++i) {
-                            const llama_token token = embd_inp[i];
-                            output_tokens.push_back(token);
-                            output_ss << common_token_to_piece(ctx, token);
-                        }
-                        
-                        // reset assistant message
-                        assistant_ss.str("");
-                        
-                        n_remain -= line_inp.size();
-                        LOG_DBG("n_remain: %d\n", n_remain);
-                    } else {
-                        LOG_DBG("empty line, passing control back\n");
+                buffer += line;
+                free((void*)line);
+                // done taking input, reset color
+                console::set_display(console::reset);
+                display = true;
+                // Add tokens to embd only if the input buffer is non-empty
+                // Entering a empty line lets the user pass control back
+                if (buffer.length() > 1) {
+                    // append input suffix if any
+                    if (!params.input_suffix.empty() && !params.conversation_mode) {
+                        LOG_DBG("appending input suffix: '%s'\n", params.input_suffix.c_str());
+                        LOG("%s", params.input_suffix.c_str());
                     }
-                    
-                    input_echo = false; // do not echo this again
-                    
+                    LOG_DBG("buffer: '%s'\n", buffer.c_str());
+                    const size_t original_size = embd_inp.size();
+                    if (params.escape) {
+                        string_process_escapes(buffer);
+                    }
+                    bool format_chat = params.conversation_mode && params.enable_chat_template;
+                    std::string user_inp = format_chat
+                    ? chat_add_and_format("user", std::move(buffer))
+                    : std::move(buffer);
+                    // TODO: one inconvenient of current chat template
+                    // implementation is that we can't distinguish between
+                    // user input and special tokens (prefix/postfix)
+                    const auto line_pfx = common_tokenize(ctx, params.input_prefix, false, true);
+                    const auto line_inp = common_tokenize(ctx, user_inp,            false, format_chat);
+                    const auto line_sfx = common_tokenize(ctx, params.input_suffix, false, true);
+                    LOG_DBG("input tokens: %s\n", string_from(ctx, line_inp).c_str());
+                    // if user stop generation mid-way, we must add EOT to finish model's last response
+                    if (need_insert_eot && format_chat) {
+                        llama_token eot = llama_vocab_eot(vocab);
+                        embd_inp.push_back(eot == LLAMA_TOKEN_NULL ? llama_vocab_eos(vocab) : eot);
+                        need_insert_eot = false;
+                    }
+                    embd_inp.insert(embd_inp.end(), line_pfx.begin(), line_pfx.end());
+                    embd_inp.insert(embd_inp.end(), line_inp.begin(), line_inp.end());
+                    embd_inp.insert(embd_inp.end(), line_sfx.begin(), line_sfx.end());
+                    for (size_t i = original_size; i < embd_inp.size(); ++i) {
+                        const llama_token token = embd_inp[i];
+                        output_tokens.push_back(token);
+                        output_ss << common_token_to_piece(ctx, token);
+                    }
+                    // reset assistant message
+                    assistant_ss.str("");
+                    n_remain -= line_inp.size();
+                    LOG_DBG("n_remain: %d\n", n_remain);
+                } else {
+                    LOG_DBG("empty line, passing control back\n");
                 }
+                input_echo = false; // do not echo this again
             }
             if (n_past > 0) {
                 if (is_interacting) {

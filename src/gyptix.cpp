@@ -37,6 +37,7 @@ static char* question;
 static std::string output;
 static bool answering = false;
 static bool quit = false;
+static bool interrupted = false;
 
 static void load_model_and_run(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
@@ -88,25 +89,22 @@ void ask(const char* s) {
     size_t len = strlen(s);
     assert(len > 2 && s[len - 2] == '"' && s[len - 1] == '}');
     question = strndup(s, len - 2);
-    printf("question: %s\n", question);
     pthread_mutex_unlock(&lock);
     wakeup();
     while (question != NULL) { sleep_for_ns(1000 * 1000); }
     answering = true;
 }
 
-const char* answer(const char* interrupt) {
+const char* answer(const char* i) {
     pthread_mutex_lock(&lock);
-    if (strcmp(interrupt, "<--interrupt-->") == 0) {
-        printf("interrupt\n");
+    if (strcmp(i, "<--interrupt-->") == 0) {
+        interrupted = true;
     }
-//  printf("output: \"%s\"\n", output.c_str());
     char* s = output.length() == 0 && !answering ?
         strdup("<--done-->") :
         strdup(output.c_str());
     output = "";
     pthread_mutex_unlock(&lock);
-//  printf("answer(\"%s\")\n", s);
     return s;
 }
 
@@ -121,26 +119,26 @@ static char* read_line_impl(void) {
         pthread_mutex_unlock(&lock);
         if (quit || s != NULL) { break; }
     }
-    printf("read_line_impl: %s\n", s);
     return s;
 }
 
-static void output_text_impl(const char* s) {
+static bool output_text_impl(const char* s) {
     pthread_mutex_lock(&lock);
     if (strcmp(s, "<--done-->") == 0) {
         answering = false;
     } else {
         output += s;
-//      printf("output: %s\n", output.c_str());
     }
+    bool result = !interrupted;
+    interrupted = false;
     pthread_mutex_unlock(&lock);
+    return result;
 }
 
 void start(const char* model) {
     read_line   = read_line_impl;
     output_text = output_text_impl;
     pthread_create(&thread, NULL, worker, (void*)strdup(model));
-    printf("started\n");
 }
 
 void inactive(void) {
@@ -148,13 +146,11 @@ void inactive(void) {
 }
 
 void stop(void) {
-    printf("stop\n");
     quit = true;
     wakeup();
     pthread_join(thread, NULL);
     pthread_mutex_destroy(&lock);
     pthread_cond_destroy(&cond);
-    printf("stoped\n");
 }
 
 }
