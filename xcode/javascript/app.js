@@ -23,6 +23,7 @@ const lucky = (state) => {
 const changed = (state, event) => ({
     ...state,
     value: event.target.innerText,
+    answering: false
 })
 
 const multiline = (txt) =>
@@ -37,7 +38,7 @@ const update = (dispatch, { value }) => {
 }
 
 const scroll = (state) => {
-    const ul = document.querySelector("ul");
+    const ul = document.querySelector("ul")
     if (ul) { ul.scrollTo({ top: ul.scrollHeight, behavior: "smooth" }) }
     return state
 }
@@ -51,18 +52,21 @@ const restart = (state) => ({
     list: [],
 })
 
+const setAnswering = (state, answering) => ({
+    ...state,
+    answering
+})
+
 const answer = async (value) => {
-    console.log("answer(value:" + value + ")");
     try {
-        const response = await fetch("gyptix://./answer", {
+        const response = await fetch("gyptix://./ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ value }),
-        });
+        })
         if (response.ok) {
-            const text = await response.text();
-            console.log(`Response text: ${text}`);
-            return text;
+            const text = await response.text()
+            return text === "OK" ? null : text
         }
         console.error(`HTTP error: ${response.status}`)
         throw new Error(`HTTP error: ${response.status}`)
@@ -73,13 +77,13 @@ const answer = async (value) => {
 }
 
 const refresh = (state, { question, answer }) => {
-    console.log("UpdateList");
-    console.log("answer" + answer);
+    console.log("UpdateList")
+    console.log("answer" + answer)
     const e = [
         { type: "question", text: question },
         { type: "answer", text: answer },
-    ];
-    console.log("List length:", state.list.length);
+    ]
+    console.log("List length:", state.list.length)
     return {
         ...state,
         list: state.list.concat(e),
@@ -87,9 +91,57 @@ const refresh = (state, { question, answer }) => {
     }
 }
 
+const appendToLatestAnswer = (state, newText) => {
+    if (state.list.length === 0) { return state }
+    let list = [...state.list]
+    let lastIndex = list.length - 1
+    if (list[lastIndex].type !== "answer") {
+        return state
+    }
+    list[lastIndex] = {
+        ...list[lastIndex],
+        text: list[lastIndex].text + newText
+    }
+    requestAnimationFrame(() => {
+        const ul = document.querySelector("ul")
+        if (ul) ul.scrollTo({ top: ul.scrollHeight, behavior: "smooth" })
+    })
+    return { ...state, list }
+}
+
+const poll = (dispatch, getState) => {
+    fetch("gyptix://./poll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "",
+    })
+    .then(response => response.text())
+    .then(text => {
+//      console.log(`Poll response: ${text}`)
+        if (text === "<--done-->") {
+            dispatch(setAnswering, false)
+        } else {
+            if (text !== "") {
+                dispatch(appendToLatestAnswer, text)
+            }
+            setTimeout(() => poll(dispatch, getState), 10)
+        }
+    })
+    .catch(error => {
+        console.error("Polling failed:", error)
+        dispatch(setAnswering, false)
+    })
+}
+
 const effect = (dispatch, { value }) => {
+    dispatch(refresh, { question: value, answer: "" })
     answer(value).then((answer) => {
-        dispatch(refresh, { question: value, answer })
+        if (answer === null) {
+            dispatch(setAnswering, true)
+            poll(dispatch)
+        } else {
+            dispatch(appendToLatestAnswer, answer)
+        }
     })
 }
 
@@ -97,7 +149,7 @@ const add = (state) => [
     state,
     [effect, { value: state.value }],
     delay(33, scroll)
-];
+]
 
 app({
     init: {

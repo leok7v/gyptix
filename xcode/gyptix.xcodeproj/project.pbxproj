@@ -35,7 +35,7 @@
 		B30D390E2D458CDF00B8196B /* ngram-cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39022D458CDF00B8196B /* ngram-cache.cpp */; };
 		B30D390F2D458CDF00B8196B /* log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38FF2D458CDF00B8196B /* log.cpp */; };
 		B30D39102D458CDF00B8196B /* sampling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39042D458CDF00B8196B /* sampling.cpp */; };
-		B30D39172D458DA600B8196B /* llama-so.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39162D458DA600B8196B /* llama-so.cpp */; };
+		B30D39172D458DA600B8196B /* llama-if.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39162D458DA600B8196B /* llama-if.cpp */; };
 		B30D39182D458DA600B8196B /* llama-build.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39142D458DA600B8196B /* llama-build.cpp */; };
 		B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D39212D458EFA00B8196B /* tokenizer_config.json */; };
 		B30D39252D458EFA00B8196B /* added_tokens.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D39192D458EFA00B8196B /* added_tokens.json */; };
@@ -146,8 +146,8 @@
 		B30D39062D458CDF00B8196B /* speculative.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = speculative.cpp; sourceTree = "<group>"; };
 		B30D39072D458CDF00B8196B /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		B30D39142D458DA600B8196B /* llama-build.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-build.cpp"; path = "../src/llama-build.cpp"; sourceTree = SOURCE_ROOT; };
-		B30D39152D458DA600B8196B /* llama-so.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-so.h"; path = "../src/llama-so.h"; sourceTree = SOURCE_ROOT; };
-		B30D39162D458DA600B8196B /* llama-so.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-so.cpp"; path = "../src/llama-so.cpp"; sourceTree = SOURCE_ROOT; };
+		B30D39152D458DA600B8196B /* llama-if.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-if.h"; path = "../src/llama-if.h"; sourceTree = SOURCE_ROOT; };
+		B30D39162D458DA600B8196B /* llama-if.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-if.cpp"; path = "../src/llama-if.cpp"; sourceTree = SOURCE_ROOT; };
 		B30D39192D458EFA00B8196B /* added_tokens.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = added_tokens.json; sourceTree = "<group>"; };
 		B30D391A2D458EFA00B8196B /* config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = config.json; sourceTree = "<group>"; };
 		B30D391B2D458EFA00B8196B /* generation_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = generation_config.json; sourceTree = "<group>"; };
@@ -353,8 +353,8 @@
 				B37754A92D41E38900B7B4C5 /* gyptix.h */,
 				B37754AA2D41E38900B7B4C5 /* gyptix.cpp */,
 				B30D39142D458DA600B8196B /* llama-build.cpp */,
-				B30D39152D458DA600B8196B /* llama-so.h */,
-				B30D39162D458DA600B8196B /* llama-so.cpp */,
+				B30D39152D458DA600B8196B /* llama-if.h */,
+				B30D39162D458DA600B8196B /* llama-if.cpp */,
 				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
 				B323E3642D1CDAB2007BA38C /* Products */,
 				B30518562D1CE9470009362D /* Frameworks */,
@@ -651,7 +651,7 @@
 				B30D390C2D458CDF00B8196B /* arg.cpp in Sources */,
 				B30D390D2D458CDF00B8196B /* json-schema-to-grammar.cpp in Sources */,
 				B30D390E2D458CDF00B8196B /* ngram-cache.cpp in Sources */,
-				B30D39172D458DA600B8196B /* llama-so.cpp in Sources */,
+				B30D39172D458DA600B8196B /* llama-if.cpp in Sources */,
 				B30D39182D458DA600B8196B /* llama-build.cpp in Sources */,
 				B30D390F2D458CDF00B8196B /* log.cpp in Sources */,
 				B30D39102D458CDF00B8196B /* sampling.cpp in Sources */,

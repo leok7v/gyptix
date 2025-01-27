@@ -1,9 +1,17 @@
+#include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <pthread.h>
+#include <time.h>
 #include <unistd.h>
+
+#include <string>
+
+
 #include "gyptix.h"
-#include "llama-so.h"
+#include "llama-if.h"
 
 extern "C" {
 
@@ -12,29 +20,27 @@ extern "C" {
 static char* args[1024] = { 0 };
 static char** argv = args;
 
-static char* read_line_impl(void) {
-    static int count;
-    switch (++count % 3) {
-        case 1:
-//          return strdup("🏴‍☠️ tell me short joke using this emoji");
-            return strdup("tell me a short joke");
-        case 2:
-            return strdup("translate that joke to Chinese");
-        default:
-            return (char*)0;
-    }
-}
+enum {
+    event_none      = 0,
+    event_quit      = 1,
+    event_question  = 2,
+    event_answer    = 3,
+    event_interrupt = 4
+};
 
-static void  output_text_impl(const char* s) {
-    printf("%s", s);
-}
+static int event = 0;
 
-void start(const char* model) {
-    static char cwd[1024];
-    struct stat st = {0};
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static pthread_t thread;
+static char* question;
+static std::string output;
+static bool answering = false;
+static bool quit = false;
+
+static void load_model_and_run(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
-    int a = stat(model, &st);
-    printf("start \"%s\" a=%d\n", model, a);
+    static char cwd[32*1024];
     int argc = 0;
     argv[argc++] = getcwd(cwd, countof(cwd));
     argv[argc++] = (char*)"-cnv";
@@ -43,16 +49,98 @@ void start(const char* model) {
     argv[argc++] = (char*)"--chat-template";
     argv[argc++] = (char*)"granite";
     argv[argc++] = (char*)"-m";
-    argv[argc++] = (char*)model;    
+    argv[argc++] = (char*)model;
     argv[argc++] = (char*)"--no-display-prompt";
     argv[argc++] = (char*)"--no-warmup";
     argv[argc++] = (char*)"--no-perf";
     argv[argc++] = (char*)"--log-disable";
 //  argv[argc++] = (char*)"-p";
 //  argv[argc++] = (char*)"you are polite helpful assistant";
-    read_line = read_line_impl;
-    output_text = output_text_impl;
     run(argc, argv);
+}
+
+static void* worker(void* p) {
+    const char* model = (const char*)p;
+    load_model_and_run(model);
+    free(p);
+    return NULL;
+}
+
+static void wakeup(void) {
+    pthread_mutex_lock(&lock);
+    event = 1;
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&lock);
+}
+
+static void sleep_for_ns(long nsec) {
+    struct timespec delay = { nsec / 1000000000, nsec % 1000000000 };
+    pselect(0, NULL, NULL, NULL, &delay, NULL);
+}
+
+void ask(const char* s) {
+    pthread_mutex_lock(&lock);
+    assert(question == NULL);
+    const char* start = "{\"value\":\"";
+    size_t n = strlen(start);
+    assert(memcmp(s, start, n) == 0);
+    s += n;
+    size_t len = strlen(s);
+    assert(len > 2 && s[len - 2] == '"' && s[len - 1] == '}');
+    question = strndup(s, len - 2);
+    printf("question: %s\n", question);
+    pthread_mutex_unlock(&lock);
+    wakeup();
+    while (question != NULL) { sleep_for_ns(1000 * 1000); }
+    answering = true;
+}
+
+const char* answer(const char* interrupt) {
+    pthread_mutex_lock(&lock);
+    if (strcmp(interrupt, "<--interrupt-->") == 0) {
+        printf("interrupt\n");
+    }
+//  printf("output: \"%s\"\n", output.c_str());
+    char* s = output.length() == 0 && !answering ?
+        strdup("<--done-->") :
+        strdup(output.c_str());
+    output = "";
+    pthread_mutex_unlock(&lock);
+//  printf("answer(\"%s\")\n", s);
+    return s;
+}
+
+static char* read_line_impl(void) {
+    char* s = NULL;
+    for (;;) {
+        pthread_mutex_lock(&lock);
+        while (!event) { pthread_cond_wait(&cond, &lock); }
+        event = 0;
+        s = question;
+        question = NULL;
+        pthread_mutex_unlock(&lock);
+        if (quit || s != NULL) { break; }
+    }
+    printf("read_line_impl: %s\n", s);
+    return s;
+}
+
+static void output_text_impl(const char* s) {
+    pthread_mutex_lock(&lock);
+    if (strcmp(s, "<--done-->") == 0) {
+        answering = false;
+    } else {
+        output += s;
+//      printf("output: %s\n", output.c_str());
+    }
+    pthread_mutex_unlock(&lock);
+}
+
+void start(const char* model) {
+    read_line   = read_line_impl;
+    output_text = output_text_impl;
+    pthread_create(&thread, NULL, worker, (void*)strdup(model));
+    printf("started\n");
 }
 
 void inactive(void) {
@@ -61,6 +149,12 @@ void inactive(void) {
 
 void stop(void) {
     printf("stop\n");
+    quit = true;
+    wakeup();
+    pthread_join(thread, NULL);
+    pthread_mutex_destroy(&lock);
+    pthread_cond_destroy(&cond);
+    printf("stoped\n");
 }
 
 }
