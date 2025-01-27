@@ -8,5 +8,4 @@ struct ContentView: View {
     var body: some View {
         WebView(htmlFileName: "index", schemeHandler: schemeHandler)
     }
-    
 }

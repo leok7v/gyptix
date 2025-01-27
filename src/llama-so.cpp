@@ -90,7 +90,7 @@ extern "C" {
 char* (*read_line)(void); // returns NULL on EOF
 void  (*output_text)(const char* s);
 
-int run(int argc, char ** argv) {
+int run(int argc, char* argv[]) {
     common_params params;
     g_params = &params;
     if (!common_params_parse(argc, argv, params, LLAMA_EXAMPLE_MAIN, print_usage)) {
@@ -488,7 +488,7 @@ int run(int argc, char ** argv) {
     }
 
     bool is_antiprompt        = false;
-    bool input_echo           = true;
+    bool input_echo           = false;
     bool display              = true;
     bool need_to_save_session = !path_session.empty() && n_matching_session_tokens < embd_inp.size();
 
@@ -499,7 +499,7 @@ int run(int argc, char ** argv) {
 
     std::vector<int>   input_tokens;  g_input_tokens  = &input_tokens;
     std::vector<int>   output_tokens; g_output_tokens = &output_tokens;
-    std::ostringstream output_ss;     g_output_ss     = &output_ss;
+std::ostringstream output_ss;     g_output_ss     = &output_ss;
     std::ostringstream assistant_ss; // for storing current assistant message, used in conversation mode
 
     // the first thing we will do is to output the prompt, so set color accordingly
@@ -709,7 +709,8 @@ int run(int argc, char ** argv) {
                 const std::string token_str = common_token_to_piece(ctx, id, params.special);
 
                 // Console/Stream Output
-                LOG("%s", token_str.c_str());
+//              LOG("%s", token_str.c_str());
+                output_text(token_str.c_str());
 
                 // Record Displayed Tokens To Log
                 // Note: Generated tokens are created one by one hence this check
@@ -719,7 +720,7 @@ int run(int argc, char ** argv) {
                 } else {
                     // Outgoing Generated Tokens
                     output_tokens.push_back(id);
-                    output_ss << token_str;
+//                  output_ss << token_str;
                 }
             }
         }
@@ -788,7 +789,7 @@ int run(int argc, char ** argv) {
                     if (params.enable_chat_template) {
                         chat_add_and_format("assistant", assistant_ss.str());
                     }
-                    output_text(assistant_ss.str().c_str());
+//                  output_text(assistant_ss.str().c_str());
                     is_interacting = true;
                     LOG("\n");
                 }
@@ -820,6 +821,7 @@ int run(int argc, char ** argv) {
                 console::set_display(console::user_input);
                 display = params.display_prompt;
                 const char* line = read_line();
+                if (!line) { break; }
                 buffer += line;
                 free((void*)line);
                 // done taking input, reset color

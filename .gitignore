@@ -11,3 +11,5 @@ models/**/*.safetensors
 .DS_Store
 **/.DS_Store
 llama-console-chat
+**/xcshareddata
+**/xcuserdata/**/*

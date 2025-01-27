@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void start(void);
+void start(const char* model);
 void inactive(void);
 void stop(void);
 

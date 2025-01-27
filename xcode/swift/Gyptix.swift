@@ -19,12 +19,19 @@ struct Gyptix: App {
     var body: some Scene {
         WindowGroup {
             ContentView().frame(minWidth: 240, minHeight: 320)
-            .onAppear { start(); setupTerminationObserver() }
-            .onChange(of: scenePhase) { oldPhase, newPhase in
-                if newPhase == .background || newPhase == .inactive {
-                    inactive();
+                .onAppear {
+                    guard let f = Bundle.main.url(forResource: "granite-3.1-1b-a400m-instruct-Q8_0.gguf",
+                                                  withExtension: nil) else {
+                        fatalError("Could not get bundle url")
+                    }
+                    start(f.absoluteString);
+                    setupTerminationObserver()
                 }
-            }
+                .onChange(of: scenePhase) { oldPhase, newPhase in
+                    if newPhase == .background || newPhase == .inactive {
+                        inactive();
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
     }
