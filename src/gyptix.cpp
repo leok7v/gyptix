@@ -39,11 +39,23 @@ static bool answering = false;
 static bool quit = false;
 static bool interrupted = false;
 
+static void init_random_seed() {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    srandom((unsigned)ts.tv_nsec ^ (unsigned)ts.tv_sec);
+}
+
 static void load_model_and_run(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
+    init_random_seed();
+    long seed = random();
+    char seed_str[64] = {0};
+    snprintf(seed_str, countof(seed_str) - 1, "%ld", seed);
     static char cwd[32*1024];
     int argc = 0;
     argv[argc++] = getcwd(cwd, countof(cwd));
+    argv[argc++] = (char*)"--seed";
+    argv[argc++] = seed_str;
     argv[argc++] = (char*)"-cnv";
 //  argv[argc++] = (char*)"--list-devices";
     argv[argc++] = (char*)"-i";
@@ -147,6 +159,7 @@ void inactive(void) {
 
 void stop(void) {
     quit = true;
+    interrupted = true;
     wakeup();
     pthread_join(thread, NULL);
     pthread_mutex_destroy(&lock);

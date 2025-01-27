@@ -47,6 +47,8 @@
 		B30D392B2D458EFA00B8196B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B30D391E2D458EFA00B8196B /* README.md */; };
 		B30D392C2D458EFA00B8196B /* generation_config.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D391B2D458EFA00B8196B /* generation_config.json */; };
 		B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D391F2D458EFA00B8196B /* special_tokens_map.json */; };
+		B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A02D4826E400155A33 /* ggml-metal.m */; };
+		B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A12D4826E400155A33 /* ggml-metal.metal */; };
 		B34A04442D458A880010D066 /* amx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A028C2D458A880010D066 /* amx.cpp */; };
 		B34A04482D458A880010D066 /* ggml-quants.c in Sources */ = {isa = PBXBuildFile; fileRef = B34A04352D458A880010D066 /* ggml-quants.c */; };
 		B34A044C2D458A880010D066 /* ggml-threading.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A04372D458A880010D066 /* ggml-threading.cpp */; };
@@ -83,6 +85,8 @@
 		B3756E0E2D41D47600BCF111 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3756E002D41D47600BCF111 /* app.css */; };
 		B3756E0F2D41D47600BCF111 /* svgs.css in Resources */ = {isa = PBXBuildFile; fileRef = B3756E032D41D47600BCF111 /* svgs.css */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
+		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
+		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -158,6 +162,9 @@
 		B30D39202D458EFA00B8196B /* tokenizer.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tokenizer.json; sourceTree = "<group>"; };
 		B30D39212D458EFA00B8196B /* tokenizer_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tokenizer_config.json; sourceTree = "<group>"; };
 		B30D39222D458EFA00B8196B /* vocab.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = vocab.json; sourceTree = "<group>"; };
+		B313D3A02D4826E400155A33 /* ggml-metal.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ggml-metal.m"; sourceTree = "<group>"; };
+		B313D3A12D4826E400155A33 /* ggml-metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "ggml-metal.metal"; sourceTree = "<group>"; };
+		B313D3A22D4826E400155A33 /* ggml-metal-impl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-metal-impl.h"; sourceTree = "<group>"; };
 		B323E3632D1CDAB2007BA38C /* gyptix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gyptix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B34A02622D458A880010D066 /* ggml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ggml.h; sourceTree = "<group>"; };
 		B34A02632D458A880010D066 /* ggml-alloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-alloc.h"; sourceTree = "<group>"; };
@@ -226,6 +233,8 @@
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
+		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
+		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -234,6 +243,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B36EBB452D275258005972FF /* Network.framework in Frameworks */,
+				B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */,
+				B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */,
 				B30518582D1CE9470009362D /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -244,6 +255,8 @@
 		B30518562D1CE9470009362D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B3D480C92D482F4000C5D9B1 /* MetalKit.framework */,
+				B3D480C72D482F3400C5D9B1 /* Metal.framework */,
 				B36EBB442D275258005972FF /* Network.framework */,
 				B30518572D1CE9470009362D /* WebKit.framework */,
 			);
@@ -341,6 +354,16 @@
 			name = "granite-3.1-1b-a400m-instruct";
 			path = "../models/granite-3.1-1b-a400m-instruct";
 			sourceTree = SOURCE_ROOT;
+		};
+		B313D3A32D4826E400155A33 /* ggml-metal */ = {
+			isa = PBXGroup;
+			children = (
+				B313D3A02D4826E400155A33 /* ggml-metal.m */,
+				B313D3A12D4826E400155A33 /* ggml-metal.metal */,
+				B313D3A22D4826E400155A33 /* ggml-metal-impl.h */,
+			);
+			path = "ggml-metal";
+			sourceTree = "<group>";
 		};
 		B323E35A2D1CDAB2007BA38C = {
 			isa = PBXGroup;
@@ -452,6 +475,7 @@
 				B34A04362D458A880010D066 /* ggml-threading.h */,
 				B34A04372D458A880010D066 /* ggml-threading.cpp */,
 				B34A04382D458A880010D066 /* gguf.cpp */,
+				B313D3A32D4826E400155A33 /* ggml-metal */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -648,6 +672,8 @@
 				B30D39092D458CDF00B8196B /* console.cpp in Sources */,
 				B30D390A2D458CDF00B8196B /* common.cpp in Sources */,
 				B30D390B2D458CDF00B8196B /* speculative.cpp in Sources */,
+				B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */,
+				B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */,
 				B30D390C2D458CDF00B8196B /* arg.cpp in Sources */,
 				B30D390D2D458CDF00B8196B /* json-schema-to-grammar.cpp in Sources */,
 				B30D390E2D458CDF00B8196B /* ngram-cache.cpp in Sources */,
@@ -670,6 +696,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -680,6 +707,7 @@
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					GGML_USE_CPU,
+					GGML_USE_METAL,
 					"DEBUG=1",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
@@ -723,6 +751,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -731,7 +760,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_PREPROCESSOR_DEFINITIONS = GGML_USE_CPU;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					GGML_USE_CPU,
+					GGML_USE_METAL,
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "../llama.cpp/**";
 				INFOPLIST_FILE = Info.plist;

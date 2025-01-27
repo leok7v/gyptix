@@ -27,7 +27,7 @@ const changed = (state, event) => ({
 })
 
 const multiline = (txt) =>
-    txt.split("\n").map((line) => div(text(line)))
+    txt.split("\n").map((line) => div({ class: "para" }, text(line)))
 
 const update = (dispatch, { value }) => {
     const editable = document.querySelector(".editable")
@@ -77,13 +77,10 @@ const answer = async (value) => {
 }
 
 const refresh = (state, { question, answer }) => {
-    console.log("UpdateList")
-    console.log("answer" + answer)
     const e = [
         { type: "question", text: question },
         { type: "answer", text: answer },
     ]
-    console.log("List length:", state.list.length)
     return {
         ...state,
         list: state.list.concat(e),
@@ -117,7 +114,6 @@ const poll = (dispatch, getState) => {
     })
     .then(response => response.text())
     .then(text => {
-//      console.log(`Poll response: ${text}`)
         if (text === "<--done-->") {
             dispatch(setAnswering, false)
         } else {

@@ -88,6 +88,10 @@ li.question {
 
 li div { width: 100%; }
 
+.para {
+    margin-bottom: 0.5em;
+}
+
 section {
     flex-shrink: 0;
     padding: 0.5em;
