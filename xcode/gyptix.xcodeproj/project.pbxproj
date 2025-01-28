@@ -554,6 +554,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "gyptix" */;
 			buildPhases = (
+				B3F62D062D489BCD0030F051 /* download model */,
 				B323E35F2D1CDAB2007BA38C /* Sources */,
 				B323E3602D1CDAB2007BA38C /* Frameworks */,
 				B323E3612D1CDAB2007BA38C /* Resources */,
@@ -640,6 +641,31 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B3F62D062D489BCD0030F051 /* download model */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"",
+				"",
+			);
+			inputPaths = (
+			);
+			name = "download model";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"../models/granite-3.1-1b-a400m-instruct/granite-3.1-1b-a400m-instruct-Q8_0.gguf",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "pushd ..\nscripts/download.sh\npopd\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		B323E35F2D1CDAB2007BA38C /* Sources */ = {
