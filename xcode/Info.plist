@@ -38,13 +38,7 @@
 	<key>ProductPageIconFile</key>
 	<string>AppIcon.icns</string>
 	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-		<string>processing</string>
-		<string>push-to-talk</string>
-		<string>fetch</string>
-		<string>audio</string>
-	</array>
+	<array/>
 	<key>UIPrerenderedIcon</key>
 	<true/>
 </dict>
