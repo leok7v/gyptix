@@ -18,7 +18,7 @@ struct Gyptix: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView().frame(minWidth: 240, minHeight: 320)
+            ContentView().frame(minWidth: 480, minHeight: 640)
                 .onAppear {
                     guard let f = Bundle.main.url(forResource: "granite-3.1-1b-a400m-instruct-Q8_0.gguf",
                                                   withExtension: nil) else {

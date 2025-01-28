@@ -43,8 +43,43 @@ const scroll = (state) => {
     return state
 }
 
+const toggleMenu = (state) => ({
+    ...state,
+    showMenu: !state.showMenu
+})
+
+const get = (page) => {
+    let text = "Failed to load " + page
+    const request = new XMLHttpRequest()
+    request.open("GET", "gyptix://./" + page + ".html", false) // Synchronous GET
+    request.send(null)
+    if (request.status === 200) { text = request.responseText }
+    return text
+}
+
+const load = (dispatch, page) => {
+    let text = get(page)
+    dispatch(restart)
+    dispatch(refresh, { question: page, answer: text })
+    dispatch(toggleMenu)
+}
+
+const about = (state) => [
+    state,
+    [load, "about"]
+]
+
+const licenses = (state) => [
+    state,
+    [load, "licenses"]
+]
+
 const search  = (state) => {
     return state
+}
+
+const info  = (state) => {
+    return toggleMenu(state)
 }
 
 const restart = (state) => ({
@@ -171,25 +206,75 @@ const add_or_stop = (state) => {
     return  state.answering ? stop(state) : add(state)
 }
 
+const agreeEula = (state) => {
+    console.log("agreeEula clicked")
+    localStorage.setItem("eula_agreed", "true")
+    return { ...state, showEula: false }
+}
+
+const eula = (state) => [
+    {
+        ...state,
+        eulaText: get("eula"),
+        showEula: true,
+        agreeEnabled: false
+    }
+]
+
+const checkEula = (state) => {
+//  localStorage.setItem("eula_agreed", "false") // DEBUG
+    if (localStorage.getItem("eula_agreed") === "true") {
+        return state // User has agreed, continue normally
+    }
+    console.log("Opening EULA modal")
+    return eula(state) // Call eula(state) without dispatch
+}
+
 app({
-    init: {
+    init: checkEula({
         list: [],
         value: "",
-        answering: false
-    },
+        answering: false,
+        showMenu: false,
+        showEula: false,
+        eulaText: get("eula"),
+    }),
     subscriptions: (state) => [
         [update, { value: state.value }]
     ],
-    view: ({ list, value, answering }) =>
+    view: ({ list, value, answering, showMenu, showEula, eulaText }) =>
         main([
+            showEula ?
+            div({ class: "eula-modal" }, [
+                div({ class: "eula-modal-content" }, [
+                    ul(eulaText.split("\n").map(line => li({}, text(line)))), // FIXED: Scroll works
+                    div({ class: "agree-container" }, [
+                        button({
+                            class: "agree enabled",
+                            onclick: agreeEula
+                        }, text("I AGREE"))
+                    ])
+                ])
+            ]) :
             div({ class: "header" }, [
-                button({ class: "magnifying-glass-icon",
-                    disabled: list.length === 0,
-                    onclick: search }),
+                button({ class:"info", onclick: info }, text("☰")),
+//              button({ class: "magnifying-glass-icon",
+//                  disabled: list.length === 0,
+//                  onclick: search }),
                 button({ class: "pen-to-square-icon",
                     disabled: list.length === 0,
                     onclick: restart }),
             ]),
+            showMenu ?
+            div({ class: "pure-modal" }, [
+                div({ class: "pure-modal-content" }, [
+                    button({ class: "pure-close", onclick: toggleMenu }, text("✖")),
+                    ul([
+                        li({ onclick: about }, text("About")),
+                        li({ onclick: licenses }, text("Licenses")),
+                    ])
+                ]),
+            ]) : null,
             ul(list.map(e => li({class: e.type}, multiline(e.text)))),
             section( {}, [
                 div( { class: "editor" }, [
@@ -200,7 +285,8 @@ app({
                         oninput: changed,
                     }),
                     div({ class: "editor_tools" }, [
-                        button({ class: "lucky",
+                        button({
+                            class: "lucky",
                             disabled: value.trim() !== "",
                             onclick: lucky
                         }, text("💬")),

@@ -85,6 +85,9 @@
 		B3756E0E2D41D47600BCF111 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3756E002D41D47600BCF111 /* app.css */; };
 		B3756E0F2D41D47600BCF111 /* svgs.css in Resources */ = {isa = PBXBuildFile; fileRef = B3756E032D41D47600BCF111 /* svgs.css */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
+		B3A2E2A02D48452200999B38 /* licenses.html in Resources */ = {isa = PBXBuildFile; fileRef = B3A2E29F2D48452200999B38 /* licenses.html */; };
+		B3A2E2A22D48452B00999B38 /* about.html in Resources */ = {isa = PBXBuildFile; fileRef = B3A2E2A12D48452B00999B38 /* about.html */; };
+		B3A2E2A42D484C1200999B38 /* eula.html in Resources */ = {isa = PBXBuildFile; fileRef = B3A2E2A32D484C1200999B38 /* eula.html */; };
 		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
 		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
 /* End PBXBuildFile section */
@@ -233,6 +236,9 @@
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
+		B3A2E29F2D48452200999B38 /* licenses.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = licenses.html; sourceTree = "<group>"; };
+		B3A2E2A12D48452B00999B38 /* about.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = about.html; sourceTree = "<group>"; };
+		B3A2E2A32D484C1200999B38 /* eula.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = eula.html; sourceTree = "<group>"; };
 		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -530,6 +536,9 @@
 				B3756E002D41D47600BCF111 /* app.css */,
 				B3756E012D41D47600BCF111 /* app.js */,
 				B3756E022D41D47600BCF111 /* index.html */,
+				B3A2E2A12D48452B00999B38 /* about.html */,
+				B3A2E2A32D484C1200999B38 /* eula.html */,
+				B3A2E29F2D48452200999B38 /* licenses.html */,
 				B3756E032D41D47600BCF111 /* svgs.css */,
 			);
 			path = javascript;
@@ -603,6 +612,7 @@
 				B3756E062D41D47600BCF111 /* hyperapp.js in Resources */,
 				B3756E072D41D47600BCF111 /* pure-min.css in Resources */,
 				B3756E082D41D47600BCF111 /* app.js in Resources */,
+				B3A2E2A02D48452200999B38 /* licenses.html in Resources */,
 				B3756E092D41D47600BCF111 /* hyperapp.dom.js in Resources */,
 				B3756E0A2D41D47600BCF111 /* index.html in Resources */,
 				B3756E0B2D41D47600BCF111 /* hyperapp.svg.js in Resources */,
@@ -614,10 +624,12 @@
 				B30D39282D458EFA00B8196B /* config.json in Resources */,
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B30D392A2D458EFA00B8196B /* vocab.json in Resources */,
+				B3A2E2A22D48452B00999B38 /* about.html in Resources */,
 				B30D392B2D458EFA00B8196B /* README.md in Resources */,
 				B30D392C2D458EFA00B8196B /* generation_config.json in Resources */,
 				B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */,
 				B3756E0D2D41D47600BCF111 /* hyperapp.time.js in Resources */,
+				B3A2E2A42D484C1200999B38 /* eula.html in Resources */,
 				B3756E0E2D41D47600BCF111 /* app.css in Resources */,
 				B3756E0F2D41D47600BCF111 /* svgs.css in Resources */,
 			);
