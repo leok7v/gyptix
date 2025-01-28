@@ -173,18 +173,9 @@
 		B34A02622D458A880010D066 /* ggml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ggml.h; sourceTree = "<group>"; };
 		B34A02632D458A880010D066 /* ggml-alloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-alloc.h"; sourceTree = "<group>"; };
 		B34A02642D458A880010D066 /* ggml-backend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-backend.h"; sourceTree = "<group>"; };
-		B34A02652D458A880010D066 /* ggml-blas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-blas.h"; sourceTree = "<group>"; };
-		B34A02662D458A880010D066 /* ggml-cann.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-cann.h"; sourceTree = "<group>"; };
 		B34A02672D458A880010D066 /* ggml-cpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-cpp.h"; sourceTree = "<group>"; };
 		B34A02682D458A880010D066 /* ggml-cpu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-cpu.h"; sourceTree = "<group>"; };
-		B34A02692D458A880010D066 /* ggml-cuda.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-cuda.h"; sourceTree = "<group>"; };
-		B34A026A2D458A880010D066 /* ggml-kompute.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-kompute.h"; sourceTree = "<group>"; };
 		B34A026B2D458A880010D066 /* ggml-metal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-metal.h"; sourceTree = "<group>"; };
-		B34A026C2D458A880010D066 /* ggml-opencl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-opencl.h"; sourceTree = "<group>"; };
-		B34A026D2D458A880010D066 /* ggml-opt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-opt.h"; sourceTree = "<group>"; };
-		B34A026E2D458A880010D066 /* ggml-rpc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-rpc.h"; sourceTree = "<group>"; };
-		B34A026F2D458A880010D066 /* ggml-sycl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-sycl.h"; sourceTree = "<group>"; };
-		B34A02702D458A880010D066 /* ggml-vulkan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-vulkan.h"; sourceTree = "<group>"; };
 		B34A02712D458A880010D066 /* gguf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gguf.h; sourceTree = "<group>"; };
 		B34A028B2D458A880010D066 /* amx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = amx.h; sourceTree = "<group>"; };
 		B34A028C2D458A880010D066 /* amx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = amx.cpp; sourceTree = "<group>"; };
@@ -417,18 +408,9 @@
 				B34A02622D458A880010D066 /* ggml.h */,
 				B34A02632D458A880010D066 /* ggml-alloc.h */,
 				B34A02642D458A880010D066 /* ggml-backend.h */,
-				B34A02652D458A880010D066 /* ggml-blas.h */,
-				B34A02662D458A880010D066 /* ggml-cann.h */,
 				B34A02672D458A880010D066 /* ggml-cpp.h */,
 				B34A02682D458A880010D066 /* ggml-cpu.h */,
-				B34A02692D458A880010D066 /* ggml-cuda.h */,
-				B34A026A2D458A880010D066 /* ggml-kompute.h */,
 				B34A026B2D458A880010D066 /* ggml-metal.h */,
-				B34A026C2D458A880010D066 /* ggml-opencl.h */,
-				B34A026D2D458A880010D066 /* ggml-opt.h */,
-				B34A026E2D458A880010D066 /* ggml-rpc.h */,
-				B34A026F2D458A880010D066 /* ggml-sycl.h */,
-				B34A02702D458A880010D066 /* ggml-vulkan.h */,
 				B34A02712D458A880010D066 /* gguf.h */,
 			);
 			path = include;
