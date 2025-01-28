@@ -707,7 +707,10 @@
 					"DEBUG=1",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = "../llama.cpp/**";
+				HEADER_SEARCH_PATHS = (
+					../llama.cpp/include,
+					../llama.cpp/common,
+				);
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -736,7 +739,11 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "../llama.cpp/**";
+				USER_HEADER_SEARCH_PATHS = (
+					../llama.cpp/include,
+					../llama.cpp/common,
+					../llama.cpp/ggml/include,
+				);
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Debug;
@@ -762,7 +769,10 @@
 					GGML_USE_METAL,
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = "../llama.cpp/**";
+				HEADER_SEARCH_PATHS = (
+					../llama.cpp/include,
+					../llama.cpp/common,
+				);
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -790,7 +800,11 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "gyptix-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "../llama.cpp/**";
+				USER_HEADER_SEARCH_PATHS = (
+					../llama.cpp/include,
+					../llama.cpp/common,
+					../llama.cpp/ggml/include,
+				);
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Release;
