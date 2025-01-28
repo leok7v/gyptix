@@ -90,6 +90,7 @@
 		B3A2E2A42D484C1200999B38 /* eula.html in Resources */ = {isa = PBXBuildFile; fileRef = B3A2E2A32D484C1200999B38 /* eula.html */; };
 		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
 		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
+		B3ED405A2D48865100B70362 /* prompts.js in Resources */ = {isa = PBXBuildFile; fileRef = B3ED40592D48865100B70362 /* prompts.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -241,6 +242,7 @@
 		B3A2E2A32D484C1200999B38 /* eula.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = eula.html; sourceTree = "<group>"; };
 		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		B3ED40592D48865100B70362 /* prompts.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prompts.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -535,6 +537,7 @@
 				B3756DFF2D41D47600BCF111 /* pure */,
 				B3756E002D41D47600BCF111 /* app.css */,
 				B3756E012D41D47600BCF111 /* app.js */,
+				B3ED40592D48865100B70362 /* prompts.js */,
 				B3756E022D41D47600BCF111 /* index.html */,
 				B3A2E2A12D48452B00999B38 /* about.html */,
 				B3A2E2A32D484C1200999B38 /* eula.html */,
@@ -622,6 +625,7 @@
 				B30D39262D458EFA00B8196B /* merges.txt in Resources */,
 				B30D39272D458EFA00B8196B /* tokenizer.json in Resources */,
 				B30D39282D458EFA00B8196B /* config.json in Resources */,
+				B3ED405A2D48865100B70362 /* prompts.js in Resources */,
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B30D392A2D458EFA00B8196B /* vocab.json in Resources */,
 				B3A2E2A22D48452B00999B38 /* about.html in Resources */,

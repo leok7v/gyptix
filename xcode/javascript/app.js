@@ -1,3 +1,4 @@
+import { random_prompt }     from "gyptix://./prompts.js"
 import { app }               from "gyptix://./hyperapp.js"
 import { every, delay, now } from "gyptix://./hyperapp.time.js"
 /*
@@ -11,9 +12,7 @@ import {
 } from "gyptix://./hyperapp.html.js"
 
 const lucky = (state) => {
-    const value =
-        "Yes, an electronic brain a simple one would suffice.\r\n" +
-        "You'd just have to program it to say..."
+    const value = random_prompt()
     return {
         ...state,
         value
@@ -207,7 +206,6 @@ const add_or_stop = (state) => {
 }
 
 const agreeEula = (state) => {
-    console.log("agreeEula clicked")
     localStorage.setItem("eula_agreed", "true")
     return { ...state, showEula: false }
 }
@@ -226,7 +224,6 @@ const checkEula = (state) => {
     if (localStorage.getItem("eula_agreed") === "true") {
         return state // User has agreed, continue normally
     }
-    console.log("Opening EULA modal")
     return eula(state) // Call eula(state) without dispatch
 }
 
@@ -289,7 +286,7 @@ app({
                             class: "lucky",
                             disabled: value.trim() !== "",
                             onclick: lucky
-                        }, text("💬")),
+                        }, text("🤷‍♂️💬")),
                         button({ class: answering ?
                             "circle-stop-icon" : "up-arrow-icon",
                             disabled: value.trim() === "" && !answering,
