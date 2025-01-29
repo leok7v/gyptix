@@ -1,4 +1,4 @@
-import { h } from "hyperapp://./hyperapp.js"
+import { h } from "gyptix://./hyperapp.js"
 
 const EMPTY_ARR = []
 const EMPTY_OBJ = {}
@@ -106,4 +106,4 @@ export const textarea = tag("textarea")
 export const blockquote = tag("blockquote")
 export const figcaption = tag("figcaption")
 
-export { text } from "hyperapp://./hyperapp.js"
+export { text } from "gyptix://./hyperapp.js"

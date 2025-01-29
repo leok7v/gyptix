@@ -1,4 +1,4 @@
-import { h } from "hyperapp://./hyperapp.js"
+import { h } from "gyptix://./hyperapp.js"
 
 const EMPTY_ARR = []
 const EMPTY_OBJ = {}
