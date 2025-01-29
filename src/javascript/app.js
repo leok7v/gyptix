@@ -222,9 +222,9 @@ const eula = (state) => [
 const checkEula = (state) => {
 //  localStorage.setItem("eula_agreed", "false") // DEBUG
     if (localStorage.getItem("eula_agreed") === "true") {
-        return state // User has agreed, continue normally
+        return state
     }
-    return eula(state) // Call eula(state) without dispatch
+    return eula(state)
 }
 
 app({
@@ -244,7 +244,7 @@ app({
             showEula ?
             div({ class: "eula-modal" }, [
                 div({ class: "eula-modal-content" }, [
-                    ul(eulaText.split("\n").map(line => li({}, text(line)))), // FIXED: Scroll works
+                    ul(eulaText.split("\n").map(line => li({}, text(line)))),
                     div({ class: "agree-container" }, [
                         button({
                             class: "agree enabled",
@@ -254,10 +254,15 @@ app({
                 ])
             ]) :
             div({ class: "header" }, [
-                button({ class:"info", onclick: info }, text("☰")),
+                button({ class: "info", onclick: info }, text("☰")),
 //              button({ class: "magnifying-glass-icon",
 //                  disabled: list.length === 0,
 //                  onclick: search }),
+                button({
+                    class: "lucky",
+                    disabled: value.trim() !== "",
+                    onclick: lucky
+                }, text("🤷‍♂️💬")),
                 button({ class: "pen-to-square-icon",
                     disabled: list.length === 0,
                     onclick: restart }),
@@ -265,7 +270,7 @@ app({
             showMenu ?
             div({ class: "pure-modal" }, [
                 div({ class: "pure-modal-content" }, [
-                    button({ class: "pure-close", onclick: toggleMenu }, text("✖")),
+                    button({ class: "info", onclick: info }, text("☰")),
                     ul([
                         li({ onclick: about }, text("About")),
                         li({ onclick: licenses }, text("Licenses")),
@@ -282,11 +287,7 @@ app({
                         oninput: changed,
                     }),
                     div({ class: "editor_tools" }, [
-                        button({
-                            class: "lucky",
-                            disabled: value.trim() !== "",
-                            onclick: lucky
-                        }, text("🤷‍♂️💬")),
+                        div({}, []),
                         button({ class: answering ?
                             "circle-stop-icon" : "up-arrow-icon",
                             disabled: value.trim() === "" && !answering,
