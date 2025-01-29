@@ -65,7 +65,6 @@
 		B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02972D458A880010D066 /* cpu-feats-x86.cpp */; };
 		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
 		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
-		B3756DEB2D41D45700BCF111 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B3756DEA2D41D45700BCF111 /* AppIcon.icns */; };
 		B3756DF22D41D46B00BCF111 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DF02D41D46B00BCF111 /* WebView.swift */; };
 		B3756DF42D41D46B00BCF111 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */; };
 		B3756DF52D41D46B00BCF111 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DEE2D41D46B00BCF111 /* Gyptix.swift */; };
@@ -199,7 +198,6 @@
 		B34A04382D458A880010D066 /* gguf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gguf.cpp; sourceTree = "<group>"; };
 		B36EBB442D275258005972FF /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 		B3756DE82D41D43100BCF111 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B3756DEA2D41D45700BCF111 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		B3756DEC2D41D46B00BCF111 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSchemeHandler.swift; sourceTree = "<group>"; };
 		B3756DEE2D41D46B00BCF111 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gyptix.swift; sourceTree = "<group>"; };
@@ -359,7 +357,6 @@
 			children = (
 				B34A02612D458A480010D066 /* llama.cpp */,
 				B3756DE82D41D43100BCF111 /* Assets.xcassets */,
-				B3756DEA2D41D45700BCF111 /* AppIcon.icns */,
 				B3756E042D41D47600BCF111 /* javascript */,
 				B3756DF12D41D46B00BCF111 /* swift */,
 				B37754A92D41E38900B7B4C5 /* gyptix.h */,
@@ -568,7 +565,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
-				B3756DEB2D41D45700BCF111 /* AppIcon.icns in Resources */,
 				B3756E052D41D47600BCF111 /* hyperapp.html.js in Resources */,
 				B3756E062D41D47600BCF111 /* hyperapp.js in Resources */,
 				B3756E072D41D47600BCF111 /* pure-min.css in Resources */,
@@ -720,7 +716,7 @@
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
@@ -730,7 +726,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -785,7 +781,7 @@
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
@@ -795,7 +791,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
