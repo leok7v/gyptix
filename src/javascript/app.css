@@ -169,17 +169,6 @@ div.editable:empty:before {
     width: 100%;
 }
 
-.pure-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: none;
-    border: none;
-    font-size: 0.8em;
-    cursor: pointer;
-    color: black;
-}
-
 .pure-modal ul {
     list-style: none;
     padding: 0;
@@ -206,7 +195,6 @@ div.editable:empty:before {
 
 @media (prefers-color-scheme: dark) {
     .pure-modal { color: white; }
-    .pure-close { color: white; }
     .pure-modal li:hover { background: #333; }
 }
 
@@ -251,7 +239,7 @@ div.editable:empty:before {
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
 }
 
-.agree {
+.OK {
     font-size: 1.0em;
     padding: 1em;
     background: green;
@@ -260,11 +248,6 @@ div.editable:empty:before {
     border-radius: 8px;
     cursor: pointer;
     text-align: center;
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.agree.enabled {
     opacity: 1;
     pointer-events: auto;
 }

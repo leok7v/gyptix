@@ -47,6 +47,16 @@ const toggleMenu = (state) => ({
     showMenu: !state.showMenu
 })
 
+const toggleAbout = (state) => ({
+    ...state,
+    showAbout: !state.showAbout
+})
+
+const toggleLicenses = (state) => ({
+    ...state,
+    showLicenses: !state.showLicenses
+})
+
 const get = (page) => {
     let text = "Failed to load " + page
     const request = new XMLHttpRequest()
@@ -56,22 +66,13 @@ const get = (page) => {
     return text
 }
 
-const load = (dispatch, page) => {
-    let text = get(page)
-    dispatch(restart)
-    dispatch(refresh, { question: page, answer: text })
-    dispatch(toggleMenu)
+const about = (state) => {
+    return toggleAbout(toggleMenu(state))
 }
 
-const about = (state) => [
-    state,
-    [load, "about"]
-]
-
-const licenses = (state) => [
-    state,
-    [load, "licenses"]
-]
+const licenses = (state) => {
+    return toggleLicenses(toggleMenu(state))
+}
 
 const search  = (state) => {
     return state
@@ -235,11 +236,16 @@ app({
         showMenu: false,
         showEula: false,
         eulaText: get("eula"),
+        aboutText: get("about"),
+        licensesText: get("licenses"),
+        showAbout: false,
+        showLicenses: false,
     }),
     subscriptions: (state) => [
         [update, { value: state.value }]
     ],
-    view: ({ list, value, answering, showMenu, showEula, eulaText }) =>
+    view: ({ list, value, answering, showMenu, showEula, eulaText,
+             aboutText, licensesText, showAbout, showLicenses }) =>
         main([
             showEula ?
             div({ class: "eula-modal" }, [
@@ -247,9 +253,31 @@ app({
                     ul(eulaText.split("\n").map(line => li({}, text(line)))),
                     div({ class: "agree-container" }, [
                         button({
-                            class: "agree enabled",
+                            class: "OK",
                             onclick: agreeEula
                         }, text("I AGREE"))
+                    ])
+                ])
+            ]) :
+            showAbout ? div({ class: "eula-modal" }, [
+                div({ class: "eula-modal-content" }, [
+                    ul(aboutText.split("\n").map(line => li({}, text(line)))),
+                    div({ class: "agree-container" }, [
+                        button({
+                            class: "OK",
+                            onclick: toggleAbout
+                        }, text("ⓧ"))
+                    ])
+                ])
+            ]) :
+            showLicenses ? div({ class: "eula-modal" }, [
+                div({ class: "eula-modal-content" }, [
+                    ul(licensesText.split("\n").map(line => li({}, text(line)))),
+                    div({ class: "agree-container" }, [
+                        button({
+                            class: "OK",
+                            onclick: toggleLicenses
+                        }, text("ⓧ"))
                     ])
                 ])
             ]) :
