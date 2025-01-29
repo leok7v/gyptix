@@ -39,6 +39,25 @@ static bool answering = false;
 static bool quit = false;
 static bool interrupted = false;
 
+static bool validUTF8(const std::string& s) {
+    const unsigned char* p = reinterpret_cast<const unsigned char*>(s.data());
+    size_t len = s.size(), i = 0;
+    while (i < len) {
+        if (p[i] <= 0x7F) { i++; continue; } // ASCII (1 byte)
+        size_t seq_len;
+        if ((p[i] & 0xE0) == 0xC0) { seq_len = 2; }  // 110xxxxx -> 2-byte
+        else if ((p[i] & 0xF0) == 0xE0) { seq_len = 3; } // 1110xxxx -> 3-byte
+        else if ((p[i] & 0xF8) == 0xF0) { seq_len = 4; } // 11110xxx -> 4-byte
+        else return false; // Invalid leading byte
+        if (i + seq_len > len) return false; // Truncated sequence
+        for (size_t j = 1; j < seq_len; j++) {
+            if ((p[i + j] & 0xC0) != 0x80) return false; // Not a valid continuation byte
+        }
+        i += seq_len;
+    }
+    return true;
+}
+
 static void init_random_seed() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -112,10 +131,15 @@ const char* answer(const char* i) {
     if (strcmp(i, "<--interrupt-->") == 0) {
         interrupted = true;
     }
-    char* s = output.length() == 0 && !answering ?
-        strdup("<--done-->") :
-        strdup(output.c_str());
-    output = "";
+    char* s = NULL;
+    if (output.length() == 0 && !answering) {
+        s = strdup("<--done-->");
+    } else if (output.length() > 0 && validUTF8(output)) {
+        s = strdup(output.c_str());
+        output = "";
+    } else {
+        s = strdup("");
+    }
     pthread_mutex_unlock(&lock);
     return s;
 }
