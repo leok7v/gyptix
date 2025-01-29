@@ -8,7 +8,7 @@ import { ellipse }           from "gyptix://./hyperapp.svg.js"
 */
 
 import {
-    main, h1, ul, li, section, div, button, text, input
+    main, h1, ul, li, section, div, button, text, input, img
 } from "gyptix://./hyperapp.html.js"
 
 const lucky = (state) => {
@@ -202,6 +202,14 @@ const stop = (state) => [
     delay(33, scroll)
 ]
 
+const erase = (state) => {
+    const editable = document.querySelector(".editable")
+    if (editable) {
+        editable.innerText = ""
+    }
+    return { ...state, value: "" }
+}
+
 const add_or_stop = (state) => {
     return  state.answering ? stop(state) : add(state)
 }
@@ -248,8 +256,8 @@ app({
              aboutText, licensesText, showAbout, showLicenses }) =>
         main([
             showEula ?
-            div({ class: "eula-modal" }, [
-                div({ class: "eula-modal-content" }, [
+            div({ class: "page" }, [
+                div({ class: "page-content" }, [
                     ul(eulaText.split("\n").map(line => li({}, text(line)))),
                     div({ class: "agree-container" }, [
                         button({
@@ -259,8 +267,8 @@ app({
                     ])
                 ])
             ]) :
-            showAbout ? div({ class: "eula-modal" }, [
-                div({ class: "eula-modal-content" }, [
+            showAbout ? div({ class: "page" }, [
+                div({ class: "page-content" }, [
                     ul(aboutText.split("\n").map(line => li({}, text(line)))),
                     div({ class: "agree-container" }, [
                         button({
@@ -270,8 +278,8 @@ app({
                     ])
                 ])
             ]) :
-            showLicenses ? div({ class: "eula-modal" }, [
-                div({ class: "eula-modal-content" }, [
+            showLicenses ? div({ class: "page" }, [
+                div({ class: "page-content" }, [
                     ul(licensesText.split("\n").map(line => li({}, text(line)))),
                     div({ class: "agree-container" }, [
                         button({
@@ -315,7 +323,7 @@ app({
                         oninput: changed,
                     }),
                     div({ class: "editor_tools" }, [
-                        div({}, []),
+                        div({ onclick: erase }, text("✖")),
                         button({ class: answering ?
                             "circle-stop-icon" : "up-arrow-icon",
                             disabled: value.trim() === "" && !answering,

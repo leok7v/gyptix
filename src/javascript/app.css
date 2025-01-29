@@ -198,7 +198,7 @@ div.editable:empty:before {
     .pure-modal li:hover { background: #333; }
 }
 
-.eula-modal {
+.page {
     position: fixed;
     top: 0;
     left: 0;
@@ -211,7 +211,7 @@ div.editable:empty:before {
     z-index: 1000;
 }
 
-.eula-modal-content {
+.page-content {
     width: 100vw;
     height: 90vh;
     background-color: var(--background);
@@ -220,7 +220,7 @@ div.editable:empty:before {
     justify-content: flex-start;
 }
 
-.eula-modal-content ul {
+.page-content ul {
     font-size: 0.85rem;
     padding-bottom: 0;
 }
@@ -253,13 +253,13 @@ div.editable:empty:before {
 }
 
 @media (prefers-color-scheme: dark) {
-    .eula-modal {
+    .page {
         background: black;
         color: white;
         border: none;
     }
     
-    .eula-modal li:hover {
+    .page li:hover {
         background: #333;
     }
 }
