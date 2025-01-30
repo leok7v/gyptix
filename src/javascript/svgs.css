@@ -138,19 +138,3 @@
 }
 
 
-.info:disabled,
-.lucky:disabled,
-.pen-to-square-icon:disabled,
-.magnifying-glass-icon:disabled,
-.up-arrow-icon:disabled,
-.circle-stop-icon:disabled { opacity: 0.5; pointer-events: none; }
-
-.info:enabled,
-.lucky:enabled,
-.pen-to-square-icon:enabled,
-.magnifying-glass-icon:enabled,
-.up-arrow-icon:enabled,
-.circle-stop-icon:enabled { opacity: 1; cursor: pointer; }
-
-.info { color: black; }
-@media (prefers-color-scheme: dark) { .info { color: white; } }

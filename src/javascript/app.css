@@ -176,6 +176,7 @@ div.editable:empty:before {
     width: auto;
     min-width: max-content; /* Ensures content width defines size */
     max-width: 80vw; /* Prevents excessive width */
+    user-select: none;
 }
 
 .pure-modal li {
@@ -187,6 +188,7 @@ div.editable:empty:before {
     border-radius: 0.25em;
     background-color: var(--background-nav);
     transition: background 0.3s;
+    user-select: none;
 }
 
 .pure-modal li:hover {
@@ -264,6 +266,25 @@ div.editable:empty:before {
     }
 }
 
+.info:disabled,
+.lucky:disabled,
+.pen-to-square-icon:disabled,
+.magnifying-glass-icon:disabled,
+.up-arrow-icon:disabled,
+.circle-stop-icon:disabled { opacity: 0.5; pointer-events: none; }
+
+.info:enabled,
+.lucky:enabled,
+.pen-to-square-icon:enabled,
+.magnifying-glass-icon:enabled,
+.up-arrow-icon:enabled,
+.circle-stop-icon:enabled { opacity: 1; cursor: pointer; }
+
+.info, .erase { color: black; }
+@media (prefers-color-scheme: dark) {
+    .info, .erase { color: white; }
+}
+
 main, ul {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
@@ -271,4 +292,20 @@ main, ul {
 
 main::-webkit-scrollbar, ul::-webkit-scrollbar {
     display: none; /* Chrome, Safari, macOS */
+}
+
+html {
+    font-size: 100%; /* Default size */
+}
+
+@media screen and (-webkit-dynamic-type: large) {
+    html {
+        font-size: 120%; /* Increase size when large text is set */
+    }
+}
+
+@media screen and (-webkit-dynamic-type: accessibility) {
+    html {
+        font-size: 140%; /* Increase for accessibility settings */
+    }
 }

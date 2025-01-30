@@ -15,15 +15,18 @@ const lucky = (state) => {
     const value = random_prompt()
     return {
         ...state,
-        value
+        lucky_clicked: true,
+        value,
     }
 }
 
-const changed = (state, event) => ({
-    ...state,
-    value: event.target.innerText,
-    answering: false
-})
+const changed = (state, event) => {
+    return {
+        ...state,
+        value: event.target.innerText,
+        answering: false
+   }
+}
 
 const multiline = (txt) =>
     txt.split("\n").map((line) => div({ class: "para" }, text(line)))
@@ -178,7 +181,7 @@ const effect = (dispatch, { value }) => {
 
 const add = (state) => [
     state,
-    [effect, { value: state.value }],
+    [effect, { value: state.value, lucky_clicked: false }],
     delay(33, scroll)
 ]
 
@@ -207,7 +210,7 @@ const erase = (state) => {
     if (editable) {
         editable.innerText = ""
     }
-    return { ...state, value: "" }
+    return { ...state, value: "", lucky_clicked: false }
 }
 
 const add_or_stop = (state) => {
@@ -248,12 +251,13 @@ app({
         licensesText: get("licenses"),
         showAbout: false,
         showLicenses: false,
+        lucky_clicked: false,
     }),
     subscriptions: (state) => [
         [update, { value: state.value }]
     ],
-    view: ({ list, value, answering, showMenu, showEula, eulaText,
-             aboutText, licensesText, showAbout, showLicenses }) =>
+    view: ({ state, list, value, answering, showMenu, showEula, eulaText,
+             aboutText, licensesText, showAbout, showLicenses, lucky_clicked }) =>
         main([
             showEula ?
             div({ class: "page" }, [
@@ -323,7 +327,9 @@ app({
                         oninput: changed,
                     }),
                     div({ class: "editor_tools" }, [
-                        div({ onclick: erase }, text("✖")),
+                        lucky_clicked ?
+                        button({ class: "erase", onclick: erase }, text("✖")) :
+                        div({},[]),
                         button({ class: answering ?
                             "circle-stop-icon" : "up-arrow-icon",
                             disabled: value.trim() === "" && !answering,
