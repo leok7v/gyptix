@@ -295,17 +295,17 @@ main::-webkit-scrollbar, ul::-webkit-scrollbar {
 }
 
 html {
-    font-size: 100%; /* Default size */
+    font-size: 120%; /* Default size */
 }
 
 @media screen and (-webkit-dynamic-type: large) {
     html {
-        font-size: 120%; /* Increase size when large text is set */
+        font-size: 140%; /* Increase size when large text is set */
     }
 }
 
 @media screen and (-webkit-dynamic-type: accessibility) {
     html {
-        font-size: 140%; /* Increase for accessibility settings */
+        font-size: 160%; /* Increase for accessibility settings */
     }
 }

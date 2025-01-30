@@ -16,6 +16,7 @@ const lucky = (state) => {
     return {
         ...state,
         lucky_clicked: true,
+        showMenu: false,
         value,
     }
 }
@@ -24,7 +25,8 @@ const changed = (state, event) => {
     return {
         ...state,
         value: event.target.innerText,
-        answering: false
+        answering: false,
+        showMenu: false,
    }
 }
 
@@ -87,6 +89,7 @@ const info  = (state) => {
 
 const restart = (state) => ({
     ...state,
+    showMenu: false,
     list: [],
 })
 
@@ -123,6 +126,7 @@ const refresh = (state, { question, answer }) => {
         ...state,
         list: state.list.concat(e),
         value: "",
+        lucky_clicked: false,
     }
 }
 
