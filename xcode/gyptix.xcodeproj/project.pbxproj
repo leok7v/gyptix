@@ -49,6 +49,7 @@
 		B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D391F2D458EFA00B8196B /* special_tokens_map.json */; };
 		B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A02D4826E400155A33 /* ggml-metal.m */; };
 		B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A12D4826E400155A33 /* ggml-metal.metal */; };
+		B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */; };
 		B34A04482D458A880010D066 /* ggml-quants.c in Sources */ = {isa = PBXBuildFile; fileRef = B34A04352D458A880010D066 /* ggml-quants.c */; };
 		B34A044C2D458A880010D066 /* ggml-threading.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A04372D458A880010D066 /* ggml-threading.cpp */; };
 		B34A044D2D458A880010D066 /* ggml-backend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A042E2D458A880010D066 /* ggml-backend.cpp */; };
@@ -166,6 +167,9 @@
 		B313D3A12D4826E400155A33 /* ggml-metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "ggml-metal.metal"; sourceTree = "<group>"; };
 		B313D3A22D4826E400155A33 /* ggml-metal-impl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-metal-impl.h"; sourceTree = "<group>"; };
 		B323E3632D1CDAB2007BA38C /* gyptix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gyptix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
+		B33E9D0E2D4B262E005FEE9B /* gyptix.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = gyptix.entitlements; sourceTree = "<group>"; };
+		B33E9D0F2D4B262E005FEE9B /* gyptixDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = gyptixDebug.entitlements; sourceTree = "<group>"; };
 		B34A02622D458A880010D066 /* ggml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ggml.h; sourceTree = "<group>"; };
 		B34A02632D458A880010D066 /* ggml-alloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-alloc.h"; sourceTree = "<group>"; };
 		B34A02642D458A880010D066 /* ggml-backend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-backend.h"; sourceTree = "<group>"; };
@@ -365,6 +369,8 @@
 				B30D39152D458DA600B8196B /* llama-if.h */,
 				B30D39162D458DA600B8196B /* llama-if.cpp */,
 				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
+				B33E9D0E2D4B262E005FEE9B /* gyptix.entitlements */,
+				B33E9D0F2D4B262E005FEE9B /* gyptixDebug.entitlements */,
 				B323E3642D1CDAB2007BA38C /* Products */,
 				B30518562D1CE9470009362D /* Frameworks */,
 				B30D39232D458EFA00B8196B /* granite-3.1-1b-a400m-instruct */,
@@ -491,6 +497,7 @@
 				B3B3F3F52D4AB3C300A2D406 /* pure */,
 				B3B3F3F62D4AB3C300A2D406 /* about.html */,
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
+				B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3B3F3F92D4AB3C300A2D406 /* eula.html */,
 				B3B3F3FA2D4AB3C300A2D406 /* index.html */,
@@ -586,6 +593,7 @@
 				B3B3F4082D4AB3C300A2D406 /* hyperapp.dom.js in Resources */,
 				B3B3F4092D4AB3C300A2D406 /* about.html in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,
+				B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */,
 				B3B3F40B2D4AB3C300A2D406 /* hyperapp.html.js in Resources */,
 				B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */,
 				B3B3F40D2D4AB3C300A2D406 /* svgs.css in Resources */,
