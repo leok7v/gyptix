@@ -243,6 +243,16 @@ const checkEula = (state) => {
     return eula(state)
 }
 
+const plain = (state) => {
+    const editable = document.querySelector(".editable")
+    if (editable) {
+        const plain = editableDiv.innerText
+        editable.innerText = plainText
+        return {...state, value: plain}
+    }
+    return state;
+}
+
 app({
     init: checkEula({
         list: [],
@@ -298,7 +308,11 @@ app({
                 ])
             ]) :
             div({ class: "header" }, [
-                button({ class: "info", onclick: info }, text("☰")),
+                button({ class: "info", onclick: info }, [
+                       text("☰ GyPTix"),
+                       img({ src: "gyptix://./GyPTix-256x256.png",
+                             class: "logo"})
+                ]),
 //              button({ class: "magnifying-glass-icon",
 //                  disabled: list.length === 0,
 //                  onclick: search }),
@@ -329,6 +343,7 @@ app({
                         contenteditable: "true",
                         placeholder: "Ask anything...",
                         oninput: changed,
+                        onpaste: (event) => { delay(16, dispatch, plain) }
                     }),
                     div({ class: "editor_tools" }, [
                         lucky_clicked ?

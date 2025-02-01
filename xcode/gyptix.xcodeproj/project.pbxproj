@@ -71,6 +71,7 @@
 		B3756DF52D41D46B00BCF111 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DEE2D41D46B00BCF111 /* Gyptix.swift */; };
 		B3756DF62D41D46B00BCF111 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DEC2D41D46B00BCF111 /* ContentView.swift */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
+		B3B29CA92D4E8E57006F04CE /* GyPTix-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */; };
 		B3B3F3FF2D4AB3C300A2D406 /* eula.html in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F92D4AB3C300A2D406 /* eula.html */; };
 		B3B3F4002D4AB3C300A2D406 /* hyperapp.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3ED2D4AB3C300A2D406 /* hyperapp.js */; };
 		B3B3F4012D4AB3C300A2D406 /* pure-min.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F42D4AB3C300A2D406 /* pure-min.css */; };
@@ -209,6 +210,7 @@
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
+		B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "GyPTix-256x256.png"; sourceTree = "<group>"; };
 		B3B3F3ED2D4AB3C300A2D406 /* hyperapp.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.js; sourceTree = "<group>"; };
 		B3B3F3EE2D4AB3C300A2D406 /* hyperapp.dom.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.dom.js; sourceTree = "<group>"; };
 		B3B3F3EF2D4AB3C300A2D406 /* hyperapp.events.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.events.js; sourceTree = "<group>"; };
@@ -361,6 +363,7 @@
 			children = (
 				B34A02612D458A480010D066 /* llama.cpp */,
 				B3756DE82D41D43100BCF111 /* Assets.xcassets */,
+				B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */,
 				B3B3F3FE2D4AB3C300A2D406 /* javascript */,
 				B3756DF12D41D46B00BCF111 /* swift */,
 				B37754A92D41E38900B7B4C5 /* gyptix.h */,
@@ -497,13 +500,13 @@
 				B3B3F3F52D4AB3C300A2D406 /* pure */,
 				B3B3F3F62D4AB3C300A2D406 /* about.html */,
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
-				B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3B3F3F92D4AB3C300A2D406 /* eula.html */,
 				B3B3F3FA2D4AB3C300A2D406 /* index.html */,
 				B3B3F3FB2D4AB3C300A2D406 /* licenses.html */,
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
 				B3B3F3FD2D4AB3C300A2D406 /* svgs.css */,
+				B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */,
 			);
 			name = javascript;
 			path = ../src/javascript;
@@ -577,6 +580,7 @@
 				B30D39252D458EFA00B8196B /* added_tokens.json in Resources */,
 				B30D39262D458EFA00B8196B /* merges.txt in Resources */,
 				B30D39272D458EFA00B8196B /* tokenizer.json in Resources */,
+				B3B29CA92D4E8E57006F04CE /* GyPTix-256x256.png in Resources */,
 				B30D39282D458EFA00B8196B /* config.json in Resources */,
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B30D392A2D458EFA00B8196B /* vocab.json in Resources */,
