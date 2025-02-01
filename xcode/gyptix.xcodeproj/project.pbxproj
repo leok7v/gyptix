@@ -17,7 +17,6 @@
 		B30D38E12D458C4E00B8196B /* llama-vocab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38D52D458C4E00B8196B /* llama-vocab.cpp */; };
 		B30D38E22D458C4E00B8196B /* llama-sampling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38D32D458C4E00B8196B /* llama-sampling.cpp */; };
 		B30D38E32D458C4E00B8196B /* llama-hparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38C52D458C4E00B8196B /* llama-hparams.cpp */; };
-		B30D38E42D458C4E00B8196B /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38B52D458C4E00B8196B /* llama.cpp */; };
 		B30D38E52D458C4E00B8196B /* llama-batch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38BB2D458C4E00B8196B /* llama-batch.cpp */; };
 		B30D38E62D458C4E00B8196B /* llama-model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38CD2D458C4E00B8196B /* llama-model.cpp */; };
 		B30D38E72D458C4E00B8196B /* llama-cparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38C12D458C4E00B8196B /* llama-cparams.cpp */; };
@@ -87,13 +86,13 @@
 		B3B3F40B2D4AB3C300A2D406 /* hyperapp.html.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F02D4AB3C300A2D406 /* hyperapp.html.js */; };
 		B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F72D4AB3C300A2D406 /* app.css */; };
 		B3B3F40D2D4AB3C300A2D406 /* svgs.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FD2D4AB3C300A2D406 /* svgs.css */; };
+		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
 		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
 		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		B30518572D1CE9470009362D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
-		B30D38B52D458C4E00B8196B /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = llama.cpp; sourceTree = "<group>"; };
 		B30D38B62D458C4E00B8196B /* llama-adapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-adapter.h"; sourceTree = "<group>"; };
 		B30D38B72D458C4E00B8196B /* llama-adapter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "llama-adapter.cpp"; sourceTree = "<group>"; };
 		B30D38B82D458C4E00B8196B /* llama-arch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-arch.h"; sourceTree = "<group>"; };
@@ -226,6 +225,7 @@
 		B3B3F3FB2D4AB3C300A2D406 /* licenses.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = licenses.html; sourceTree = "<group>"; };
 		B3B3F3FC2D4AB3C300A2D406 /* prompts.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prompts.js; sourceTree = "<group>"; };
 		B3B3F3FD2D4AB3C300A2D406 /* svgs.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = svgs.css; sourceTree = "<group>"; };
+		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
 		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -259,7 +259,7 @@
 		B30D38DA2D458C4E00B8196B /* src */ = {
 			isa = PBXGroup;
 			children = (
-				B30D38B52D458C4E00B8196B /* llama.cpp */,
+				B3BEE9D72D4EE035009A4168 /* llama.cpp */,
 				B30D38B62D458C4E00B8196B /* llama-adapter.h */,
 				B30D38B72D458C4E00B8196B /* llama-adapter.cpp */,
 				B30D38B82D458C4E00B8196B /* llama-arch.h */,
@@ -648,7 +648,6 @@
 				B30D38E12D458C4E00B8196B /* llama-vocab.cpp in Sources */,
 				B30D38E22D458C4E00B8196B /* llama-sampling.cpp in Sources */,
 				B30D38E32D458C4E00B8196B /* llama-hparams.cpp in Sources */,
-				B30D38E42D458C4E00B8196B /* llama.cpp in Sources */,
 				B30D38E52D458C4E00B8196B /* llama-batch.cpp in Sources */,
 				B30D38E62D458C4E00B8196B /* llama-model.cpp in Sources */,
 				B30D38E72D458C4E00B8196B /* llama-cparams.cpp in Sources */,
@@ -674,6 +673,7 @@
 				B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */,
 				B3756DF22D41D46B00BCF111 /* WebView.swift in Sources */,
 				B3756DF42D41D46B00BCF111 /* FileSchemeHandler.swift in Sources */,
+				B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */,
 				B30D39092D458CDF00B8196B /* console.cpp in Sources */,
 				B30D390A2D458CDF00B8196B /* common.cpp in Sources */,
 				B30D390B2D458CDF00B8196B /* speculative.cpp in Sources */,
@@ -704,7 +704,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 100;
+				CURRENT_PROJECT_VERSION = 103;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				DEVELOPMENT_TEAM = 692R843P25;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -739,7 +739,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.1;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -770,7 +770,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 100;
+				CURRENT_PROJECT_VERSION = 103;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				DEVELOPMENT_TEAM = 692R843P25;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -804,7 +804,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.1;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
