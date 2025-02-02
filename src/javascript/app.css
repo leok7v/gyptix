@@ -138,9 +138,11 @@ div button {
 
 button.info {
     font-size: 1em;
+    min-width: 6em;
 }
 
 img.logo {
+    padding-top: 0.125em;
     height: 0.75em;
     vertical-align: text-bottom;
 }

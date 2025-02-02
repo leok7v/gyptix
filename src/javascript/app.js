@@ -109,10 +109,10 @@ const answer = async (value) => {
             const text = await response.text()
             return text === "OK" ? null : text
         }
-        console.error(`HTTP error: ${response.status}`)
-        throw new Error(`HTTP error: ${response.status}`)
+        console.error(`error: ${response.status}`)
+        throw new Error(`error: ${response.status}`)
     } catch (error) {
-        console.error("Fetch error:", error)
+        console.error("error:", error)
         return "I don't know."
     }
 }
@@ -185,7 +185,7 @@ const effect = (dispatch, { value }) => {
 
 const add = (state) => [
     state,
-    [effect, { value: state.value, lucky_clicked: false }],
+    [effect, { value: state.value, lucky_clicked: false, showMenu: false }],
     delay(33, scroll)
 ]
 
@@ -205,7 +205,7 @@ const interrupt = (dispatch, { answering }) => {
 
 const stop = (state) => [
     state,
-    [interrupt, { answering: state.answering} ],
+    [interrupt, { showMenu: false, answering: state.answering } ],
     delay(33, scroll)
 ]
 
@@ -218,7 +218,7 @@ const erase = (state) => {
 }
 
 const add_or_stop = (state) => {
-    return  state.answering ? stop(state) : add(state)
+    return state.answering ? stop(state) : add(state)
 }
 
 const agreeEula = (state) => {
@@ -243,14 +243,24 @@ const checkEula = (state) => {
     return eula(state)
 }
 
-const plain = (state) => {
+const pasted = (state, event) => {
+    event.preventDefault()
+    let text = (event.clipboardData || window.clipboardData).getData("text/plain")
     const editable = document.querySelector(".editable")
-    if (editable) {
-        const plain = editableDiv.innerText
-        editable.innerText = plainText
-        return {...state, value: plain}
+    if (text && editable) {
+        const selection = window.getSelection()
+        const range = selection.getRangeAt(0)
+        range.deleteContents()
+        range.insertNode(document.createTextNode(text))
+        range.setStartAfter(range.endContainer)
+        range.setEndAfter(range.endContainer)
+        selection.removeAllRanges()
+        selection.addRange(range)
+        // TODO: lost focus; next line suppose to refocus but it does not
+        setTimeout(() => { editable.focus() }, 0)
+        return {...state, value: editable.innerText}
     }
-    return state;
+    return state
 }
 
 app({
@@ -308,10 +318,13 @@ app({
                 ])
             ]) :
             div({ class: "header" }, [
-                button({ class: "info", onclick: info }, [
-                       text("☰ GyPTix"),
-                       img({ src: "gyptix://./GyPTix-256x256.png",
-                             class: "logo"})
+                button({
+                    class: "info",
+                    onclick: info
+                }, [
+                   text("☰ 𝔾𝑦ℙ𝕋𝑖𝑥"), // 𝔊𝑦𝔓𝔗𝑖𝑥
+                   img({ src: "gyptix://./GyPTix-256x256.png",
+                         class: "logo"})
                 ]),
 //              button({ class: "magnifying-glass-icon",
 //                  disabled: list.length === 0,
@@ -319,16 +332,18 @@ app({
                 button({
                     class: "lucky",
                     disabled: value.trim() !== "",
+                    title: "Need inspiration? Click on 🤷‍♂️💬",
                     onclick: lucky
                 }, text("🤷‍♂️💬")),
                 button({ class: "pen-to-square-icon",
                     disabled: list.length === 0,
+                    title: "Start new conversation",
                     onclick: restart }),
             ]),
             showMenu ?
             div({ class: "pure-modal" }, [
                 div({ class: "pure-modal-content" }, [
-                    button({ class: "info", onclick: info }, text("☰")),
+                    button({ class: "info", onclick: info }, text("ˆ")),
                     ul([
                         li({ onclick: about }, text("About")),
                         li({ onclick: licenses }, text("Licenses")),
@@ -343,7 +358,7 @@ app({
                         contenteditable: "true",
                         placeholder: "Ask anything...",
                         oninput: changed,
-                        onpaste: (event) => { delay(16, dispatch, plain) }
+                        onpaste: pasted,
                     }),
                     div({ class: "editor_tools" }, [
                         lucky_clicked ?
@@ -352,6 +367,8 @@ app({
                         button({ class: answering ?
                             "circle-stop-icon" : "up-arrow-icon",
                             disabled: value.trim() === "" && !answering,
+                            title: !answering ?
+                                "Submit your question" : "Stop",
                             onclick: add_or_stop
                         }),
                     ])
