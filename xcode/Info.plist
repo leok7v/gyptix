@@ -20,6 +20,8 @@
 			<true/>
 		</dict>
 	</dict>
+	<key>NSApplicationSupportsMultipleWindows</key>
+	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>UIBackgroundModes</key>

@@ -332,9 +332,9 @@ app({
                 button({
                     class: "lucky",
                     disabled: value.trim() !== "",
-                    title: "Need inspiration? Click on 🤷‍♂️💬",
+                    title: "Need inspiration? Click on 🤷‍♂️",
                     onclick: lucky
-                }, text("🤷‍♂️💬")),
+                }, text("🤷‍♂️")),
                 button({ class: "pen-to-square-icon",
                     disabled: list.length === 0,
                     title: "Start new conversation",

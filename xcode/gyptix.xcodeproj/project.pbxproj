@@ -65,11 +65,13 @@
 		B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02972D458A880010D066 /* cpu-feats-x86.cpp */; };
 		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
 		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
-		B3756DF22D41D46B00BCF111 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DF02D41D46B00BCF111 /* WebView.swift */; };
-		B3756DF42D41D46B00BCF111 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */; };
-		B3756DF52D41D46B00BCF111 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DEE2D41D46B00BCF111 /* Gyptix.swift */; };
-		B3756DF62D41D46B00BCF111 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3756DEC2D41D46B00BCF111 /* ContentView.swift */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
+		B3A482932D5035DC00FCE4A5 /* SingleWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */; };
+		B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */; };
+		B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */; };
+		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
+		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
+		B3A4829A2D50384100FCE4A5 /* WindowDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482992D50384100FCE4A5 /* WindowDelegate.swift */; };
 		B3B29CA92D4E8E57006F04CE /* GyPTix-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */; };
 		B3B3F3FF2D4AB3C300A2D406 /* eula.html in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F92D4AB3C300A2D406 /* eula.html */; };
 		B3B3F4002D4AB3C300A2D406 /* hyperapp.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3ED2D4AB3C300A2D406 /* hyperapp.js */; };
@@ -166,10 +168,10 @@
 		B313D3A02D4826E400155A33 /* ggml-metal.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ggml-metal.m"; sourceTree = "<group>"; };
 		B313D3A12D4826E400155A33 /* ggml-metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "ggml-metal.metal"; sourceTree = "<group>"; };
 		B313D3A22D4826E400155A33 /* ggml-metal-impl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-metal-impl.h"; sourceTree = "<group>"; };
-		B323E3632D1CDAB2007BA38C /* gyptix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gyptix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B323E3632D1CDAB2007BA38C /* GyPTix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GyPTix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
-		B33E9D0E2D4B262E005FEE9B /* gyptix.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = gyptix.entitlements; sourceTree = "<group>"; };
-		B33E9D0F2D4B262E005FEE9B /* gyptixDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = gyptixDebug.entitlements; sourceTree = "<group>"; };
+		B33E9D0E2D4B262E005FEE9B /* GyPTix.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTix.entitlements; sourceTree = "<group>"; };
+		B33E9D0F2D4B262E005FEE9B /* GyPTixDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTixDebug.entitlements; sourceTree = "<group>"; };
 		B34A02622D458A880010D066 /* ggml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ggml.h; sourceTree = "<group>"; };
 		B34A02632D458A880010D066 /* ggml-alloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-alloc.h"; sourceTree = "<group>"; };
 		B34A02642D458A880010D066 /* ggml-backend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-backend.h"; sourceTree = "<group>"; };
@@ -202,13 +204,15 @@
 		B34A04382D458A880010D066 /* gguf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gguf.cpp; sourceTree = "<group>"; };
 		B36EBB442D275258005972FF /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 		B3756DE82D41D43100BCF111 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B3756DEC2D41D46B00BCF111 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSchemeHandler.swift; sourceTree = "<group>"; };
-		B3756DEE2D41D46B00BCF111 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gyptix.swift; sourceTree = "<group>"; };
-		B3756DF02D41D46B00BCF111 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
+		B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = ../src/swift/ContentView.swift; sourceTree = SOURCE_ROOT; };
+		B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileSchemeHandler.swift; path = ../src/swift/FileSchemeHandler.swift; sourceTree = SOURCE_ROOT; };
+		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
+		B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SingleWindow.swift; path = ../src/swift/SingleWindow.swift; sourceTree = SOURCE_ROOT; };
+		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
+		B3A482992D50384100FCE4A5 /* WindowDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WindowDelegate.swift; path = ../src/swift/WindowDelegate.swift; sourceTree = SOURCE_ROOT; };
 		B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "GyPTix-256x256.png"; sourceTree = "<group>"; };
 		B3B3F3ED2D4AB3C300A2D406 /* hyperapp.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.js; sourceTree = "<group>"; };
 		B3B3F3EE2D4AB3C300A2D406 /* hyperapp.dom.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.dom.js; sourceTree = "<group>"; };
@@ -361,9 +365,9 @@
 		B323E35A2D1CDAB2007BA38C = {
 			isa = PBXGroup;
 			children = (
-				B34A02612D458A480010D066 /* llama.cpp */,
 				B3756DE82D41D43100BCF111 /* Assets.xcassets */,
 				B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */,
+				B34A02612D458A480010D066 /* llama.cpp */,
 				B3B3F3FE2D4AB3C300A2D406 /* javascript */,
 				B3756DF12D41D46B00BCF111 /* swift */,
 				B37754A92D41E38900B7B4C5 /* gyptix.h */,
@@ -372,8 +376,8 @@
 				B30D39152D458DA600B8196B /* llama-if.h */,
 				B30D39162D458DA600B8196B /* llama-if.cpp */,
 				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
-				B33E9D0E2D4B262E005FEE9B /* gyptix.entitlements */,
-				B33E9D0F2D4B262E005FEE9B /* gyptixDebug.entitlements */,
+				B33E9D0E2D4B262E005FEE9B /* GyPTix.entitlements */,
+				B33E9D0F2D4B262E005FEE9B /* GyPTixDebug.entitlements */,
 				B323E3642D1CDAB2007BA38C /* Products */,
 				B30518562D1CE9470009362D /* Frameworks */,
 				B30D39232D458EFA00B8196B /* granite-3.1-1b-a400m-instruct */,
@@ -383,7 +387,7 @@
 		B323E3642D1CDAB2007BA38C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B323E3632D1CDAB2007BA38C /* gyptix.app */,
+				B323E3632D1CDAB2007BA38C /* GyPTix.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -464,10 +468,12 @@
 		B3756DF12D41D46B00BCF111 /* swift */ = {
 			isa = PBXGroup;
 			children = (
-				B3756DEC2D41D46B00BCF111 /* ContentView.swift */,
-				B3756DED2D41D46B00BCF111 /* FileSchemeHandler.swift */,
-				B3756DEE2D41D46B00BCF111 /* Gyptix.swift */,
-				B3756DF02D41D46B00BCF111 /* WebView.swift */,
+				B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */,
+				B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */,
+				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
+				B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */,
+				B3A482922D5035DC00FCE4A5 /* WebView.swift */,
+				B3A482992D50384100FCE4A5 /* WindowDelegate.swift */,
 			);
 			path = swift;
 			sourceTree = "<group>";
@@ -515,9 +521,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B323E3622D1CDAB2007BA38C /* gyptix */ = {
+		B323E3622D1CDAB2007BA38C /* GyPTix */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "gyptix" */;
+			buildConfigurationList = B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "GyPTix" */;
 			buildPhases = (
 				B3F62D062D489BCD0030F051 /* download model */,
 				B323E35F2D1CDAB2007BA38C /* Sources */,
@@ -528,11 +534,11 @@
 			);
 			dependencies = (
 			);
-			name = gyptix;
+			name = GyPTix;
 			packageProductDependencies = (
 			);
 			productName = hyperapp;
-			productReference = B323E3632D1CDAB2007BA38C /* gyptix.app */;
+			productReference = B323E3632D1CDAB2007BA38C /* GyPTix.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -565,7 +571,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B323E3622D1CDAB2007BA38C /* gyptix */,
+				B323E3622D1CDAB2007BA38C /* GyPTix */,
 			);
 		};
 /* End PBXProject section */
@@ -671,23 +677,25 @@
 				B34A04712D458A880010D066 /* ggml-cpu.cpp in Sources */,
 				B34A04732D458A880010D066 /* gguf.cpp in Sources */,
 				B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */,
-				B3756DF22D41D46B00BCF111 /* WebView.swift in Sources */,
-				B3756DF42D41D46B00BCF111 /* FileSchemeHandler.swift in Sources */,
 				B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */,
 				B30D39092D458CDF00B8196B /* console.cpp in Sources */,
 				B30D390A2D458CDF00B8196B /* common.cpp in Sources */,
 				B30D390B2D458CDF00B8196B /* speculative.cpp in Sources */,
 				B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */,
 				B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */,
+				B3A482932D5035DC00FCE4A5 /* SingleWindow.swift in Sources */,
+				B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */,
+				B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */,
+				B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */,
+				B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */,
 				B30D390C2D458CDF00B8196B /* arg.cpp in Sources */,
 				B30D390D2D458CDF00B8196B /* json-schema-to-grammar.cpp in Sources */,
+				B3A4829A2D50384100FCE4A5 /* WindowDelegate.swift in Sources */,
 				B30D390E2D458CDF00B8196B /* ngram-cache.cpp in Sources */,
 				B30D39172D458DA600B8196B /* llama-if.cpp in Sources */,
 				B30D39182D458DA600B8196B /* llama-build.cpp in Sources */,
 				B30D390F2D458CDF00B8196B /* log.cpp in Sources */,
 				B30D39102D458CDF00B8196B /* sampling.cpp in Sources */,
-				B3756DF52D41D46B00BCF111 /* Gyptix.swift in Sources */,
-				B3756DF62D41D46B00BCF111 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -968,7 +976,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "gyptix" */ = {
+		B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "GyPTix" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B323E3752D1CDAB3007BA38C /* Debug */,

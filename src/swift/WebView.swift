@@ -31,18 +31,13 @@ struct WebView: ViewRepresentable {
 #if os(macOS)
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
-        config.setURLSchemeHandler(schemeHandler, forURLScheme: "hyperapp")
+        config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
         config.preferences.setValue(true, forKey: "developerExtrasEnabled")
-//      config.preferences.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
         let webView = WKWebView(frame: .zero, configuration: config)
-        webView.configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-//      webView.configuration.preferences.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
-        // Make background transparent
+        webView.configuration.preferences.setValue(true,
+                forKey: "allowFileAccessFromFileURLs")
         webView.setValue(false, forKey: "drawsBackground")
-//      if let htmlContent = loadHTML() {
-//          webView.loadHTMLString(htmlContent, baseURL: Bundle.main.bundleURL)
-//      }
-        if let url = URL(string: "hyperapp://./index.html") {
+        if let url = URL(string: "gyptix://./index.html") {
             webView.load(URLRequest(url: url))
         }
         return webView
@@ -54,19 +49,14 @@ struct WebView: ViewRepresentable {
 #elseif os(iOS)
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
-        config.setURLSchemeHandler(schemeHandler, forURLScheme: "hyperapp")
-//      config.preferences.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
+        config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
         let webView = WKWebView(frame: .zero, configuration: config)
-        webView.configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        webView.configuration.preferences.setValue(true,
+                forKey: "allowFileAccessFromFileURLs")
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
-
-        
-//      if let htmlContent = loadHTML() {
-//          webView.loadHTMLString(htmlContent, baseURL: Bundle.main.bundleURL)
-//      }
-        if let url = URL(string: "hyperapp://./index.html") {
+        if let url = URL(string: "gyptix://./index.html") {
             webView.load(URLRequest(url: url))
         }
         return webView

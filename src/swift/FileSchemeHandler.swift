@@ -4,20 +4,46 @@ import WebKit
 class FileSchemeHandler: NSObject, WKURLSchemeHandler {
 
     func infer(_ request: String) -> String {
-        print(request)
         return "🤔 What?\r\n" +
                "😕 I don't understand.\r\n" +
                "🫖 Where's the tea? ☕\r\n"
     }
         
-    func post(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
-        var text = "I don't know.\r\n"
+    func question(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
         if let body = urlSchemeTask.request.httpBody {
             guard let request = String(data: body, encoding: .utf8) else {
                 print("Failed to decode body as UTF-8 string.")
                 return
             }
-            text = infer(request)
+            request.withCString { s in ask(s) }
+        }
+        if let r = response(url, mt: "text/plain") {
+            urlSchemeTask.didReceive(r)
+            if let data = "OK".data(using: .utf8) {
+                urlSchemeTask.didReceive(data)
+                urlSchemeTask.didFinish()
+                return;
+            } else {
+                print("Failed to encode response body as UTF-8.")
+            }
+        }
+    }
+
+    func poll(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        var text: String = ""
+        if let body = urlSchemeTask.request.httpBody {
+            guard let request = String(data: body, encoding: .utf8) else {
+                print("Failed to decode body as UTF-8 string.")
+                return
+            }
+            request.withCString { s in
+                if let response = answer(s) {
+                    text = String(cString: response)
+                    free(UnsafeMutableRawPointer(mutating: response))
+                } else {
+                    text = ""
+                }
+            }
         }
         if let r = response(url, mt: "text/plain") {
             urlSchemeTask.didReceive(r)
@@ -49,8 +75,12 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         guard let r = response(u, mt: mimeType(for: p)) else {
             failWithError(); return
         }
-        if resourcePath == "answer" {
-            post(webView, urlSchemeTask: urlSchemeTask, url: u)
+        if resourcePath == "ask" {
+            question(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        }
+        if resourcePath == "poll" {
+            poll(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         }
         guard let f = Bundle.main.url(forResource: resourcePath,
@@ -91,17 +121,17 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         }
     }
     
-    let allowedOrigin = "hyperapp://"
+    let allowedOrigin = "gyptix://"
     
     func response(_ u: URL, mt: String) -> HTTPURLResponse? {
         let responseHeaders = [
             "Access-Control-Allow-Origin": allowedOrigin,
             "Content-Type": mt,
             "Content-Security-Policy":
-                "default-src 'self' hyperapp://;" +
-                "img-src 'self' hyperapp:// data:;" +
-                "style-src 'self' hyperapp:// 'unsafe-inline';" +
-                "script-src 'self' hyperapp:// 'unsafe-inline';"
+                "default-src 'self' gyptix://;" +
+                "img-src 'self' gyptix:// data:;" +
+                "style-src 'self' gyptix:// 'unsafe-inline';" +
+                "script-src 'self' gyptix:// 'unsafe-inline';"
         ]
         return HTTPURLResponse(url: u,
                                statusCode: 200,
