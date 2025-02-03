@@ -257,7 +257,7 @@ const pasted = (state, event) => {
         selection.removeAllRanges()
         selection.addRange(range)
         // TODO: lost focus; next line suppose to refocus but it does not
-        setTimeout(() => { editable.focus() }, 0)
+        setTimeout(() => { editable.focus() }, 500)
         return {...state, value: editable.innerText}
     }
     return state

@@ -732,6 +732,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = GyPTix;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Dmitry \"Leo\" Kuznetsov";
+				INFOPLIST_KEY_NSSiriUsageDescription = "This app does not require Siri.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -798,6 +799,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = GyPTix;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Dmitry \"Leo\" Kuznetsov";
+				INFOPLIST_KEY_NSSiriUsageDescription = "This app does not require Siri.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

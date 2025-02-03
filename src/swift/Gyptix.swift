@@ -8,6 +8,14 @@ import AppKit
 struct Gyptix: App {
 
     @Environment(\.scenePhase) private var scenePhase
+    
+    
+    init() { // Ensure default language is set
+        UserDefaults.standard.set(["en-US"], forKey: "AppleLanguages")
+        UserDefaults.standard.synchronize()
+        // Debug: Print current locale to verify
+        print("Current Locale: \(Locale.current.identifier)")
+    }
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
@@ -23,6 +31,7 @@ struct Gyptix: App {
         WindowGroup {
             ContentView()
                 .frame(minWidth: 240, minHeight: 320)
+                .environment(\.locale, Locale(identifier: "en_US"))
                 .onAppear {
                     applyWindowRestrictions()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -88,12 +97,12 @@ struct Gyptix: App {
         #if os(macOS)
         if let mainMenu = NSApplication.shared.mainMenu {
             for item in mainMenu.items {
-                print(item);
+//              print(item);
                 if item.title == "Window" || item.title == "View" {
                     if let submenu = item.submenu {
                         for menuItem in submenu.items {
                             let title = menuItem.title.lowercased()
-                            print(menuItem);
+//                          print(menuItem);
                             if title.contains("tab") {
                                 submenu.removeItem(menuItem)
                             }
