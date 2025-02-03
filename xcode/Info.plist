@@ -25,10 +25,7 @@
 	<key>NSApplicationSupportsMultipleWindows</key>
 	<false/>
 	<key>UIBackgroundModes</key>
-	<array>
-		<string>processing</string>
-		<string>fetch</string>
-	</array>
+	<array/>
 	<key>UIPrerenderedIcon</key>
 	<true/>
 </dict>
