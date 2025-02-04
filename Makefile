@@ -45,9 +45,6 @@ LLAMA_SOURCES := \
     ./llama.cpp/src/unicode-data.cpp \
     ./llama.cpp/src/llama.cpp
 
-LLAMA_SO_SOURCES := \
-    ./src/llama-so.cpp
-
 GGML_C_SOURCES := \
     ./llama.cpp/ggml/src/ggml-cpu/ggml-cpu.c \
     ./llama.cpp/ggml/src/ggml-cpu/ggml-cpu-quants.c \
@@ -83,21 +80,17 @@ LLAMA_COMMON_SOURCES := \
 MAIN_SOURCE := llama.cpp/examples/main/main.cpp
 
 LLAMA_OBJECTS        := $(LLAMA_SOURCES:.cpp=.o)
-LLAMA_SO_OBJECTS     := $(LLAMA_SO_SOURCES:.cpp=.o)
 GGML_C_OBJECTS       := $(GGML_C_SOURCES:.c=.o)
 GGML_CPP_OBJECTS     := $(GGML_CPP_SOURCES:.cpp=.o)
-LLAMA_COMMON_OBJECTS :=  $(LLAMA_COMMON_SOURCES:.cpp=.o)
+LLAMA_COMMON_OBJECTS := $(LLAMA_COMMON_SOURCES:.cpp=.o)
 MAIN_OBJECTS         := $(MAIN_SOURCE:.cpp=.o)
 
 OBJECTS := $(MAIN_OBJECTS) $(LLAMA_OBJECTS) $(GGML_C_OBJECTS) $(GGML_CPP_OBJECTS) $(GGML_CPU_CPP_OBJECT) $(LLAMA_COMMON_OBJECTS)
 
-all: llama-console-chat llama.so llama.dylib
+all: llama-console-chat 
 
 llama-console-chat: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@ -lpthread -ldl
-
-llama.so: $(OBJECTS) $(LLAMA_SO_OBJECTS)
-	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LLAMA_SO_OBJECTS) -shared -o $@ -lpthread -ldl
 
 llama.dylib: $(OBJECTS) $(LLAMA_SO_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LLAMA_SO_OBJECTS) -dynamiclib -o $@ -lpthread -ldl
