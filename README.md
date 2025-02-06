@@ -10,6 +10,10 @@ make
 ```
 
 ```
+scripts/download.sh
+```
+
+```
 scripts/run.sh
 ```
 
