@@ -1,0 +1,11 @@
+{
+  "bos_token": "<｜begin▁of▁sentence｜>",
+  "clean_up_tokenization_spaces": false,
+  "eos_token": "<｜end▁of▁sentence｜>",
+  "model_max_length": 16384,
+  "pad_token": null,
+  "tokenizer_class": "LlamaTokenizer",
+  "unk_token": null,
+  "chat_template": "{% if not add_generation_prompt is defined %}{% set add_generation_prompt = false %}{% endif %}{% set ns = namespace(is_first=false, is_tool=false, is_output_first=true, system_prompt='') %}{%- for message in messages %}{%- if message['role'] == 'system' %}{% set ns.system_prompt = message['content'] %}{%- endif %}{%- endfor %}{{ns.system_prompt}}{%- for message in messages %}{%- if message['role'] == 'user' %}{{'<|User|>: ' + message['content'] + '\\n\\n'}}{%- endif %}{%- if message['role'] == 'assistant' and message['content'] is not none %}{% set content = message['content'] %}{% if '</think>' in content %}{% set content = content.split('</think>')[-1] %}{% endif %}{{'<|Assistant|>: ' + content + '<｜end▁of▁sentence｜>'}}{%- endif %}{%- endfor -%}{% if add_generation_prompt %}{{'<|Assistant|>: '}}{% endif %}",
+  "use_default_system_prompt": true
+}
