@@ -9636,7 +9636,8 @@ struct llama_context * llama_init_from_model(
     GGML_ASSERT(hparams.n_embd_head_v % ggml_blck_size(type_v) == 0);
 
     if (!hparams.vocab_only) {
-        // GPU backends
+        // GPU backends: only for ARM:
+#if defined(__aarch64__) || defined(__arm64__)
         for (auto * dev : model->devices) {
             ggml_backend_t backend = ggml_backend_dev_init(dev, nullptr);
             if (backend == nullptr) {
@@ -9645,7 +9646,7 @@ struct llama_context * llama_init_from_model(
                 ctx->backends.emplace_back(backend);
             }
         }
-
+#endif
         // add ACCEL backends (such as BLAS)
         for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
             ggml_backend_dev_t dev = ggml_backend_dev_get(i);
