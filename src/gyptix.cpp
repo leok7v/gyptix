@@ -64,6 +64,12 @@ static void init_random_seed() {
     srandom((unsigned)ts.tv_nsec ^ (unsigned)ts.tv_sec);
 }
 
+#if defined(__aarch64__) || defined(__arm64__)
+    #define APPLE_SILICON 1
+#else
+    #define APPLE_SILICON 0
+#endif
+
 static void load_model_and_run(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
     init_random_seed();
@@ -86,6 +92,10 @@ static void load_model_and_run(const char* model) {
     argv[argc++] = (char*)"--no-warmup";
     argv[argc++] = (char*)"--no-perf";
     argv[argc++] = (char*)"--log-disable";
+#ifndef APPLE_SILICON // do not use Metal/GPU on x64 platforms
+    argv[argc++] = (char*)"--device";
+    argv[argc++] = (char*)"none";
+#endif
 //  argv[argc++] = (char*)"-p";
 //  argv[argc++] = (char*)"you are polite helpful assistant";
     run(argc, argv);
