@@ -1,379 +1,385 @@
-import { random_prompt }     from "gyptix://./prompts.js"
-import { app }               from "gyptix://./hyperapp.js"
-import { every, delay, now } from "gyptix://./hyperapp.time.js"
-/*
-import { focus, blur }       from "gyptix://./hyperapp.dom.js"
-import { onMouseMove }       from "gyptix://./hyperapp.events.js"
-import { ellipse }           from "gyptix://./hyperapp.svg.js"
-*/
+"use strict"
 
-import {
-    main, h1, ul, li, section, div, button, text, input, img
-} from "gyptix://./hyperapp.html.js"
+import * as marked from "./marked.js"
+import * as model  from "./model.js"
 
-const lucky = (state) => {
-    const value = random_prompt()
-    return {
-        ...state,
-        lucky_clicked: true,
-        showMenu: false,
-        value,
-    }
-}
+const get = id => document.getElementById(id)
 
-const changed = (state, event) => {
-    return {
-        ...state,
-        value: event.target.innerText,
-        answering: false,
-        showMenu: false,
-   }
-}
+let current  = null // current chat key
+let selected = null // selected chat
 
-const multiline = (txt) =>
-    txt.split("\n").map((line) => div({ class: "para" }, text(line)))
+const render_markdown = md => marked.parse(md)
 
-const update = (dispatch, { value }) => {
-    const editable = document.querySelector(".editable")
-    if (editable && editable.innerText !== value) {
-        editable.innerText = value
-    }
-    return () => {}
-}
-
-const scroll = (state) => {
-    const ul = document.querySelector("ul")
-    if (ul) { ul.scrollTo({ top: ul.scrollHeight, behavior: "smooth" }) }
-    return state
-}
-
-const toggleMenu = (state) => ({
-    ...state,
-    showMenu: !state.showMenu
+document.addEventListener("copy", e => {
+    e.preventDefault()
+    const s = window.getSelection().toString()
+    e.clipboardData.setData("text/plain", s)
 })
 
-const toggleAbout = (state) => ({
-    ...state,
-    showAbout: !state.showAbout
-})
-
-const toggleLicenses = (state) => ({
-    ...state,
-    showLicenses: !state.showLicenses
-})
-
-const get = (page) => {
-    let text = "Failed to load " + page
-    const request = new XMLHttpRequest()
-    request.open("GET", "gyptix://./" + page + ".html", false) // Synchronous GET
-    request.send(null)
-    if (request.status === 200) { text = request.responseText }
-    return text
+const get_chat = k => {
+    const s = localStorage.getItem(k)
+    const a = s ? JSON.parse(s) : [];
+//  console.log("k:" + k)
+//  console.log("s:" + s)
+//  console.log("a:" + a)
+    return a
 }
 
-const about = (state) => {
-    return toggleAbout(toggleMenu(state))
+const save_chat = (k, a) =>
+    localStorage.setItem(k, JSON.stringify(a))
+
+// TODO: ChatGPT dark backgrounds (match):
+// backgrounds:
+// navigation #272829
+// messages   #38393a
+// input      #3c3c3c
+// user       #454646
+
+// Android
+// Mozilla/5.0 (linux; android 11; kfquwi build/rs8332.3115n; wv) applewebkit/537.36 (khtml, like gecko) version/4.0 chrome/128.0.6613.187 safari/537.36
+// linux armv8l
+
+// macOS Sequoai 15.3 Apple Silicon
+// mozilla/5.0 (macintosh; intel mac os x 10_15_7) applewebkit/605.1.15 (khtml, like gecko)
+// macintel
+    
+let ua = "mozilla/5.0 (macintosh; intel mac os x 10_15_7) applewebkit/605.1.15"
+let platform = "macintel"
+// TODO: iPhone UA and platform by default
+let apple = true
+let bro = "safari"
+let macOS = false
+
+const detect = () => {
+    const html = document.documentElement
+    ua = navigator.userAgent.toLowerCase()
+    platform = navigator.platform ? navigator.platform.toLowerCase() : ""
+    apple =
+        /iphone|ipad|ipod/.test(ua) ||
+        (platform.includes("mac") && navigator.maxTouchPoints > 1) ||
+        (ua.includes("macintosh") &&
+         ua.includes("applewebkit") &&
+        !ua.includes("chrome"))
+    bro = apple ? "safari" : "chrome"
+    macOS = /mac os x/.test(ua)
+//  console.log("User-Agent:", ua)
+//  console.log("Platform:", platform)
+//  console.log("Browser:", bro)
+    html.setAttribute("data-bro", bro)
 }
 
-const licenses = (state) => {
-    return toggleLicenses(toggleMenu(state))
+const get_time_label = () => {
+    const d = new Date()
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    return `${days[d.getDay()]} ${d.getHours().toString().padStart(2, "0")}:` +
+           `${d.getMinutes().toString().padStart(2, "0")}:` +
+           `${d.getSeconds().toString().padStart(2, "0")}`
 }
 
-const search  = (state) => {
-    return state
-}
 
-const info  = (state) => {
-    return toggleMenu(state)
-}
+detect() // Immediately to apply styles ASAP
 
-const restart = (state) => ({
-    ...state,
-    showMenu: false,
-    list: [],
-})
-
-const setAnswering = (state, answering) => ({
-    ...state,
-    answering
-})
-
-const answer = async (value) => {
-    try {
-        const response = await fetch("gyptix://./ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ value }),
+const init = () => { // called DOMContentLoaded
+    const clear        = get("clear"),
+          collapse     = get("collapse"),
+          content      = get("content"),
+          expand       = get("expand"),
+          input        = get("input"),
+          layout       = get("layout"),
+          list         = get("list"),
+          menu         = get("menu"),
+          messages     = get("messages"),
+          navigation   = get("navigation"),
+          remove       = get("remove"),
+          rename       = get("rename"),
+          restart      = get("restart"),
+          scroll       = get("scroll"),
+          send         = get("send"),
+          send_stop    = get("send_stop"),
+          share        = get("share"),
+          toggle_theme = get("toggle_theme")
+    
+    const render_messages = (k) => {
+        const arr = get_chat(k)
+        messages.innerHTML = ""
+        arr.forEach(msg => {
+            const d = document.createElement("div")
+            d.className = msg.sender === "user"
+                ? "user"
+                : "bot"
+            d.innerHTML = render_markdown(msg.text)
+            messages.appendChild(d)
         })
-        if (response.ok) {
-            const text = await response.text()
-            return text === "OK" ? null : text
-        }
-        console.error(`error: ${response.status}`)
-        throw new Error(`error: ${response.status}`)
-    } catch (error) {
-        console.error("error:", error)
-        return "I don't know."
+        messages.scrollTop = messages.scrollHeight
+        title.textContent = k
     }
-}
 
-const refresh = (state, { question, answer }) => {
-    const e = [
-        { type: "question", text: question },
-        { type: "answer", text: answer },
-    ]
-    return {
-        ...state,
-        list: state.list.concat(e),
-        value: "",
-        lucky_clicked: false,
-    }
-}
-
-const append = (state, newText) => { // append to latest answer
-    if (state.list.length === 0) { return state }
-    let list = [...state.list]
-    let lastIndex = list.length - 1
-    if (list[lastIndex].type !== "answer") {
-        return state
-    }
-    list[lastIndex] = {
-        ...list[lastIndex],
-        text: list[lastIndex].text + newText
-    }
-    requestAnimationFrame(() => {
-        const ul = document.querySelector("ul")
-        if (ul) ul.scrollTo({ top: ul.scrollHeight, behavior: "smooth" })
-    })
-    return { ...state, list }
-}
-
-const poll = (dispatch, getState) => {
-    fetch("gyptix://./poll", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "",
-    })
-    .then(response => response.text())
-    .then(text => {
-        if (text === "<--done-->") {
-            dispatch(setAnswering, false)
-        } else {
-            if (text !== "") {
-                dispatch(append, text)
+    const rebuild_list = () => {
+        list.innerHTML = ""
+        const count = localStorage.length
+        for (let i = count - 1; i >= 0; i--) {
+            const key = localStorage.key(i)
+            if (!key) continue
+            const div = document.createElement("div")
+            div.className = "item"
+            div.onclick = () => {
+                current = key
+                render_messages(key)
             }
-            setTimeout(() => poll(dispatch, getState), 10)
+            const span = document.createElement("span")
+            span.textContent = key
+            const dots = document.createElement("button")
+            dots.className = "button"
+            dots.textContent = "⋮"
+            dots.onclick = e => {
+                e.stopPropagation()
+                selected = key
+                show_menu(e.pageX, e.pageY)
+            }
+            div.appendChild(span)
+            div.appendChild(dots)
+            list.appendChild(div)
         }
-    })
-    .catch(error => {
-        console.error("poll failed:", error)
-        dispatch(setAnswering, false)
-    })
-}
+    }
 
-const effect = (dispatch, { value }) => {
-    dispatch(refresh, { question: value, answer: "" })
-    answer(value).then((answer) => {
-        if (answer === null) {
-            dispatch(setAnswering, true)
-            poll(dispatch)
+    const start = () => {
+        let k = get_time_label()
+        while (localStorage.getItem(k)) {
+            k = get_time_label()
+        }
+        localStorage.setItem(k, "[]")
+        current = k
+        const arr = [{
+            sender: "bot",
+            text: "What would you like to discuss today?<br>" +
+                  "<sup>Full sentences help me respond better.<sup>"
+        }]
+        save_chat(k, arr)
+        rebuild_list()
+        render_messages(k)
+    }
+
+    const toast = (message) => {
+        console.log("TODO: toast(" + message + ")")
+    }
+    
+    const placeholder = () => {
+        if (model.is_answering()) {
+            input.style.setProperty("--placeholder",
+                                    '"click (⏹) to interrupt"');
+        } else if (!macOS) { // double quotes improtant for css variable:
+            input.style.setProperty("--placeholder",
+                                    '"Ask anything... and click (⇧)"');
         } else {
-            dispatch(append, answer)
+            input.style.setProperty("--placeholder",
+                                    '"Ask anything... Use ⇧⏎ for new line"');
         }
-    })
-}
-
-const add = (state) => [
-    state,
-    [effect, { value: state.value, lucky_clicked: false, showMenu: false }],
-    delay(33, scroll)
-]
-
-const interrupt = (dispatch, { answering }) => {
-    fetch("gyptix://./poll", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "<--interrupt-->",
-    })
-    .then(() => {
-        dispatch(setAnswering, true)
-    })
-    .catch(error => {
-        console.error("poll failed:", error)
-    })
-}
-
-const stop = (state) => [
-    state,
-    [interrupt, { showMenu: false, answering: state.answering } ],
-    delay(33, scroll)
-]
-
-const erase = (state) => {
-    const editable = document.querySelector(".editable")
-    if (editable) {
-        editable.innerText = ""
     }
-    return { ...state, value: "", lucky_clicked: false }
-}
-
-const add_or_stop = (state) => {
-    return state.answering ? stop(state) : add(state)
-}
-
-const agreeEula = (state) => {
-    localStorage.setItem("eula_agreed", "true")
-    return { ...state, showEula: false }
-}
-
-const eula = (state) => [
-    {
-        ...state,
-        eulaText: get("eula"),
-        showEula: true,
-        agreeEnabled: false
+    
+    const polling = () => {
+        send_stop.innerText = "⏹"
+        const pollInterval = setInterval(() => {
+            const polledText = model.poll()
+            if (polledText === "<-done->") {
+                clearInterval(pollInterval)
+                send_stop.innerText = "⇧"
+                placeholder()
+                return
+            }
+            if (polledText !== "") {
+                const chats = get_chat(current)
+                chats[chats.length - 1].text += polledText
+                save_chat(current, chats)
+                requestAnimationFrame(() => render_messages(current))
+            }
+        }, 100)
     }
-]
 
-const checkEula = (state) => {
-//  localStorage.setItem("eula_agreed", "false") // DEBUG
-    if (localStorage.getItem("eula_agreed") === "true") {
-        return state
+    const ask = t => {
+        if (!current || !t) return
+        const arr = get_chat(current)
+        arr.push({ sender: "user", text: t })
+        arr.push({ sender: "bot", text: "" })
+        save_chat(current, arr)
+        render_messages(current)
+        let error = model.ask(t)
+        if (error == null) {
+            placeholder()
+            polling()
+        } else {
+            toast(error)
+        }
     }
-    return eula(state)
+
+    const show_menu = (x, y) => {
+        menu.style.left = `${x}px`
+        menu.style.top = `${y}px`
+        menu.style.display = "block"
+    }
+
+    const hide_menu = () => {
+        menu.style.display = "none"
+    }
+    
+    window.addEventListener("resize", () => {
+        const px = window.innerHeight * 0.01;
+        console.log("resize(--vh: " + px + "px)")
+        document.documentElement.style.setProperty("--vh", px + "px")
+    })
+
+    toggle_theme.onclick = () => {
+        const html = document.documentElement
+        const current = html.getAttribute("data-theme")
+        html.setAttribute("data-theme", current === "dark"
+            ? "light" : "dark")
+    }
+
+    send.onclick = e => {
+        e.preventDefault()
+        const s = input.innerText.trim()
+        console.log("send.onclick")
+        if (model.is_answering()) {
+            console.log("<-interrupt->")
+            model.poll("<-interrupt->")
+            placeholder()
+        } else if (s !== "") {
+            console.log("<-interrupt->")
+            ask(s)
+            input.innerText = ""
+            requestAnimationFrame(() => input.blur())
+        }
+    }
+
+    restart.onclick = () => start()
+    
+    clear.onclick = () => {
+        localStorage.clear()
+        current = null
+        start()
+    }
+
+    const collapsed = () => {
+        navigation.classList.add("collapsed")
+        layout.classList.add("is_collapsed")
+        hide_menu()
+    }
+
+    const expanded = () => {
+        navigation.classList.remove("collapsed")
+        layout.classList.remove("is_collapsed")
+    }
+
+    collapse.onclick = () => collapsed()
+    expand.onclick = () => expanded()
+
+    scroll.onclick = () => {
+        messages.scrollTop = messages.scrollHeight
+    }
+
+    input.onkeydown = e => {
+        // for iOS enable ignore enter
+        let s = input.innerText.trim()
+        if (macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
+            input.innerText = ""
+            requestAnimationFrame(() => {
+                const sel = window.getSelection()
+                if (sel) sel.removeAllRanges()
+                ask(s)
+            })
+        }
+    }
+
+    const observer = new MutationObserver(() => {
+        scroll.style.display = "none"
+    })
+    
+    observer.observe(input, { childList: true, subtree: true,
+                              characterData: true });
+    
+    input.onblur = () => { // focus lost
+        show_hide_scroll_to_bottom()
+        document.body.style.overflow = ""
+    }
+    
+    input.onfocus = () => {
+        scroll.style.display = "none"
+        document.body.style.overflow = "hidden"
+        collapsed()
+    }
+
+    input.oninput = () => {
+        const lines = input.innerText.split("\n").length
+        input.style.maxHeight = lines > 1
+            ? window.innerHeight * 0.5 + "px" : ""
+    }
+
+    content.onclick = e => {
+        if (e.target.closest("#chat-container") ||
+            e.target.closest("#input")) collapsed()
+        if (!e.target.closest("#menu")) hide_menu()
+    }
+
+    const show_hide_scroll_to_bottom = () => {
+        const d = messages.scrollHeight - messages.scrollTop
+        scroll.style.display = d > messages.clientHeight + 10 &&
+        !model.is_answering()
+            ? "block" : "none"
+    }
+
+    messages.onscroll = () => show_hide_scroll_to_bottom()
+    
+    remove.onclick = () => {
+        if (!selected) return
+        localStorage.removeItem(selected)
+        if (current === selected)
+            current = null
+        rebuild_list()
+        if (!localStorage.length) {
+            start()
+        } else if (!current) {
+            const k = localStorage.key(0)
+            current = k
+            render_messages(k)
+        }
+        hide_menu()
+    }
+
+    rename.onclick = () => {
+        if (!selected) return
+        const name = prompt("Enter new name", selected)
+        if (name && name !== selected) {
+            const data = get_chat(selected)
+            localStorage.removeItem(selected)
+            localStorage.setItem(name, JSON.stringify(data))
+            if (current === selected)
+                current = name
+            rebuild_list()
+            render_messages(current)
+        }
+        hide_menu()
+    }
+
+    share.onclick = () => {
+        if (!selected) return
+        const data = get_chat(selected)
+        prompt("Copy chat data:", JSON.stringify(data))
+        hide_menu()
+    }
+    
+    localStorage.clear() // DEBUG
+    detect()
+    if (!macOS) { // double quotes improtant for css variable:
+        input.style.setProperty("--placeholder",
+                                '"Ask anything... and click [⇧]"');
+    }
+    marked.use({pedantic: false, gfm: true, breaks: false})
+    rebuild_list()
+    if (!localStorage.length) {
+        start()
+    } else {
+        current = localStorage.key(0)
+        render_messages(current)
+    }
 }
 
-const pasted = (state, event) => {
-    event.preventDefault()
-    let text = (event.clipboardData || window.clipboardData).getData("text/plain")
-    const editable = document.querySelector(".editable")
-    if (text && editable) {
-        const selection = window.getSelection()
-        const range = selection.getRangeAt(0)
-        range.deleteContents()
-        range.insertNode(document.createTextNode(text))
-        range.setStartAfter(range.endContainer)
-        range.setEndAfter(range.endContainer)
-        selection.removeAllRanges()
-        selection.addRange(range)
-        // TODO: lost focus; next line suppose to refocus but it does not
-        setTimeout(() => { editable.focus() }, 500)
-        return {...state, value: editable.innerText}
-    }
-    return state
-}
-
-app({
-    init: checkEula({
-        list: [],
-        value: "",
-        answering: false,
-        showMenu: false,
-        showEula: false,
-        eulaText: get("eula"),
-        aboutText: get("about"),
-        licensesText: get("licenses"),
-        showAbout: false,
-        showLicenses: false,
-        lucky_clicked: false,
-    }),
-    subscriptions: (state) => [
-        [update, { value: state.value }]
-    ],
-    view: ({ state, list, value, answering, showMenu, showEula, eulaText,
-             aboutText, licensesText, showAbout, showLicenses, lucky_clicked }) =>
-        main([
-            showEula ?
-            div({ class: "page" }, [
-                div({ class: "page-content" }, [
-                    ul(eulaText.split("\n").map(line => li({}, text(line)))),
-                    div({ class: "agree-container" }, [
-                        button({
-                            class: "OK",
-                            onclick: agreeEula
-                        }, text("I AGREE"))
-                    ])
-                ])
-            ]) :
-            showAbout ? div({ class: "page" }, [
-                div({ class: "page-content" }, [
-                    ul(aboutText.split("\n").map(line => li({}, text(line)))),
-                    div({ class: "agree-container" }, [
-                        button({
-                            class: "OK",
-                            onclick: toggleAbout
-                        }, text("ⓧ"))
-                    ])
-                ])
-            ]) :
-            showLicenses ? div({ class: "page" }, [
-                div({ class: "page-content" }, [
-                    ul(licensesText.split("\n").map(line => li({}, text(line)))),
-                    div({ class: "agree-container" }, [
-                        button({
-                            class: "OK",
-                            onclick: toggleLicenses
-                        }, text("ⓧ"))
-                    ])
-                ])
-            ]) :
-            div({ class: "header" }, [
-                button({
-                    class: "info",
-                    onclick: info
-                }, [
-                   text("☰ 𝔾𝑦ℙ𝕋𝑖𝑥"), // 𝔊𝑦𝔓𝔗𝑖𝑥
-                   img({ src: "gyptix://./GyPTix-256x256.png",
-                         class: "logo"})
-                ]),
-//              button({ class: "magnifying-glass-icon",
-//                  disabled: list.length === 0,
-//                  onclick: search }),
-                button({
-                    class: "lucky",
-                    disabled: value.trim() !== "",
-                    title: "Need inspiration? Click on 🤷‍♂️",
-                    onclick: lucky
-                }, text("🤷‍♂️")),
-                button({ class: "pen-to-square-icon",
-                    disabled: list.length === 0,
-                    title: "Start new conversation",
-                    onclick: restart }),
-            ]),
-            showMenu ?
-            div({ class: "pure-modal" }, [
-                div({ class: "pure-modal-content" }, [
-                    button({ class: "info", onclick: info }, text("ˆ")),
-                    ul([
-                        li({ onclick: about }, text("About")),
-                        li({ onclick: licenses }, text("Licenses")),
-                    ])
-                ]),
-            ]) : null,
-            ul(list.map(e => li({class: e.type}, multiline(e.text)))),
-            section( {}, [
-                div( { class: "editor" }, [
-                    div({
-                        class: "editable",
-                        contenteditable: "true",
-                        placeholder: "Ask anything...",
-                        oninput: changed,
-                        onpaste: pasted,
-                    }),
-                    div({ class: "editor_tools" }, [
-                        lucky_clicked ?
-                        button({ class: "erase", onclick: erase }, text("✖")) :
-                        div({},[]),
-                        button({ class: answering ?
-                            "circle-stop-icon" : "up-arrow-icon",
-                            disabled: value.trim() === "" && !answering,
-                            title: !answering ?
-                                "Submit your question" : "Stop",
-                            onclick: add_or_stop
-                        }),
-                    ])
-                ]),
-            ])
-        ]),
-    node: document.getElementById("app"),
-})
+export { init }

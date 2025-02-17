@@ -72,25 +72,22 @@
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
 		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
 		B3A4829A2D50384100FCE4A5 /* WindowDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482992D50384100FCE4A5 /* WindowDelegate.swift */; };
-		B3B29CA92D4E8E57006F04CE /* GyPTix-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */; };
-		B3B3F3FF2D4AB3C300A2D406 /* eula.html in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F92D4AB3C300A2D406 /* eula.html */; };
-		B3B3F4002D4AB3C300A2D406 /* hyperapp.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3ED2D4AB3C300A2D406 /* hyperapp.js */; };
-		B3B3F4012D4AB3C300A2D406 /* pure-min.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F42D4AB3C300A2D406 /* pure-min.css */; };
-		B3B3F4022D4AB3C300A2D406 /* hyperapp.events.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3EF2D4AB3C300A2D406 /* hyperapp.events.js */; };
-		B3B3F4032D4AB3C300A2D406 /* hyperapp.svg.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F12D4AB3C300A2D406 /* hyperapp.svg.js */; };
+		B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* logo-256x256.png */; };
+		B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F92D4AB3C300A2D406 /* eula.md */; };
 		B3B3F4042D4AB3C300A2D406 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FA2D4AB3C300A2D406 /* index.html */; };
-		B3B3F4052D4AB3C300A2D406 /* licenses.html in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FB2D4AB3C300A2D406 /* licenses.html */; };
+		B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FB2D4AB3C300A2D406 /* licenses.md */; };
 		B3B3F4062D4AB3C300A2D406 /* prompts.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FC2D4AB3C300A2D406 /* prompts.js */; };
-		B3B3F4072D4AB3C300A2D406 /* hyperapp.time.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F22D4AB3C300A2D406 /* hyperapp.time.js */; };
-		B3B3F4082D4AB3C300A2D406 /* hyperapp.dom.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3EE2D4AB3C300A2D406 /* hyperapp.dom.js */; };
-		B3B3F4092D4AB3C300A2D406 /* about.html in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F62D4AB3C300A2D406 /* about.html */; };
+		B3B3F4092D4AB3C300A2D406 /* about.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F62D4AB3C300A2D406 /* about.md */; };
 		B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F82D4AB3C300A2D406 /* app.js */; };
-		B3B3F40B2D4AB3C300A2D406 /* hyperapp.html.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F02D4AB3C300A2D406 /* hyperapp.html.js */; };
 		B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F72D4AB3C300A2D406 /* app.css */; };
 		B3B3F40D2D4AB3C300A2D406 /* svgs.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FD2D4AB3C300A2D406 /* svgs.css */; };
 		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
 		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
 		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
+		B3E2499B2D6162110048A24F /* model.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499A2D6162110048A24F /* model.js */; };
+		B3E2499D2D61621C0048A24F /* util.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499C2D61621C0048A24F /* util.js */; };
+		B3E2499F2D617B780048A24F /* app.html in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499E2D617B780048A24F /* app.html */; };
+		B3E249A12D617E300048A24F /* marked.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E249A02D617E300048A24F /* marked.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -213,25 +210,22 @@
 		B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SingleWindow.swift; path = ../src/swift/SingleWindow.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
 		B3A482992D50384100FCE4A5 /* WindowDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WindowDelegate.swift; path = ../src/swift/WindowDelegate.swift; sourceTree = SOURCE_ROOT; };
-		B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "GyPTix-256x256.png"; sourceTree = "<group>"; };
-		B3B3F3ED2D4AB3C300A2D406 /* hyperapp.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.js; sourceTree = "<group>"; };
-		B3B3F3EE2D4AB3C300A2D406 /* hyperapp.dom.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.dom.js; sourceTree = "<group>"; };
-		B3B3F3EF2D4AB3C300A2D406 /* hyperapp.events.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.events.js; sourceTree = "<group>"; };
-		B3B3F3F02D4AB3C300A2D406 /* hyperapp.html.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.html.js; sourceTree = "<group>"; };
-		B3B3F3F12D4AB3C300A2D406 /* hyperapp.svg.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.svg.js; sourceTree = "<group>"; };
-		B3B3F3F22D4AB3C300A2D406 /* hyperapp.time.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = hyperapp.time.js; sourceTree = "<group>"; };
-		B3B3F3F42D4AB3C300A2D406 /* pure-min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "pure-min.css"; sourceTree = "<group>"; };
-		B3B3F3F62D4AB3C300A2D406 /* about.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = about.html; sourceTree = "<group>"; };
+		B3B29CA82D4E8E57006F04CE /* logo-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-256x256.png"; sourceTree = "<group>"; };
+		B3B3F3F62D4AB3C300A2D406 /* about.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = about.md; sourceTree = "<group>"; };
 		B3B3F3F72D4AB3C300A2D406 /* app.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app.css; sourceTree = "<group>"; };
 		B3B3F3F82D4AB3C300A2D406 /* app.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app.js; sourceTree = "<group>"; };
-		B3B3F3F92D4AB3C300A2D406 /* eula.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = eula.html; sourceTree = "<group>"; };
+		B3B3F3F92D4AB3C300A2D406 /* eula.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = eula.md; sourceTree = "<group>"; };
 		B3B3F3FA2D4AB3C300A2D406 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
-		B3B3F3FB2D4AB3C300A2D406 /* licenses.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = licenses.html; sourceTree = "<group>"; };
+		B3B3F3FB2D4AB3C300A2D406 /* licenses.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = licenses.md; sourceTree = "<group>"; };
 		B3B3F3FC2D4AB3C300A2D406 /* prompts.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prompts.js; sourceTree = "<group>"; };
 		B3B3F3FD2D4AB3C300A2D406 /* svgs.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = svgs.css; sourceTree = "<group>"; };
 		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
 		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		B3E2499A2D6162110048A24F /* model.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = model.js; sourceTree = "<group>"; };
+		B3E2499C2D61621C0048A24F /* util.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = util.js; sourceTree = "<group>"; };
+		B3E2499E2D617B780048A24F /* app.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app.html; sourceTree = "<group>"; };
+		B3E249A02D617E300048A24F /* marked.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = marked.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -478,41 +472,22 @@
 			path = swift;
 			sourceTree = "<group>";
 		};
-		B3B3F3F32D4AB3C300A2D406 /* hyperapp */ = {
-			isa = PBXGroup;
-			children = (
-				B3B3F3ED2D4AB3C300A2D406 /* hyperapp.js */,
-				B3B3F3EE2D4AB3C300A2D406 /* hyperapp.dom.js */,
-				B3B3F3EF2D4AB3C300A2D406 /* hyperapp.events.js */,
-				B3B3F3F02D4AB3C300A2D406 /* hyperapp.html.js */,
-				B3B3F3F12D4AB3C300A2D406 /* hyperapp.svg.js */,
-				B3B3F3F22D4AB3C300A2D406 /* hyperapp.time.js */,
-			);
-			path = hyperapp;
-			sourceTree = "<group>";
-		};
-		B3B3F3F52D4AB3C300A2D406 /* pure */ = {
-			isa = PBXGroup;
-			children = (
-				B3B3F3F42D4AB3C300A2D406 /* pure-min.css */,
-			);
-			path = pure;
-			sourceTree = "<group>";
-		};
 		B3B3F3FE2D4AB3C300A2D406 /* javascript */ = {
 			isa = PBXGroup;
 			children = (
-				B3B3F3F32D4AB3C300A2D406 /* hyperapp */,
-				B3B3F3F52D4AB3C300A2D406 /* pure */,
-				B3B3F3F62D4AB3C300A2D406 /* about.html */,
+				B3B3F3F62D4AB3C300A2D406 /* about.md */,
+				B3E2499E2D617B780048A24F /* app.html */,
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
-				B3B3F3F92D4AB3C300A2D406 /* eula.html */,
-				B3B3F3FA2D4AB3C300A2D406 /* index.html */,
-				B3B3F3FB2D4AB3C300A2D406 /* licenses.html */,
+				B3E2499A2D6162110048A24F /* model.js */,
+				B3E249A02D617E300048A24F /* marked.js */,
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
+				B3E2499C2D61621C0048A24F /* util.js */,
+				B3B3F3F92D4AB3C300A2D406 /* eula.md */,
+				B3B3F3FA2D4AB3C300A2D406 /* index.html */,
+				B3B3F3FB2D4AB3C300A2D406 /* licenses.md */,
 				B3B3F3FD2D4AB3C300A2D406 /* svgs.css */,
-				B3B29CA82D4E8E57006F04CE /* GyPTix-256x256.png */,
+				B3B29CA82D4E8E57006F04CE /* logo-256x256.png */,
 			);
 			name = javascript;
 			path = ../src/javascript;
@@ -581,31 +556,28 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B3E249A12D617E300048A24F /* marked.js in Resources */,
+				B3E2499D2D61621C0048A24F /* util.js in Resources */,
 				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
 				B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */,
+				B3E2499B2D6162110048A24F /* model.js in Resources */,
 				B30D39252D458EFA00B8196B /* added_tokens.json in Resources */,
 				B30D39262D458EFA00B8196B /* merges.txt in Resources */,
 				B30D39272D458EFA00B8196B /* tokenizer.json in Resources */,
-				B3B29CA92D4E8E57006F04CE /* GyPTix-256x256.png in Resources */,
+				B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */,
 				B30D39282D458EFA00B8196B /* config.json in Resources */,
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B30D392A2D458EFA00B8196B /* vocab.json in Resources */,
 				B30D392B2D458EFA00B8196B /* README.md in Resources */,
-				B3B3F3FF2D4AB3C300A2D406 /* eula.html in Resources */,
-				B3B3F4002D4AB3C300A2D406 /* hyperapp.js in Resources */,
-				B3B3F4012D4AB3C300A2D406 /* pure-min.css in Resources */,
-				B3B3F4022D4AB3C300A2D406 /* hyperapp.events.js in Resources */,
-				B3B3F4032D4AB3C300A2D406 /* hyperapp.svg.js in Resources */,
+				B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */,
 				B3B3F4042D4AB3C300A2D406 /* index.html in Resources */,
-				B3B3F4052D4AB3C300A2D406 /* licenses.html in Resources */,
+				B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */,
 				B3B3F4062D4AB3C300A2D406 /* prompts.js in Resources */,
-				B3B3F4072D4AB3C300A2D406 /* hyperapp.time.js in Resources */,
-				B3B3F4082D4AB3C300A2D406 /* hyperapp.dom.js in Resources */,
-				B3B3F4092D4AB3C300A2D406 /* about.html in Resources */,
+				B3B3F4092D4AB3C300A2D406 /* about.md in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,
 				B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */,
-				B3B3F40B2D4AB3C300A2D406 /* hyperapp.html.js in Resources */,
 				B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */,
+				B3E2499F2D617B780048A24F /* app.html in Resources */,
 				B3B3F40D2D4AB3C300A2D406 /* svgs.css in Resources */,
 				B30D392C2D458EFA00B8196B /* generation_config.json in Resources */,
 				B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */,

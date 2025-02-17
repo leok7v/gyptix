@@ -124,13 +124,7 @@ static void sleep_for_ns(long nsec) {
 void ask(const char* s) {
     pthread_mutex_lock(&lock);
     assert(question == NULL);
-    const char* start = "{\"value\":\"";
-    size_t n = strlen(start);
-    assert(memcmp(s, start, n) == 0);
-    s += n;
-    size_t len = strlen(s);
-    assert(len > 2 && s[len - 2] == '"' && s[len - 1] == '}');
-    question = strndup(s, len - 2);
+    question = strdup(s);
     pthread_mutex_unlock(&lock);
     wakeup();
     while (question != NULL) { sleep_for_ns(1000 * 1000); }

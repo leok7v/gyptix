@@ -16,18 +16,6 @@ struct WebView: ViewRepresentable {
         self.schemeHandler = schemeHandler
     }
 
-    func loadHTML() -> String? {
-        guard let bundleURL = Bundle.main.url(forResource: htmlFileName,
-                                              withExtension: "html") else {
-            return nil
-        }
-        let fileURL = bundleURL.deletingLastPathComponent()
-                            .appendingPathComponent(htmlFileName + ".html")
-        print("fileURL: \(fileURL)")
-        let s = try? String(contentsOf: fileURL, encoding: .utf8)
-        return s;
-    }
-
 #if os(macOS)
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -37,7 +25,7 @@ struct WebView: ViewRepresentable {
         webView.configuration.preferences.setValue(true,
                 forKey: "allowFileAccessFromFileURLs")
         webView.setValue(false, forKey: "drawsBackground")
-        if let url = URL(string: "gyptix://./index.html") {
+        if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
             webView.load(URLRequest(url: url))
         }
         return webView
@@ -56,7 +44,7 @@ struct WebView: ViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
-        if let url = URL(string: "gyptix://./index.html") {
+        if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
             webView.load(URLRequest(url: url))
         }
         return webView

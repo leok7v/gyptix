@@ -6,6 +6,6 @@ struct ContentView: View {
     let schemeHandler = FileSchemeHandler()
     
     var body: some View {
-        WebView(htmlFileName: "index", schemeHandler: schemeHandler)
+        WebView(htmlFileName: "app", schemeHandler: schemeHandler)
     }
 }

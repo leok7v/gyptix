@@ -30,7 +30,7 @@ struct Gyptix: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 240, minHeight: 320)
+                .frame(minWidth: Gyptix.w, minHeight: Gyptix.h)
                 .environment(\.locale, Locale(identifier: "en_US"))
                 .onAppear {
                     applyWindowRestrictions()
@@ -113,4 +113,16 @@ struct Gyptix: App {
         }
         #endif
     }
+    
+    // xCode Edit Scheme: Release|Debug
+    // macOS debug allows to test overlaping navigation in narow window
+    
+    #if DEBUG || os(iOS)
+    static var w: CGFloat = 240.0
+    static var h: CGFloat = 320.0
+    #else
+    static var w: CGFloat = 480.0
+    static var h: CGFloat = 320.0
+    #endif
+
 }

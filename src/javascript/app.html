@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <title>GyPTix</title>
+    <!-- Viewport Configuration -->
+    <meta name="viewport"
+          content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, 
+                   user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
+    <!-- iOS Safari Status Bar Styling -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Android Chrome Status Bar Color -->
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="./app.css" />
+    <script type="module">
+        import { init } from "./app.js"
+        document.addEventListener("DOMContentLoaded", () => { init() })
+    </script>
+</head>
+<body>
+  <div id="viewport" class="viewport">
+      <div id="layout" class="layout is_collapsed">
+        <div id="navigation" class="navigation collapsed">
+          <div id="navigation_header" class="navigation_header">
+            <button id="collapse" class="button"><span class="glyph">☰</span></button>
+            <button id="clear" class="button"><span class="glyph">🧹</span></button>
+            <span class="title">v: 25.02.12</span>
+          </div>
+          <div id="chats"><div id="list"></div></div>
+        </div>
+        <div id="content" class="content">
+          <div id="header" class="header">
+            <button id="expand" class="button"><span class="glyph">☰</span></button>
+            <button id="restart" class="button"><span class="glyph">✚</span></button>
+            <span id="title" class="title"></span>
+            <span style="flex:1;"></span>
+            <button id="toggle_theme" class="button"><span class="glyph">◐</span></button>
+          </div>
+          <div id="chat-container">
+              <div id="chat"><div id="messages"></div></div>
+              <button id="scroll" class="circled">
+                  <span class="glyph upsidedown">⇧</span>
+              </button>
+              <div class="input_container">
+                <div id="input" contenteditable="true" placeholder="⇧⏎"></div>
+                <div class="button_row">
+                    <button id="send" class="circled">
+                        <span id="send_stop" class="glyph">⇧</span>
+                    </button>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+  </div>
+  <div id="menu">
+    <button id="remove" class="button"><span class="glyph">🗑️</span></button>
+    <button id="rename" class="button"><span class="glyph">⋯</span></button>
+    <button id="share" class="button"><span class="glyph">⤴</span></button>
+  </div>
+</body>
+</html>
