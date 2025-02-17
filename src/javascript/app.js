@@ -7,6 +7,7 @@ const get = id => document.getElementById(id)
 
 let current  = null // current chat key
 let selected = null // selected chat
+let at_the_bottom = true
 
 const render_markdown = md => marked.parse(md)
 
@@ -100,6 +101,10 @@ const init = () => { // called DOMContentLoaded
           toggle_theme = get("toggle_theme")
     
     const render_messages = (k) => {
+        const sh = messages.scrollHeight
+        const ch = messages.clientHeight
+        const top = messages.scrollTop
+        at_the_bottom = sh - ch <= top + 5
         const arr = get_chat(k)
         messages.innerHTML = ""
         arr.forEach(msg => {
@@ -110,7 +115,9 @@ const init = () => { // called DOMContentLoaded
             d.innerHTML = render_markdown(msg.text)
             messages.appendChild(d)
         })
-        messages.scrollTop = messages.scrollHeight
+        if (at_the_bottom) { // Scroll only if user was at the bottom
+            messages.scrollTop = messages.scrollHeight
+        }
         title.textContent = k
     }
 
@@ -322,7 +329,7 @@ const init = () => { // called DOMContentLoaded
     const show_hide_scroll_to_bottom = () => {
         const d = messages.scrollHeight - messages.scrollTop
         scroll.style.display = d > messages.clientHeight + 10 &&
-        !model.is_answering()
+        (!model.is_answering() || !at_the_bottom)
             ? "block" : "none"
     }
 
