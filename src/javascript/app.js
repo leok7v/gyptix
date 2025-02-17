@@ -19,15 +19,15 @@ document.addEventListener("copy", e => {
 
 const get_chat = k => {
     const s = localStorage.getItem(k)
-    const a = s ? JSON.parse(s) : [];
+    const c = s ? JSON.parse(s) : { title: "", timestamp: 0, messages: [] }
 //  console.log("k:" + k)
 //  console.log("s:" + s)
-//  console.log("a:" + a)
-    return a
+//  console.log("c:" + c)
+    return c
 }
 
-const save_chat = (k, a) =>
-    localStorage.setItem(k, JSON.stringify(a))
+const save_chat = (k, c) =>
+    localStorage.setItem(k, JSON.stringify(c))
 
 // TODO: ChatGPT dark backgrounds (match):
 // backgrounds:
@@ -69,14 +69,15 @@ const detect = () => {
     html.setAttribute("data-bro", bro)
 }
 
-const get_time_label = () => {
-    const d = new Date()
+const timestamp = () => Date.now() // UTC timestamp in milliseconds
+
+const timestamp_label = (timestamp) => {
+    const d = new Date(timestamp)
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     return `${days[d.getDay()]} ${d.getHours().toString().padStart(2, "0")}:` +
            `${d.getMinutes().toString().padStart(2, "0")}:` +
            `${d.getSeconds().toString().padStart(2, "0")}`
 }
-
 
 detect() // Immediately to apply styles ASAP
 
@@ -101,13 +102,14 @@ const init = () => { // called DOMContentLoaded
           toggle_theme = get("toggle_theme")
     
     const render_messages = (k) => {
+        const chat = get_chat(k)
+        if (!chat || !chat.messages) return
         const sh = messages.scrollHeight
         const ch = messages.clientHeight
         const top = messages.scrollTop
         at_the_bottom = sh - ch <= top + 5
-        const arr = get_chat(k)
         messages.innerHTML = ""
-        arr.forEach(msg => {
+        chat.messages.forEach(msg => {
             const d = document.createElement("div")
             d.className = msg.sender === "user"
                 ? "user"
@@ -118,50 +120,65 @@ const init = () => { // called DOMContentLoaded
         if (at_the_bottom) { // Scroll only if user was at the bottom
             messages.scrollTop = messages.scrollHeight
         }
-        title.textContent = k
+        title.textContent = chat.title
     }
 
     const rebuild_list = () => {
+        if (!list) return
         list.innerHTML = ""
+        const chats = []
         const count = localStorage.length
-        for (let i = count - 1; i >= 0; i--) {
+        for (let i = 0; i < count; i++) {
             const key = localStorage.key(i)
-            if (!key) continue
+            if (!key || !key.startsWith("chat.")) continue
+            const chat = get_chat(key)
+            if (chat.timestamp) {
+                chats.push({ key, title: chat.title, timestamp: chat.timestamp })
+            }
+        }
+        chats.sort((a, b) => b.timestamp - a.timestamp)
+        chats.forEach(chat => {
             const div = document.createElement("div")
             div.className = "item"
             div.onclick = () => {
-                current = key
-                render_messages(key)
+                current = chat.key
+                render_messages(chat.key)
             }
             const span = document.createElement("span")
-            span.textContent = key
+            span.textContent = chat.title
             const dots = document.createElement("button")
             dots.className = "button"
             dots.textContent = "⋮"
             dots.onclick = e => {
                 e.stopPropagation()
-                selected = key
+                selected = chat.key
                 show_menu(e.pageX, e.pageY)
             }
             div.appendChild(span)
             div.appendChild(dots)
             list.appendChild(div)
-        }
+        })
     }
 
     const start = () => {
-        let k = get_time_label()
+        let ts = timestamp()
+        let k = "chat." + ts
         while (localStorage.getItem(k)) {
-            k = get_time_label()
+            ts = timestamp()
+            k = "chat." + ts
         }
         localStorage.setItem(k, "[]")
         current = k
-        const arr = [{
-            sender: "bot",
-            text: "What would you like to discuss today?<br>" +
-                  "<sup>Full sentences help me respond better.<sup>"
-        }]
-        save_chat(k, arr)
+        const chat = {
+            title: timestamp_label(ts),
+            timestamp: ts,
+            messages: [{
+                sender: "bot",
+                text: "What would you like to discuss today?<br>" +
+                      "<sup>Using full sentences helps me respond better.<sup>"
+            }]
+        }
+        save_chat(k, chat)
         rebuild_list()
         render_messages(k)
     }
@@ -171,6 +188,7 @@ const init = () => { // called DOMContentLoaded
     }
     
     const placeholder = () => {
+        // double quotes improtant for css variable inside value
         if (model.is_answering()) {
             input.style.setProperty("--placeholder",
                                     '"click (⏹) to interrupt"');
@@ -194,20 +212,27 @@ const init = () => { // called DOMContentLoaded
                 return
             }
             if (polledText !== "") {
-                const chats = get_chat(current)
-                chats[chats.length - 1].text += polledText
-                save_chat(current, chats)
-                requestAnimationFrame(() => render_messages(current))
+                // TODO: very very inefficient, may want to save chat only
+                //       then polling is complete
+                // That will take keeping current chat in memory and few
+                // changes here and there
+                const chat = get_chat(current)
+                if (chat.messages.length > 0) {
+                    chat.messages[chat.messages.length - 1].text += polledText
+                    save_chat(current, chat)
+                    requestAnimationFrame(() => render_messages(current))
+                }
             }
         }, 100)
     }
 
     const ask = t => {
         if (!current || !t) return
-        const arr = get_chat(current)
-        arr.push({ sender: "user", text: t })
-        arr.push({ sender: "bot", text: "" })
-        save_chat(current, arr)
+        const chat = get_chat(current)
+        if (!chat.messages) chat.messages = []
+        chat.messages.push({ sender: "user", text: t })
+        chat.messages.push({ sender: "bot", text: "" })
+        save_chat(current, chat)
         render_messages(current)
         let error = model.ask(t)
         if (error == null) {
@@ -374,19 +399,23 @@ const init = () => { // called DOMContentLoaded
     }
     
     localStorage.clear() // DEBUG
-    detect()
-    if (!macOS) { // double quotes improtant for css variable:
-        input.style.setProperty("--placeholder",
-                                '"Ask anything... and click [⇧]"');
-    }
+
     marked.use({pedantic: false, gfm: true, breaks: false})
-    rebuild_list()
-    if (!localStorage.length) {
-        start()
-    } else {
-        current = localStorage.key(0)
+    detect()
+    placeholder()
+
+    const keys = Object.keys(localStorage).filter(k => k.startsWith("chat."))
+    const validChats = keys.filter(k => {
+        const chat = get_chat(k)
+        return chat && Array.isArray(chat.messages) && chat.messages.length > 0
+    })
+    if (validChats.length > 0) {
+        current = validChats.sort().reverse()[0] // Load the latest valid chat
         render_messages(current)
+    } else {
+        start()
     }
+    rebuild_list()
 }
 
 export { init }
