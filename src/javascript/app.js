@@ -7,6 +7,7 @@ import * as util   from "./util.js"
 const get = id => document.getElementById(id)
 
 let at_the_bottom = true
+let user_scrolling = false
 let current  = null // current chat key
 let selected = null // selected chat
 let chat     = null // chat
@@ -39,8 +40,10 @@ const save_chat = (id, c) => {
         localStorage.setItem("chat." + id, JSON.stringify(c.messages))
     } catch (error) {
         console.log(error)
+        util.toast(error)
         localStorage.removeItem("chat.id." + id)
         localStorage.removeItem("chat." + id)
+        localStorage.clear() // brutal but effective
     }
 }
 
@@ -124,6 +127,20 @@ const init = () => { // called DOMContentLoaded
           title        = get("title"),
           toggle_theme = get("toggle_theme")
     
+    const show_hide_scroll_to_bottom = () => {
+        const d = messages.scrollHeight - messages.scrollTop
+        scroll.style.display = d > messages.clientHeight + 10 &&
+        (!model.is_answering() || !at_the_bottom)
+            ? "block" : "none"
+    }
+
+    const scroll_to_bottom = () => {
+        messages.scrollTop = messages.scrollHeight
+        at_the_bottom = true
+//      console.log("at_the_bottom := " + at_the_bottom)
+        setTimeout(() => { scroll.style.display = "none" }, 50)
+    }
+    
     const render_message = msg => {
         const d = document.createElement("div")
         d.className = msg.sender === "user" ? "user" : "bot"
@@ -139,12 +156,12 @@ const init = () => { // called DOMContentLoaded
         const ch = messages.clientHeight
         const top = messages.scrollTop
         at_the_bottom = sh - ch <= top + 5
-        console.log("at_the_bottom := " + at_the_bottom)
+//      console.log("at_the_bottom := " + at_the_bottom)
         messages.innerHTML = ""
         chat.messages.forEach(msg => {
             messages.appendChild(render_message(msg))
         })
-        if (at_the_bottom) messages.scrollTop = messages.scrollHeight
+        if (at_the_bottom) scroll_to_bottom()
         title.textContent = chat.title
     }
 
@@ -161,18 +178,21 @@ const init = () => { // called DOMContentLoaded
         } else {
             messages.appendChild(render_message(last_msg))
         }
-        if (at_the_bottom) messages.scrollTop = messages.scrollHeight
+        if (at_the_bottom) scroll_to_bottom()
     }
-
+    
     messages.onscroll = () => {
-        input.blur()
-        const sh = messages.scrollHeight
-        const ch = messages.clientHeight
-        const top = messages.scrollTop
-        at_the_bottom = (sh - ch <= top + 5)
-        requestAnimationFrame(() => {
-            show_hide_scroll_to_bottom()
-        })
+        if (user_scrolling) {
+            input.blur()
+            const sh = messages.scrollHeight
+            const ch = messages.clientHeight
+            const top = messages.scrollTop
+            at_the_bottom = (sh - ch <= top + 5)
+//          console.log("at_the_bottom := " + at_the_bottom)
+            requestAnimationFrame(() => {
+                show_hide_scroll_to_bottom()
+            })
+        }
     }
     
     const key2id = (key) => parseInt(key.substring("chat.id.".length))
@@ -260,7 +280,7 @@ const init = () => { // called DOMContentLoaded
             const most_recent = valid_chats[0]
             current = most_recent.id
             chat = load_chat(most_recent.id)
-            console.log("recent id: " + most_recent.id)
+//          console.log("recent id: " + most_recent.id)
             render_messages()
             rebuild_list()
         } else {
@@ -282,7 +302,7 @@ const init = () => { // called DOMContentLoaded
         }
     }
     
-    const poll = (interval) => {
+    const poll = interval => {
         const polledText = model.poll()
         if (polledText === "<--done-->") {
             clearInterval(interval)
@@ -297,6 +317,7 @@ const init = () => { // called DOMContentLoaded
                 chat.messages[chat.messages.length - 1].text += polledText
                 requestAnimationFrame(() => {
                     render_last()
+                    if (at_the_bottom) scroll_to_bottom()
                     show_hide_scroll_to_bottom()
                 })
             }
@@ -317,9 +338,7 @@ const init = () => { // called DOMContentLoaded
         chat.messages.push({ sender: "bot",  text: "" })
         save_chat(current, chat)
         render_messages()
-        messages.scrollTop = messages.scrollHeight
-        at_the_bottom = true
-//      console.log("at_the_bottom := " + at_the_bottom)
+        scroll_to_bottom()
         let error = model.ask(t)
         if (!error) {
             placeholder()
@@ -395,12 +414,19 @@ const init = () => { // called DOMContentLoaded
     expand.onclick = () => expanded()
 
     scroll.onclick = () => {
-        messages.scrollTop = messages.scrollHeight
+        user_scrolling = false
+        scroll_to_bottom()
     }
 
+    scroll.addEventListener("touchend", e => {
+        e.preventDefault()
+        user_scrolling = false
+        scroll_to_bottom()
+    })
+    
     input.onkeydown = e => {
         // for iOS enable ignore enter
-        console.log("macOS: " + macOS + " e.key: " + e.key)
+//      console.log("macOS: " + macOS + " e.key: " + e.key)
         let s = input.innerText.trim()
         if (macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             input.innerText = ""
@@ -440,13 +466,6 @@ const init = () => { // called DOMContentLoaded
         if (e.target.closest("#chat-container") ||
             e.target.closest("#input")) collapsed()
         if (!e.target.closest("#menu")) hide_menu()
-    }
-
-    const show_hide_scroll_to_bottom = () => {
-        const d = messages.scrollHeight - messages.scrollTop
-        scroll.style.display = d > messages.clientHeight + 10 &&
-        (!model.is_answering() || !at_the_bottom)
-            ? "block" : "none"
     }
     
     remove.onclick = () => {
@@ -492,8 +511,31 @@ const init = () => { // called DOMContentLoaded
         hide_menu()
     }
 
-    document.getElementById("font-increase").onclick = () => util.increase_font_size()
-    document.getElementById("font-decrease").onclick = () => util.decrease_font_size()
+    get("font-increase").onclick = () => util.increase_font_size()
+    get("font-decrease").onclick = () => util.decrease_font_size()
+
+    messages.addEventListener("mousedown", () => { user_scrolling = true })
+    messages.addEventListener("touchstart", () => { user_scrolling = true })
+
+    messages.addEventListener("mouseup", () => {
+        setTimeout(() => { user_scrolling = false }, 50)
+    })
+
+    messages.addEventListener("touchend", () => {
+        setTimeout(() => { user_scrolling = false }, 50)
+    })
+
+    let user_scrolling_timeout = null
+
+    messages.addEventListener("wheel", () => {
+        user_scrolling = true
+        if (user_scrolling_timeout) {
+            clearTimeout(user_scrolling_timeout)
+        }
+        user_scrolling_timeout = setTimeout(() => {
+            user_scrolling = false
+        }, 100)
+    })
     
 //  localStorage.clear() // DEBUG
 
