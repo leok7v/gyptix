@@ -76,3 +76,20 @@ export const rename_in_place = (span, old_name) => {
         }, { once: true })
     })
 }
+
+export const init_theme = () => {
+    let theme = localStorage.getItem("settings.theme")
+    if (!theme) {
+        theme = "dark"  // default theme
+        localStorage.setItem("settings.theme", theme)
+    }
+    document.documentElement.setAttribute("data-theme", theme)
+}
+
+export const toggle_theme = () => {
+    const html = document.documentElement
+    let current = html.getAttribute("data-theme")
+    let theme = current === "dark" ? "light" : "dark"
+    html.setAttribute("data-theme", theme)
+    localStorage.setItem("settings.theme", theme)
+}

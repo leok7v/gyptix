@@ -355,12 +355,7 @@ const init = () => { // called DOMContentLoaded
         document.documentElement.style.setProperty("--vh", px + "px")
     })
 
-    toggle_theme.onclick = () => {
-        const html = document.documentElement
-        const current = html.getAttribute("data-theme")
-        html.setAttribute("data-theme", current === "dark"
-            ? "light" : "dark")
-    }
+    toggle_theme.onclick = () => util.toggle_theme()
 
     send.onclick = e => {
         e.preventDefault()
@@ -501,10 +496,11 @@ const init = () => { // called DOMContentLoaded
 
     marked.use({pedantic: false, gfm: true, breaks: false})
     detect()
+    util.init_theme()
     placeholder()
     recent()
 //  util.toast("Testing Toast")
-    util.toast(ua)
+//  util.toast(ua)
 }
 
 export { init }
