@@ -443,7 +443,7 @@ const init = () => { // called DOMContentLoaded
     detect()
     placeholder()
     recent()
-    util.toast("Testing")
+//  util.toast("Testing Toast")
 }
 
 export { init }

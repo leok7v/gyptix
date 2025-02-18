@@ -59,7 +59,7 @@ export function rename(element, old_name) {
         input.style.zIndex = 9999
         document.body.appendChild(input)
         input.focus()
-        const fin   ish = val => {
+        const finish = val => {
             document.body.removeChild(input)
             resolve(val)
         }
