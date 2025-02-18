@@ -44,14 +44,14 @@ sup {
 
 :root {
     --placeholder: "Ask anything... Use ⇧⏎ for line break";
-    --background-header: color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
-    --background-messages: color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
-    --background-bot:      color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
-    --background-user:     color-mix(in srgb, var(--background-color) 95%, var(--color) 5%);
-    --background-button:   color-mix(in srgb, var(--background-color) 91%, var(--color) 19%);
+    --background-header:       color-mix(in srgb, var(--background-color) 93%, var(--color)  7%);
+    --background-navigation:   color-mix(in srgb, var(--background-color) 96%, var(--color)  4%);
+    --background-user:         color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
+    --background-button:       color-mix(in srgb, var(--background-color) 91%, var(--color) 19%);
     --background-button-hover: color-mix(in srgb, var(--background-color) 65%, var(--color) 35%);
-    --background-hover: color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
-    --background-input: color-mix(in srgb, var(--background-color) 95%, var(--color) 5%);
+    --background-hover:        color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
+    --background-input:        color-mix(in srgb, var(--background-color) 95%, var(--color)  5%);
+    --background-menu:         color-mix(in srgb, var(--background-color) 97%, var(--color)  3%);
 }
 
 [data-platform="mac"] .button { --background-color: green; }
@@ -111,7 +111,6 @@ body {
     gap: 0.5em;
     position: sticky;
     top: 0;
-    border-bottom: 1px solid #888;
     z-index: 10;
     justify-content: space-between;
     background-color: var(--background-header);
@@ -140,11 +139,11 @@ body {
     max-width: 45%;
     overflow: hidden;
     flex: 0 0 auto;
-    border-right: 1px solid #ccc;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     transition: max-width 0.3s ease;
+    background-color: var(--background-navigation)
 }
 
 .collapsed {
@@ -237,11 +236,10 @@ body {
     overflow-y: auto; /* Enables vertical scrolling */
     min-width: 0;     /* Prevents expansion beyond parent width */
     max-width: 100%;  /* Ensures it does not exceed parent's width */
-    border: 1px solid #888;
     padding: 0;
     margin: 0;
     gap: 0.5rem;
-    background-color: var(--background-messages);
+    background-color: var(--background-color);
     scroll-behavior: smooth;
 }
 
@@ -306,7 +304,7 @@ body {
 }
 
 .bot {
-    background: var(--background-bot);
+    background: var(--background-color);
     margin: 0.25em;
     padding: 0.25em;
     border-radius: 4px;
@@ -345,14 +343,18 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0;
-    width: 2.5em;
-    height: 2.5em;
-    min-width: 2.5em;
-    min-height: 2.5em;
+    width: 1.5em;
+    height: 1.5em;
+    min-width: 1.5em;
+    min-height: 1.5em;
     transition: background-color 0.2s ease;
 }
 
+.item .button {
+    margin-left: auto;
+}
 
+.item:hover,
 .button:hover { background-color: var(--background-button-hover); }
 
 #scroll {
@@ -398,11 +400,39 @@ body {
 }
 
 #menu {
+    font-size: 80%;
     position: absolute;
     display: none;
     border: 1px solid #888;
     background-color: var(--background-color);
     z-index: 99999;
-    padding: 0.3rem;
+    padding: 0.25em;
+    min-width: 5em;
+    border: 1px solid #888;
+    border-radius: 0.5em;
+    background-color: var(--background-menu);
 }
 
+.menu_item {
+    display: flex;        /* Lay out icon + label side by side */
+    align-items: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0.25em 0.5em;
+    font-size: 1em;
+    text-align: left;
+    width: 100%;          /* Make each button fill the menu width */
+}
+
+.menu_item .icon {
+    margin-right: 0.5em;
+}
+
+#remove .label {
+    color: red;
+}
+
+.menu_item:hover {
+    background-color: var(--background-hover);
+}

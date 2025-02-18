@@ -44,46 +44,34 @@ export const load = (url) => http(url, "GET")
 
 export const post = (url, req = "", done = null) => http(url, "POST", req, done)
 
-export function rename(element, old_name) {
+export const rename_in_place = (span, old_name) => {
     return new Promise(resolve => {
-        const parent = element.parentElement;
-        const orig_display = parent.style.display;
-        let rect = element.getBoundingClientRect();
-        const computed = window.getComputedStyle(element);
-        const input = document.createElement("input");
-        input.type = "text";
-        input.value = old_name;
-        input.style.position = "fixed";
-        input.style.top = rect.top + "px";
-        input.style.left = rect.left + "px";
-        input.style.width = (parent
-            ? parent.getBoundingClientRect().width
-            : rect.width) + "px";
-        input.style.zIndex = 9999;
-        input.style.fontSize = computed.fontSize;
-        input.style.fontFamily = computed.fontFamily;
-        input.style.fontWeight = computed.fontWeight;
-        input.style.color = computed.color;
-        input.style.backgroundColor = computed.backgroundColor;
-        document.body.appendChild(input);
-        input.focus();
-        input.select();
-        parent.style.display = "none";
-        const finish = value => {
-            document.body.removeChild(input);
-            parent.style.display = orig_display;
-            resolve(value);
-        };
-        input.addEventListener("keydown", event => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                finish(input.value.trim() || old_name);
-            } else if (event.key === "Escape") {
-                event.preventDefault();
-                finish(null);
+        span.contentEditable = "true"
+        const original_text = span.innerText
+        span.focus()
+        const range = document.createRange()
+        range.selectNodeContents(span)
+        const sel = window.getSelection()
+        sel.removeAllRanges()
+        sel.addRange(range)
+        function finish(value) {
+            span.contentEditable = "false"
+            resolve(value)
+        }
+        span.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+                e.preventDefault()
+                const new_text = span.innerText.trim() || old_name
+                finish(new_text)
+            } else if (e.key === "Escape") {
+                e.preventDefault()
+                span.innerText = original_text
+                finish(null)
             }
-        });
-        input.addEventListener("blur", () => finish(null));
-    });
+        })
+        span.addEventListener("blur", () => {
+            span.innerText = original_text
+            finish(null)
+        }, { once: true })
+    })
 }
-

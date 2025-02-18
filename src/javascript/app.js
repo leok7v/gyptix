@@ -198,7 +198,7 @@ const init = () => { // called DOMContentLoaded
             span.textContent = c.title
             const dots = document.createElement("button")
             dots.className = "button"
-            dots.textContent = "⋮"
+            dots.textContent = "⋯"
             dots.onclick = e => {
                 e.stopPropagation()
                 selected = c.id
@@ -318,10 +318,20 @@ const init = () => { // called DOMContentLoaded
         }
     }
 
-    const show_menu = (x, y) => {
-        menu.style.left = `${x}px`
-        menu.style.top = `${y}px`
+    function show_menu(x, y) {
         menu.style.display = "block"
+        menu.offsetWidth
+        const menu_rect = menu.getBoundingClientRect()
+        const window_height = window.innerHeight
+        const window_width  = window.innerWidth
+        let new_y = y
+        if (y + menu_rect.height > window_height) {
+            new_y = y - menu_rect.height
+            if (new_y < 0) new_y = 0
+        }
+        y = new_y
+        menu.style.left = x + "px"
+        menu.style.top  = y + "px"
     }
 
     const hide_menu = () => {
@@ -453,7 +463,7 @@ const init = () => { // called DOMContentLoaded
 //      console.log("current: " + current)
 //      console.log("selected === current " + (selected === current))
         const c = selected === current ? chat : load_chat(selected)
-        util.rename(selected_item, c.title).then(new_name => {
+        util.rename_in_place(selected_item, c.title).then(new_name => {
             if (new_name && new_name !== c.title) {
                 c.title = new_name
                 save_chat(selected, c)
