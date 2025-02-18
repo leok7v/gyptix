@@ -25,8 +25,55 @@ const http = (url, method, req = "", done = null) => {
     return text
 }
 
-const load = (url) => http(url, "GET")
+export const load = (url) => http(url, "GET")
 
-const post = (url, req = "", done = null) => http(url, "POST", req, done)
+export const post = (url, req = "", done = null) => http(url, "POST", req, done)
 
-export { load, post }
+// error reporting: display error messages in a high-z-index <div>
+export const toast = s => {
+//  console.log("toast(" + s + ")")
+    const div = document.createElement("div")
+    div.style.position  = "fixed"
+    div.style.top       = "10px"
+    div.style.left      = "50%"
+    div.style.transform = "translateX(-50%)"
+    div.style.color     = "white"
+    div.style.padding   = "10px 20px"
+    div.style.zIndex    = "10000"
+    div.style.backgroundColor = "rgba(255,0,0,0.9)"
+    div.textContent   = s
+    document.body.appendChild(div)
+    setTimeout(() => document.body.removeChild(div), 3300)
+}
+
+export function rename(element, old_name) {
+    return new Promise(resolve => {
+        const rect = element.getBoundingClientRect()
+        const input = document.createElement("input")
+        input.type = "text"
+        input.value = old_name
+        input.style.position = "fixed"
+        input.style.top = rect.top + "px"
+        input.style.left = rect.left + "px"
+        input.style.width = rect.width + "px"
+        input.style.zIndex = 9999
+        document.body.appendChild(input)
+        input.focus()
+        const fin   ish = val => {
+            document.body.removeChild(input)
+            resolve(val)
+        }
+        input.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+                e.preventDefault()
+                // Return trimmed input, or old_name if empty
+                finish(input.value.trim() || old_name)
+            } else if (e.key === "Escape") {
+                e.preventDefault()
+                finish(null)
+            }
+        })
+        input.addEventListener("blur", () => finish(null))
+    })
+}
+

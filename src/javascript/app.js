@@ -2,12 +2,15 @@
 
 import * as marked from "./marked.js"
 import * as model  from "./model.js"
+import * as util   from "./util.js"
 
 const get = id => document.getElementById(id)
 
+let at_the_bottom = true
 let current  = null // current chat key
 let selected = null // selected chat
-let at_the_bottom = true
+let chat     = null // chat
+let selected_item = null // item in chats list
 
 const render_markdown = md => marked.parse(md)
 
@@ -17,17 +20,29 @@ document.addEventListener("copy", e => {
     e.clipboardData.setData("text/plain", s)
 })
 
-const get_chat = k => {
-    const s = localStorage.getItem(k)
-    const c = s ? JSON.parse(s) : { title: "", timestamp: 0, messages: [] }
+const load_chat = id => {
+    const header = localStorage.getItem("chat.id." + id)
+    const content = localStorage.getItem("chat." + id)
+    const h = JSON.parse(header)
+    const m = JSON.parse(content) // [] messages
+    const c  = { title: h.title, timestamp: h.timestamp, messages: m }
 //  console.log("k:" + k)
 //  console.log("s:" + s)
 //  console.log("c:" + c)
     return c
 }
 
-const save_chat = (k, c) =>
-    localStorage.setItem(k, JSON.stringify(c))
+const save_chat = (id, c) => {
+    const header  = { title: c.title, timestamp: c.timestamp }
+    try {
+        localStorage.setItem("chat.id." + id, JSON.stringify(header))
+        localStorage.setItem("chat." + id, JSON.stringify(c.messages))
+    } catch (error) {
+        console.log(error)
+        localStorage.removeItem("chat.id." + id)
+        localStorage.removeItem("chat." + id)
+    }
+}
 
 // TODO: ChatGPT dark backgrounds (match):
 // backgrounds:
@@ -99,10 +114,10 @@ const init = () => { // called DOMContentLoaded
           send         = get("send"),
           send_stop    = get("send_stop"),
           share        = get("share"),
+          title        = get("title"),
           toggle_theme = get("toggle_theme")
     
-    const render_messages = (k) => {
-        const chat = get_chat(k)
+    const render_messages = () => {
         if (!chat || !chat.messages) return
         const sh = messages.scrollHeight
         const ch = messages.clientHeight
@@ -123,6 +138,8 @@ const init = () => { // called DOMContentLoaded
         title.textContent = chat.title
     }
 
+    const key2id = (key) => key.substring("chat.id.".length)
+    
     const rebuild_list = () => {
         if (!list) return
         list.innerHTML = ""
@@ -130,28 +147,35 @@ const init = () => { // called DOMContentLoaded
         const count = localStorage.length
         for (let i = 0; i < count; i++) {
             const key = localStorage.key(i)
-            if (!key || !key.startsWith("chat.")) continue
-            const chat = get_chat(key)
-            if (chat.timestamp) {
-                chats.push({ key, title: chat.title, timestamp: chat.timestamp })
+            if (!key || !key.startsWith("chat.id.")) continue
+            const id = key2id(key)
+            const c = load_chat(id)
+            if (c.timestamp) {
+                chats.push({ id: id, timestamp: c.timestamp, title: c.title })
             }
         }
         chats.sort((a, b) => b.timestamp - a.timestamp)
-        chats.forEach(chat => {
+        chats.forEach(c => {
             const div = document.createElement("div")
             div.className = "item"
             div.onclick = () => {
-                current = chat.key
-                render_messages(chat.key)
+//              console.log("onclick: " + c.id)
+                selected = null
+                current = c.id
+                chat = load_chat(current)
+                render_messages()
+                hide_menu()
+                collapsed()
             }
             const span = document.createElement("span")
-            span.textContent = chat.title
+            span.textContent = c.title
             const dots = document.createElement("button")
             dots.className = "button"
             dots.textContent = "⋮"
             dots.onclick = e => {
                 e.stopPropagation()
-                selected = chat.key
+                selected = c.id
+                selected_item = span
                 show_menu(e.pageX, e.pageY)
             }
             div.appendChild(span)
@@ -161,30 +185,48 @@ const init = () => { // called DOMContentLoaded
     }
 
     const start = () => {
-        let ts = timestamp()
-        let k = "chat." + ts
+        let id = timestamp()
+        let k = "chat.id." + id
         while (localStorage.getItem(k)) {
-            ts = timestamp()
-            k = "chat." + ts
+            id = timestamp()
+            k = "chat.id." + id
         }
-        localStorage.setItem(k, "[]")
-        current = k
-        const chat = {
-            title: timestamp_label(ts),
-            timestamp: ts,
+        current = id
+        chat = {
+            title: timestamp_label(id),
+            timestamp: id,
             messages: [{
                 sender: "bot",
                 text: "What would you like to discuss today?<br>" +
                       "<sup>Using full sentences helps me respond better.<sup>"
             }]
         }
-        save_chat(k, chat)
+        save_chat(id, chat)
         rebuild_list()
-        render_messages(k)
+        render_messages()
     }
-
-    const toast = (message) => {
-        console.log("TODO: toast(" + message + ")")
+    
+    const recent = () => { // most recent chat -> current
+        const keys = Object.keys(localStorage).filter(k =>
+            k.startsWith("chat.id.")
+        )
+        const valid_chats = keys.map(key => {
+            const h = load_chat(key2id(key))
+            return h && h.timestamp
+                ? { key: key, id: key2id(key), timestamp: h.timestamp, title: h.title }
+                : null
+        }).filter(chat => chat !== null)
+        if (valid_chats.length > 0) {
+            valid_chats.sort((a, b) => b.timestamp - a.timestamp)
+            const most_recent = valid_chats[0]
+            current = most_recent.id
+            chat = load_chat(most_recent.id)
+            console.log("most_recent key:" + most_recent.key + " id: " +
+                        most_recent.id)
+            render_messages()
+        } else {
+            start()
+        }
     }
     
     const placeholder = () => {
@@ -203,12 +245,14 @@ const init = () => { // called DOMContentLoaded
     
     const polling = () => {
         send_stop.innerText = "⏹"
-        const pollInterval = setInterval(() => {
+        const interval = setInterval(() => {
             const polledText = model.poll()
             if (polledText === "<-done->") {
-                clearInterval(pollInterval)
+                clearInterval(interval)
                 send_stop.innerText = "⇧"
                 placeholder()
+                chat.timestamp = timestamp()
+                save_chat(current, chat)
                 return
             }
             if (polledText !== "") {
@@ -216,11 +260,9 @@ const init = () => { // called DOMContentLoaded
                 //       then polling is complete
                 // That will take keeping current chat in memory and few
                 // changes here and there
-                const chat = get_chat(current)
                 if (chat.messages.length > 0) {
                     chat.messages[chat.messages.length - 1].text += polledText
-                    save_chat(current, chat)
-                    requestAnimationFrame(() => render_messages(current))
+                    requestAnimationFrame(() => render_messages())
                 }
             }
         }, 100)
@@ -228,18 +270,17 @@ const init = () => { // called DOMContentLoaded
 
     const ask = t => {
         if (!current || !t) return
-        const chat = get_chat(current)
         if (!chat.messages) chat.messages = []
         chat.messages.push({ sender: "user", text: t })
-        chat.messages.push({ sender: "bot", text: "" })
+        chat.messages.push({ sender: "bot",  text: "" })
         save_chat(current, chat)
-        render_messages(current)
+        render_messages()
         let error = model.ask(t)
         if (error == null) {
             placeholder()
             polling()
         } else {
-            toast(error)
+            util.toast(error)
         }
     }
 
@@ -362,39 +403,37 @@ const init = () => { // called DOMContentLoaded
     
     remove.onclick = () => {
         if (!selected) return
-        localStorage.removeItem(selected)
-        if (current === selected)
+        localStorage.removeItem("chat.id." + selected)
+        localStorage.removeItem("chat." + selected)
+        if (current === selected) {
             current = null
-        rebuild_list()
-        if (!localStorage.length) {
-            start()
-        } else if (!current) {
-            const k = localStorage.key(0)
-            current = k
-            render_messages(k)
+            recent()
         }
+        selected = null
         hide_menu()
+        rebuild_list()
+        render_messages()
     }
 
     rename.onclick = () => {
         if (!selected) return
-        const name = prompt("Enter new name", selected)
-        if (name && name !== selected) {
-            const data = get_chat(selected)
-            localStorage.removeItem(selected)
-            localStorage.setItem(name, JSON.stringify(data))
-            if (current === selected)
-                current = name
-            rebuild_list()
-            render_messages(current)
-        }
         hide_menu()
+        const c = selected === current ? chat : load_chat(selected)
+        util.rename(selected_item, c.title).then(new_name => {
+            if (new_name && new_name !== c.title) {
+                c.title = new_name
+                save_chat(selected, c)
+                if (selected === current) chat = c
+                rebuild_list()
+                render_messages()
+            }
+        })
     }
-
+    
     share.onclick = () => {
         if (!selected) return
-        const data = get_chat(selected)
-        prompt("Copy chat data:", JSON.stringify(data))
+        const c = load_chat(selected)
+        prompt("Copy chat data:", JSON.stringify(c))
         hide_menu()
     }
     
@@ -403,19 +442,8 @@ const init = () => { // called DOMContentLoaded
     marked.use({pedantic: false, gfm: true, breaks: false})
     detect()
     placeholder()
-
-    const keys = Object.keys(localStorage).filter(k => k.startsWith("chat."))
-    const validChats = keys.filter(k => {
-        const chat = get_chat(k)
-        return chat && Array.isArray(chat.messages) && chat.messages.length > 0
-    })
-    if (validChats.length > 0) {
-        current = validChats.sort().reverse()[0] // Load the latest valid chat
-        render_messages(current)
-    } else {
-        start()
-    }
-    rebuild_list()
+    recent()
+    util.toast("Testing")
 }
 
 export { init }

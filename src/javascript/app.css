@@ -167,6 +167,14 @@ body {
     cursor: pointer;
 }
 
+.item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 100%;
+}
+
 .item:hover {
     background-color: var(--background-hover);
 }
