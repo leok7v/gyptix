@@ -131,6 +131,9 @@ void ask(const char* s) {
     answering = true;
 }
 
+int is_answering() { return (int)answering; }
+int is_running()   { return (int)true; } // TODO: detect thread stopping...
+
 const char* answer(const char* i) {
     pthread_mutex_lock(&lock);
     if (strcmp(i, "<--interrupt-->") == 0) {

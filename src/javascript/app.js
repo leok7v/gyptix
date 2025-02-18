@@ -117,28 +117,55 @@ const init = () => { // called DOMContentLoaded
           title        = get("title"),
           toggle_theme = get("toggle_theme")
     
+    const render_message = msg => {
+        const d = document.createElement("div")
+        d.className = msg.sender === "user" ? "user" : "bot"
+        // For non-bot messages, double the newlines.
+        let text = msg.sender === "bot" ? msg.text : msg.text.replace(/\n/g, "\n\n")
+        d.innerHTML = render_markdown(text)
+        return d
+    }
+
     const render_messages = () => {
         if (!chat || !chat.messages) return
         const sh = messages.scrollHeight
         const ch = messages.clientHeight
         const top = messages.scrollTop
         at_the_bottom = sh - ch <= top + 5
+        console.log("at_the_bottom := " + at_the_bottom)
         messages.innerHTML = ""
         chat.messages.forEach(msg => {
-            const d = document.createElement("div")
-            d.className = msg.sender === "user"
-                ? "user"
-                : "bot"
-            d.innerHTML = render_markdown(msg.text)
-            messages.appendChild(d)
+            messages.appendChild(render_message(msg))
         })
-        if (at_the_bottom) { // Scroll only if user was at the bottom
-            messages.scrollTop = messages.scrollHeight
-        }
+        if (at_the_bottom) messages.scrollTop = messages.scrollHeight
         title.textContent = chat.title
     }
 
-    const key2id = (key) => key.substring("chat.id.".length)
+    const render_last = () => {
+        if (!chat || !chat.messages || chat.messages.length === 0) return
+        const last_index = chat.messages.length - 1
+        const last_msg = chat.messages[last_index]
+        // Get last child element (assumed to be the last message).
+        const last_child = messages.lastElementChild
+        if (last_child) {
+            let text = last_msg.sender === "bot" ? last_msg.text : last_msg.text.replace(/\n/g, "\n\n")
+            last_child.innerHTML = render_markdown(text)
+        } else {
+            messages.appendChild(render_message(last_msg))
+        }
+        if (at_the_bottom) messages.scrollTop = messages.scrollHeight
+    }
+
+    messages.onscroll = () => {
+        const sh = messages.scrollHeight
+        const ch = messages.clientHeight
+        const top = messages.scrollTop
+        at_the_bottom = (sh - ch <= top + 5)
+        console.log("at_the_bottom := " + at_the_bottom)
+        show_hide_scroll_to_bottom()
+    }
+    
+    const key2id = (key) => parseInt(key.substring("chat.id.".length))
     
     const rebuild_list = () => {
         if (!list) return
@@ -224,6 +251,7 @@ const init = () => { // called DOMContentLoaded
             console.log("most_recent key:" + most_recent.key + " id: " +
                         most_recent.id)
             render_messages()
+            rebuild_list()
         } else {
             start()
         }
@@ -239,33 +267,36 @@ const init = () => { // called DOMContentLoaded
                                     '"Ask anything... and click (⇧)"');
         } else {
             input.style.setProperty("--placeholder",
-                                    '"Ask anything... Use ⇧⏎ for new line"');
+                                    '"Ask anything... Use ⇧⏎ for line break"');
         }
     }
     
+    const poll = (interval) => {
+        const polledText = model.poll()
+        if (polledText === "<--done-->") {
+            clearInterval(interval)
+            send_stop.innerText = "⇧"
+            chat.timestamp = timestamp()
+            save_chat(current, chat)
+            placeholder()
+            return
+        }
+        if (polledText !== "") {
+            if (chat.messages.length > 0) {
+                chat.messages[chat.messages.length - 1].text += polledText
+                requestAnimationFrame(() => {
+                    render_last()
+                    show_hide_scroll_to_bottom()
+                })
+            }
+        }
+    }
+
     const polling = () => {
         send_stop.innerText = "⏹"
         const interval = setInterval(() => {
-            const polledText = model.poll()
-            if (polledText === "<-done->") {
-                clearInterval(interval)
-                send_stop.innerText = "⇧"
-                placeholder()
-                chat.timestamp = timestamp()
-                save_chat(current, chat)
-                return
-            }
-            if (polledText !== "") {
-                // TODO: very very inefficient, may want to save chat only
-                //       then polling is complete
-                // That will take keeping current chat in memory and few
-                // changes here and there
-                if (chat.messages.length > 0) {
-                    chat.messages[chat.messages.length - 1].text += polledText
-                    requestAnimationFrame(() => render_messages())
-                }
-            }
-        }, 100)
+            requestAnimationFrame(() => poll(interval))
+        }, 10)
     }
 
     const ask = t => {
@@ -275,8 +306,11 @@ const init = () => { // called DOMContentLoaded
         chat.messages.push({ sender: "bot",  text: "" })
         save_chat(current, chat)
         render_messages()
+        messages.scrollTop = messages.scrollHeight
+        at_the_bottom = true
+//      console.log("at_the_bottom := " + at_the_bottom)
         let error = model.ask(t)
-        if (error == null) {
+        if (!error) {
             placeholder()
             polling()
         } else {
@@ -296,7 +330,7 @@ const init = () => { // called DOMContentLoaded
     
     window.addEventListener("resize", () => {
         const px = window.innerHeight * 0.01;
-        console.log("resize(--vh: " + px + "px)")
+//      console.log("resize(--vh: " + px + "px)")
         document.documentElement.style.setProperty("--vh", px + "px")
     })
 
@@ -310,13 +344,12 @@ const init = () => { // called DOMContentLoaded
     send.onclick = e => {
         e.preventDefault()
         const s = input.innerText.trim()
-        console.log("send.onclick")
+//      console.log("send.onclick")
         if (model.is_answering()) {
-            console.log("<-interrupt->")
-            model.poll("<-interrupt->")
+//          console.log("<--interrupt-->")
+            model.poll("<--interrupt-->")
             placeholder()
         } else if (s !== "") {
-            console.log("<-interrupt->")
             ask(s)
             input.innerText = ""
             requestAnimationFrame(() => input.blur())
@@ -398,8 +431,6 @@ const init = () => { // called DOMContentLoaded
         (!model.is_answering() || !at_the_bottom)
             ? "block" : "none"
     }
-
-    messages.onscroll = () => show_hide_scroll_to_bottom()
     
     remove.onclick = () => {
         if (!selected) return
@@ -418,12 +449,19 @@ const init = () => { // called DOMContentLoaded
     rename.onclick = () => {
         if (!selected) return
         hide_menu()
+//      console.log("selected: " + selected)
+//      console.log("current: " + current)
+//      console.log("selected === current " + (selected === current))
         const c = selected === current ? chat : load_chat(selected)
         util.rename(selected_item, c.title).then(new_name => {
             if (new_name && new_name !== c.title) {
                 c.title = new_name
                 save_chat(selected, c)
-                if (selected === current) chat = c
+                if (selected === current) {
+                    chat = c
+                    title.textContent = c.title
+//                  console.log("title.textContent " + title.textContent)
+                }
                 rebuild_list()
                 render_messages()
             }
@@ -437,7 +475,7 @@ const init = () => { // called DOMContentLoaded
         hide_menu()
     }
     
-    localStorage.clear() // DEBUG
+//  localStorage.clear() // DEBUG
 
     marked.use({pedantic: false, gfm: true, breaks: false})
     detect()

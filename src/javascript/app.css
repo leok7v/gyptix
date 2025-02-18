@@ -43,7 +43,7 @@ sup {
 }
 
 :root {
-    --placeholder: "Ask anything... Use ⇧⏎ for new line";
+    --placeholder: "Ask anything... Use ⇧⏎ for line break";
     --background-header: color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
     --background-messages: color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
     --background-bot:      color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
@@ -64,13 +64,17 @@ sup {
 
 html, body {
     margin: 0;
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--background-color);
     color: var(--color);
     -webkit-user-select: none; /* Safari, legacy Android WebKit */
     -moz-user-select: none;    /* Firefox */
     -ms-user-select: none;     /* Internet Explorer/Edge */
     user-select: none;
+}
+
+code, pre {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 [data-bro="safari"] {
@@ -277,10 +281,10 @@ body {
 
 .user {
     background: var(--background-user);
-    margin: 0.25em;
-    margin-left: 2em;
+    margin: 0;
+    margin-left: 1em;
     margin-right: 1em;
-    padding: 0.25;
+    padding: 0.125em;
     padding-left: 0.5em;
     padding-right: 0.5em;
     border-radius: 0.25em;
@@ -290,6 +294,8 @@ body {
     overflow-wrap: break-word; /* Standard property */
     word-break: break-word; /* Fallback for very long words */
 }
+
+.user p { margin: 0.25em }
 
 .bot pre,
 .bot pre code {
@@ -301,8 +307,8 @@ body {
 
 .bot {
     background: var(--background-bot);
-    margin: 0.3rem;
-    padding: 0.3rem;
+    margin: 0.25em;
+    padding: 0.25em;
     border-radius: 4px;
     overflow-y: auto;
     overflow-x: auto;
@@ -310,6 +316,17 @@ body {
     white-space: pre-wrap;   /* Ensures long text wraps */
     word-wrap:   break-word; /* Allows breaking long words */
     word-break:  break-word; /* Extra safeguard for stubborn long words */
+}
+
+.bot p {
+    margin: 0;
+    padding: 0;
+}
+
+.bot li p,
+.bot ol p {
+    margin: 0;
+    padding: 0;
 }
 
 .button_row {

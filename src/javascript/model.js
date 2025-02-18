@@ -2,32 +2,32 @@
 
 import * as util from "./util.js"
 
-const server = false
+const server = true //set to false to debug
 
 const md =
-  "# Lorem ipsum\n\n" +
-  "# Dolor sit amet\n\n" +
-  "# Consectetur\n\n" +
+  "# Lorem ipsum\n" +
+  "## Dolor sit amet\n" +
+  "### Consectetur\n" +
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, " +
   "sed do eiusmod tempor incididunt ut labore et dolore " +
   "magna aliqua.\n\n" +
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, " +
   "sed do eiusmod tempor incididunt ut labore et dolore " +
   "magna aliqua.\n\n" +
-  "### C\n\n" +
+  "### C\n" +
   "```c\n" +
   "int main(void) {\n" +
   "    return 0\n" +
   "}\n" +
-  "```\n\n" +
-  "### Python\n\n" +
+  "```\n" +
+  "### Python\n" +
   "```python\n" +
   "print(\"Hello, world!\")\n" +
-  "```\n\n" +
-  "### JavaScript\n\n" +
+  "```\n" +
+  "### JavaScript\n" +
   "```javascript\n" +
   "console.log(\"Hello, world!\")\n" +
-  "```\n\n" +
+  "```\n" +
   "* Lorem\n" +
   "* Ipsum\n" +
   "* Magna\n\n"
@@ -52,14 +52,14 @@ const poll = (command, done) => {
         return util.post("./poll", command, done)
     } else {
 //      console.log("command: " + command)
-        if (command === "<-interrupt->") {
+        if (command === "<--interrupt-->") {
             index = md.length + 1 // next poll will end answering
 //          console.log("interrupt: " + index)
             return ""
         } else if (index >= md.length) {
             index = 0
             answering = false
-            return "<-done->"
+            return "<--done-->"
         } else { // could return empty string too
             const num = Math.floor(Math.random() * 5)
             const result = md.substring(index, Math.min(index + num, md.length))

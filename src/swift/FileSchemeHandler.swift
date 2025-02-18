@@ -3,12 +3,18 @@ import WebKit
 
 class FileSchemeHandler: NSObject, WKURLSchemeHandler {
 
-    func infer(_ request: String) -> String {
-        return "🤔 What?\r\n" +
-               "😕 I don't understand.\r\n" +
-               "🫖 Where's the tea? ☕\r\n"
+    func send_response(url: URL, urlSchemeTask: WKURLSchemeTask, message: String) {
+        if let r = response(url, mt: "text/plain") {
+            urlSchemeTask.didReceive(r)
+            if let data = message.data(using: .utf8) {
+                urlSchemeTask.didReceive(data)
+                urlSchemeTask.didFinish()
+            } else {
+                print("Failed to encode response body as UTF-8.")
+            }
+        }
     }
-        
+
     func question(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
         if let body = urlSchemeTask.request.httpBody {
             guard let request = String(data: body, encoding: .utf8) else {
@@ -17,16 +23,7 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
             }
             request.withCString { s in ask(s) }
         }
-        if let r = response(url, mt: "text/plain") {
-            urlSchemeTask.didReceive(r)
-            if let data = "OK".data(using: .utf8) {
-                urlSchemeTask.didReceive(data)
-                urlSchemeTask.didFinish()
-                return;
-            } else {
-                print("Failed to encode response body as UTF-8.")
-            }
-        }
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "OK")
     }
 
     func poll(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
@@ -45,18 +42,19 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
                 }
             }
         }
-        if let r = response(url, mt: "text/plain") {
-            urlSchemeTask.didReceive(r)
-            if let data = text.data(using: .utf8) {
-                urlSchemeTask.didReceive(data)
-                urlSchemeTask.didFinish()
-                return;
-            } else {
-                print("Failed to encode response body as UTF-8.")
-            }
-        }
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: text)
     }
-    
+
+    func answering(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        let text = is_answering() != 0 ? "true" : "false"
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: text)
+    }
+
+    func running(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        let text = is_running() != 0 ? "true" : "false"
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: text)
+    }
+
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
 
         func failWithError() {
@@ -78,8 +76,13 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         if resourcePath == "ask" {
             question(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
-        }
-        if resourcePath == "poll" {
+        } else if resourcePath == "is_answering" {
+            answering(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "is_running" {
+            running(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "poll" {
             poll(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         }
