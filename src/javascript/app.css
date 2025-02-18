@@ -430,11 +430,7 @@ body {
 
 .circled:hover { background-color: var(--background-button-hover); }
 
-[data-theme="dark"][data-bro="chrome"] .button .glyph {
-    filter: invert(1) grayscale(1);
-}
-
-[data-theme="light"][data-bro="safari"] .button .glyph {
+.button .glyph {
     filter: invert(1) grayscale(1);
 }
 

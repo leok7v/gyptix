@@ -93,3 +93,23 @@ export const toggle_theme = () => {
     html.setAttribute("data-theme", theme)
     localStorage.setItem("settings.theme", theme)
 }
+
+export const init_font_size = () => {
+  let font_size = localStorage.getItem("settings.font-size") || 100;
+  document.body.style.fontSize = font_size + "%";
+  localStorage.setItem("settings.font-size", font_size);
+}
+
+export const decrease_font_size = () => {
+   let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
+   font_size = Math.max(80, font_size - 10);
+   document.body.style.fontSize = font_size + "%";
+   localStorage.setItem("settings.font-size", font_size);
+}
+
+export const increase_font_size = () => {
+   let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
+   font_size = Math.min(130, font_size + 10);
+   document.body.style.fontSize = font_size + "%";
+   localStorage.setItem("settings.font-size", font_size);
+}

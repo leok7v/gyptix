@@ -491,12 +491,16 @@ const init = () => { // called DOMContentLoaded
         prompt("Copy chat data:", JSON.stringify(c))
         hide_menu()
     }
+
+    document.getElementById("font-increase").onclick = () => util.increase_font_size()
+    document.getElementById("font-decrease").onclick = () => util.decrease_font_size()
     
 //  localStorage.clear() // DEBUG
 
     marked.use({pedantic: false, gfm: true, breaks: false})
     detect()
     util.init_theme()
+    util.init_font_size()
     placeholder()
     recent()
 //  util.toast("Testing Toast")
