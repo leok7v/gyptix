@@ -27,19 +27,19 @@ html::-webkit-scrollbar, ul::-webkit-scrollbar {
 }
 
 body {
-    font-size: 120%; /* Default size */
+    font-size: 100%; /* Default size */
 }
 
 @media screen and (-webkit-dynamic-type: large) {
-    html { font-size: 140%; } /* Increase size when large text is set */
+    html { font-size: 120%; } /* Increase size when large text is set */
 }
 
 @media screen and (-webkit-dynamic-type: accessibility) {
-    html { font-size: 160%; } /* Increase for accessibility settings */
+    html { font-size: 140%; } /* Increase for accessibility settings */
 }
 
 sup {
-    font-size: 50%;
+    font-size: 75%;
 }
 
 :root {
@@ -114,6 +114,35 @@ body {
     z-index: 10;
     justify-content: space-between;
     background-color: var(--background-header);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3em;
+    padding: 0.5em;
+    background-color: var(--background-header);
+}
+
+.left, .right {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.center {
+    flex-grow: 1; /* This makes it take the remaining space */
+    text-align: center;
+    display: flex;
+    justify-content: center; /* Ensures text stays centered */
+    align-items: center;
+}
+
+.title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .viewport {

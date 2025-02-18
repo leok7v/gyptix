@@ -240,7 +240,9 @@ const init = () => { // called DOMContentLoaded
         const valid_chats = keys.map(key => {
             const h = load_chat(key2id(key))
             return h && h.timestamp
-                ? { key: key, id: key2id(key), timestamp: h.timestamp, title: h.title }
+                ? { id: key2id(key),
+                    timestamp: h.timestamp,
+                    title: h.title }
                 : null
         }).filter(chat => chat !== null)
         if (valid_chats.length > 0) {
@@ -248,8 +250,7 @@ const init = () => { // called DOMContentLoaded
             const most_recent = valid_chats[0]
             current = most_recent.id
             chat = load_chat(most_recent.id)
-            console.log("most_recent key:" + most_recent.key + " id: " +
-                        most_recent.id)
+            console.log("recent id: " + most_recent.id)
             render_messages()
             rebuild_list()
         } else {
