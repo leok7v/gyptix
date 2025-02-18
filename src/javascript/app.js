@@ -64,24 +64,31 @@ let platform = "macintel"
 // TODO: iPhone UA and platform by default
 let apple = true
 let bro = "safari"
-let macOS = false
+let macOS  = false
+let iPhone = false
+let iPad   = false
 
 const detect = () => {
     const html = document.documentElement
     ua = navigator.userAgent.toLowerCase()
     platform = navigator.platform ? navigator.platform.toLowerCase() : ""
     apple =
-        /iphone|ipad|ipod/.test(ua) ||
+        /iphone|ipad|macintosh/.test(ua) ||
         (platform.includes("mac") && navigator.maxTouchPoints > 1) ||
         (ua.includes("macintosh") &&
          ua.includes("applewebkit") &&
         !ua.includes("chrome"))
     bro = apple ? "safari" : "chrome"
-    macOS = /mac os x/.test(ua)
+    macOS  = /\(macintosh;/.test(ua)
+    iPhone = /\(iphone;/.test(ua)
+    iPad   = /\(ipad;/.test(ua)
 //  console.log("User-Agent:", ua)
 //  console.log("Platform:", platform)
 //  console.log("Browser:", bro)
     html.setAttribute("data-bro", bro)
+    if (macOS)  html.setAttribute("data-macOS",  "true")
+    if (iPhone) html.setAttribute("data-iPhone", "true")
+    if (iPad)   html.setAttribute("data-iPad",   "true")
 }
 
 const timestamp = () => Date.now() // UTC timestamp in milliseconds
@@ -148,7 +155,8 @@ const init = () => { // called DOMContentLoaded
         // Get last child element (assumed to be the last message).
         const last_child = messages.lastElementChild
         if (last_child) {
-            let text = last_msg.sender === "bot" ? last_msg.text : last_msg.text.replace(/\n/g, "\n\n")
+            let text = last_msg.sender === "bot" ?
+                last_msg.text : last_msg.text.replace(/\n/g, "\n\n")
             last_child.innerHTML = render_markdown(text)
         } else {
             messages.appendChild(render_message(last_msg))
@@ -157,12 +165,14 @@ const init = () => { // called DOMContentLoaded
     }
 
     messages.onscroll = () => {
+        input.blur()
         const sh = messages.scrollHeight
         const ch = messages.clientHeight
         const top = messages.scrollTop
         at_the_bottom = (sh - ch <= top + 5)
-        console.log("at_the_bottom := " + at_the_bottom)
-        show_hide_scroll_to_bottom()
+        requestAnimationFrame(() => {
+            show_hide_scroll_to_bottom()
+        })
     }
     
     const key2id = (key) => parseInt(key.substring("chat.id.".length))
@@ -262,7 +272,7 @@ const init = () => { // called DOMContentLoaded
         // double quotes improtant for css variable inside value
         if (model.is_answering()) {
             input.style.setProperty("--placeholder",
-                                    '"click (⏹) to interrupt"');
+                                    '"click ⏹ to stop"');
         } else if (!macOS) { // double quotes improtant for css variable:
             input.style.setProperty("--placeholder",
                                     '"Ask anything... and click (⇧)"');
@@ -395,6 +405,7 @@ const init = () => { // called DOMContentLoaded
 
     input.onkeydown = e => {
         // for iOS enable ignore enter
+        console.log("macOS: " + macOS + " e.key: " + e.key)
         let s = input.innerText.trim()
         if (macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             input.innerText = ""
@@ -493,6 +504,7 @@ const init = () => { // called DOMContentLoaded
     placeholder()
     recent()
 //  util.toast("Testing Toast")
+    util.toast(ua)
 }
 
 export { init }

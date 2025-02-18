@@ -26,9 +26,26 @@ html::-webkit-scrollbar, ul::-webkit-scrollbar {
     display: none; /* Chrome, Safari, macOS */
 }
 
-body {
-    font-size: 100%; /* Default size */
+:root {
+    --font-size: 100%;
+    --placeholder: "Ask anything... Use ⇧⏎ for line break";
+    --background-header:       color-mix(in srgb, var(--background-color) 93%, var(--color)  7%);
+    --background-navigation:   color-mix(in srgb, var(--background-color) 96%, var(--color)  4%);
+    --background-user:         color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
+    --background-button:       color-mix(in srgb, var(--background-color) 91%, var(--color) 19%);
+    --background-button-hover: color-mix(in srgb, var(--background-color) 65%, var(--color) 35%);
+    --background-hover:        color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
+    --background-input:        color-mix(in srgb, var(--background-color) 95%, var(--color)  5%);
+    --background-menu:         color-mix(in srgb, var(--background-color) 97%, var(--color)  3%);
+    --background-code:         color-mix(in srgb, var(--background-color) 94%, var(--color)  6%);
 }
+
+[data-iPhone="true"] {
+    --font-size: 120%;
+}
+
+body { font-size: var(--font-size); }
+
 
 @media screen and (-webkit-dynamic-type: large) {
     html { font-size: 120%; } /* Increase size when large text is set */
@@ -41,22 +58,6 @@ body {
 sup {
     font-size: 75%;
 }
-
-:root {
-    --placeholder: "Ask anything... Use ⇧⏎ for line break";
-    --background-header:       color-mix(in srgb, var(--background-color) 93%, var(--color)  7%);
-    --background-navigation:   color-mix(in srgb, var(--background-color) 96%, var(--color)  4%);
-    --background-user:         color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
-    --background-button:       color-mix(in srgb, var(--background-color) 91%, var(--color) 19%);
-    --background-button-hover: color-mix(in srgb, var(--background-color) 65%, var(--color) 35%);
-    --background-hover:        color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
-    --background-input:        color-mix(in srgb, var(--background-color) 95%, var(--color)  5%);
-    --background-menu:         color-mix(in srgb, var(--background-color) 97%, var(--color)  3%);
-}
-
-[data-platform="mac"] .button { --background-color: green; }
-[data-platform="android"] .button { --background-color: blue; }
-[data-platform="win"] .button { --background-color: blue; }
 
 * {
     box-sizing: border-box;
@@ -324,14 +325,6 @@ body {
 
 .user p { margin: 0.25em }
 
-.bot pre,
-.bot pre code {
-    white-space: pre !important;
-    overflow-x: auto;
-    display: block;
-    max-width: 100%;
-}
-
 .bot {
     background: var(--background-color);
     margin: 0.25em;
@@ -350,10 +343,32 @@ body {
     padding: 0;
 }
 
-.bot li p,
-.bot ol p {
+.bot ol, .bot ul {
+    margin: 0.75em 0;
+    margin-bottom: 0;
+}
+
+.bot li {
+    margin-bottom: 0.125em;
+    padding: 0;
+}
+
+.bot li p {
     margin: 0;
     padding: 0;
+    display: inline;
+}
+
+.bot pre,
+.bot pre code {
+    font-size: 90%;
+    overflow-x: auto;
+    display: block;
+    white-space: pre-wrap;   /* Ensures long text wraps */
+    word-wrap:   break-word; /* Allows breaking long words */
+    word-break:  break-word; /* Extra safeguard for stubborn long words */
+    max-width: 100%;
+    background: var(--background-code);
 }
 
 .button_row {

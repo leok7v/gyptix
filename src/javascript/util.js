@@ -12,7 +12,8 @@ export const toast = s => {
     div.style.backgroundColor = "rgba(255,0,0,0.9)"
     div.textContent   = s
     document.body.appendChild(div)
-    setTimeout(() => document.body.removeChild(div), 3300)
+//  setTimeout(() => document.body.removeChild(div), 3300)
+    setTimeout(() => document.body.removeChild(div), 6000)
 }
 
 const http = (url, method, req = "", done = null) => {
