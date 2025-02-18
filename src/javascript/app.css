@@ -44,8 +44,11 @@ html::-webkit-scrollbar, ul::-webkit-scrollbar {
     --font-size: 120%;
 }
 
-body { font-size: var(--font-size); }
+* {
+    box-sizing: border-box;
+}
 
+body { font-size: var(--font-size); }
 
 @media screen and (-webkit-dynamic-type: large) {
     html { font-size: 120%; } /* Increase size when large text is set */
@@ -57,10 +60,6 @@ body { font-size: var(--font-size); }
 
 sup {
     font-size: 75%;
-}
-
-* {
-    box-sizing: border-box;
 }
 
 html, body {
@@ -117,34 +116,41 @@ body {
     background-color: var(--background-header);
 }
 
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 3em;
-    padding: 0.5em;
-    background-color: var(--background-header);
-}
-
 .left, .right {
     display: flex;
+    flex: 0 0 auto; /* Prevents stretching */
+    flex-wrap: nowrap;
     align-items: center;
     gap: 0.5em;
+    white-space: nowrap;
+    flex-shrink: 0; /* Don’t allow left/right to shrink away */
 }
 
 .center {
-    flex-grow: 1; /* This makes it take the remaining space */
-    text-align: center;
     display: flex;
-    justify-content: center; /* Ensures text stays centered */
+    flex: 0 0 auto; /* Prevents stretching */
+    min-width: 0;  /* allow shrinking */
     align-items: center;
+    justify-content: center; /* center the child */
+    overflow: hidden;
+    flex-shrink: 1;
 }
 
-.title {
-    white-space: nowrap;
+.center #title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    word-break: break-all;
     overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: 100%;
+    text-align: center;
+    font-size: small;
 }
+
+
+
+
+
 
 .viewport {
     position: fixed;
@@ -218,14 +224,6 @@ body {
 
 .is_collapsed #expand {
     display: block;
-}
-
-.title {
-    min-width: 0;
-    font-weight: bold;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 #chats {
@@ -430,7 +428,8 @@ body {
 
 .circled:hover { background-color: var(--background-button-hover); }
 
-.button .glyph {
+.button .glyph,
+.circled .glyph {
     filter: invert(1) grayscale(1);
 }
 

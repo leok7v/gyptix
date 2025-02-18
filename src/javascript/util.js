@@ -71,8 +71,13 @@ export const rename_in_place = (span, old_name) => {
             }
         })
         span.addEventListener("blur", () => {
-            span.innerText = original_text
-            finish(null)
+            const new_text = span.innerText.trim()
+            if (new_text && new_text !== original_text) {
+                finish(new_text)
+            } else {
+                span.innerText = original_text
+                finish(null)
+            }
         }, { once: true })
     })
 }
@@ -102,14 +107,14 @@ export const init_font_size = () => {
 
 export const decrease_font_size = () => {
    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-   font_size = Math.max(80, font_size - 10);
+   font_size = Math.max(90, font_size - 10);
    document.body.style.fontSize = font_size + "%";
    localStorage.setItem("settings.font-size", font_size);
 }
 
 export const increase_font_size = () => {
    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-   font_size = Math.min(130, font_size + 10);
+   font_size = Math.min(150, font_size + 10);
    document.body.style.fontSize = font_size + "%";
    localStorage.setItem("settings.font-size", font_size);
 }

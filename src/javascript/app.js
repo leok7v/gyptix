@@ -503,6 +503,19 @@ const init = () => { // called DOMContentLoaded
     util.init_font_size()
     placeholder()
     recent()
+    
+    /*
+    iOS Safari intentionally prevents programmatically focusing an input field
+    (which would bring up the keyboard) unless the call is made directly from
+     a user gesture. Even though wrapping the focus call in
+     requestAnimationFrame delays execution until the next repaint,
+     it doesn’t count as a user-initiated event.
+     This behavior is designed to improve user experience and prevent
+     unwanted keyboard pop-ups on iPhone.
+     requestAnimationFrame(() => input.focus())
+     See: iOS 18.x WKWebView keyboardDisplayRequiresUserAction horror stories
+    */
+
 //  util.toast("Testing Toast")
 //  util.toast(ua)
 }

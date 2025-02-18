@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self'; 
-          script-src 'self' gyptix://. 'unsafe-inline' 'unsafe-eval';">
+          script-src 'self' 'unsafe-inline' 'unsafe-eval';">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -32,25 +32,23 @@
           <div id="navigation_header" class="navigation_header">
             <button id="collapse" class="button"><span class="glyph">☰</span></button>
             <button id="clear" class="button"><span class="glyph">🧹</span></button>
-            <span class="title">v: 25.02.12</span>
+            <span class="title">v:25.02.12AAAAAAAAAAAAAAAAA</span>
           </div>
           <div id="chats"><div id="list"></div></div>
         </div>
         <div id="content" class="content">
-            <div id="header" class="header">
-                <div class="left">
-                    <button id="expand" class="button"><span class="glyph">☰</span></button>
+            <span id="header" class="header">
+                <span class="left">
+                    <button id="expand"  class="button"><span class="glyph">☰</span></button>
                     <button id="restart" class="button"><span class="glyph">✚</span></button>
-                </div>
-                <div class="center">
-                    <span id="title" class="title"></span>
-                </div>
-                <div class="right">
+                </span>
+                <span class="center"><span id="title" class="title"></span></span>
+                <span class="right">
                     <button id="font-decrease" class="button"><span class="glyph">a</span></button>
                     <button id="font-increase" class="button"><span class="glyph">A</span></button>
-                    <button id="toggle_theme" class="button"><span class="glyph">◐</span></button>
-                </div>
-            </div>
+                    <button id="toggle_theme"  class="button"><span class="glyph">◐</span></button>
+                </span>
+            </span>
             <div id="chat-container">
               <div id="chat"><div id="messages"></div></div>
               <button id="scroll" class="circled">
