@@ -906,7 +906,7 @@ std::ostringstream output_ss;     g_output_ss     = &output_ss;
 
     common_sampler_free(smpl);
 
-    llama_backend_free();
+//  llama_backend_free(); // destructor does it
 
     ggml_threadpool_free_fn(threadpool);
     ggml_threadpool_free_fn(threadpool_batch);
