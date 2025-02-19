@@ -48,25 +48,9 @@ const save_chat = (id, c) => {
         localStorage.clear() // brutal but effective
     }
 }
-
-// TODO: ChatGPT dark backgrounds (match):
-// backgrounds:
-// navigation #272829
-// messages   #38393a
-// input      #3c3c3c
-// user       #454646
-
-// Android
-// Mozilla/5.0 (linux; android 11; kfquwi build/rs8332.3115n; wv) applewebkit/537.36 (khtml, like gecko) version/4.0 chrome/128.0.6613.187 safari/537.36
-// linux armv8l
-
-// macOS Sequoai 15.3 Apple Silicon
-// mozilla/5.0 (macintosh; intel mac os x 10_15_7) applewebkit/605.1.15 (khtml, like gecko)
-// macintel
     
 let ua = "mozilla/5.0 (macintosh; intel mac os x 10_15_7) applewebkit/605.1.15"
 let platform = "macintel"
-// TODO: iPhone UA and platform by default
 let apple = true
 let bro = "safari"
 let macOS  = false
@@ -89,16 +73,11 @@ const detect = () => {
     iPhone = /\(iphone;/.test(ua)
     iPad   = /\(ipad;/.test(ua)
     if (macOS && navigator.maxTouchPoints && navigator.maxTouchPoints === 5) {
-        // https://developer.apple.com/forums/thread/748432
-        // (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15
-        // Incorrect UserAgent in iPad OS safari
+        // Incorrect UserAgent in iPad OS WebKit
         macOS = false
         iPad = true
     }
     iOS = iPad || iPhone
-//  console.log("User-Agent:", ua)
-//  console.log("Platform:", platform)
-//  console.log("Browser:", bro)
     html.setAttribute("data-bro", bro)
     if (macOS)  html.setAttribute("data-macOS",  "true")
     if (iPhone) html.setAttribute("data-iPhone", "true")
@@ -116,28 +95,29 @@ const timestamp_label = (timestamp) => {
            `${d.getSeconds().toString().padStart(2, "0")}`
 }
 
-detect() // Immediately to apply styles ASAP
+detect() // Immediately to load script
 
 const init = () => { // called DOMContentLoaded
-    const clear        = get("clear"),
-    collapse     = get("collapse"),
-    content      = get("content"),
-    expand       = get("expand"),
-    input        = get("input"),
-    layout       = get("layout"),
-    list         = get("list"),
-    menu         = get("menu"),
-    messages     = get("messages"),
-    navigation   = get("navigation"),
-    remove       = get("remove"),
-    rename       = get("rename"),
-    restart      = get("restart"),
-    scroll       = get("scroll"),
-    send         = get("send"),
-    send_stop    = get("send_stop"),
-    share        = get("share"),
-    title        = get("title"),
-    toggle_theme = get("toggle_theme")
+    const
+        clear        = get("clear"),
+        collapse     = get("collapse"),
+        content      = get("content"),
+        expand       = get("expand"),
+        input        = get("input"),
+        layout       = get("layout"),
+        list         = get("list"),
+        menu         = get("menu"),
+        messages     = get("messages"),
+        navigation   = get("navigation"),
+        remove       = get("remove"),
+        rename       = get("rename"),
+        restart      = get("restart"),
+        scroll       = get("scroll"),
+        send         = get("send"),
+        send_stop    = get("send_stop"),
+        share        = get("share"),
+        title        = get("title"),
+        toggle_theme = get("toggle_theme")
 
     const hide_scroll_to_bottom = () => {
         scroll.style.display = "none"
@@ -168,38 +148,38 @@ const init = () => { // called DOMContentLoaded
     
     const render_messages = () => {
         if (!chat || !chat.messages) return
-            const sh = messages.scrollHeight
-            const ch = messages.clientHeight
-            const top = messages.scrollTop
-            at_the_bottom = sh - ch <= top + 5
-            //      console.log("at_the_bottom := " + at_the_bottom)
-            messages.innerHTML = ""
-            chat.messages.forEach(msg => {
-                messages.appendChild(render_message(msg))
-            })
-            if (at_the_bottom) scroll_to_bottom()
-                title.textContent = chat.title
-                }
+        const sh = messages.scrollHeight
+        const ch = messages.clientHeight
+        const top = messages.scrollTop
+        at_the_bottom = sh - ch <= top + 5
+        messages.innerHTML = ""
+        chat.messages.forEach(msg => {
+            messages.appendChild(render_message(msg))
+        })
+        if (at_the_bottom) scroll_to_bottom()
+        title.textContent = chat.title
+    }
     
     const render_last = () => {
         if (!chat || !chat.messages || chat.messages.length === 0) return
-            const last_index = chat.messages.length - 1
-            const last_msg = chat.messages[last_index]
-            // Get last child element (assumed to be the last message).
-            const last_child = messages.lastElementChild
-            if (last_child) {
-                let text = last_msg.sender === "bot" ?
-                last_msg.text : last_msg.text.replace(/\n/g, "\n\n")
-                last_child.innerHTML = render_markdown(text)
-            } else {
-                messages.appendChild(render_message(last_msg))
-            }
+        const last_index = chat.messages.length - 1
+        const last_msg = chat.messages[last_index]
+        // Get last child element (assumed to be the last message).
+        const last_child = messages.lastElementChild
+        if (last_child) {
+            let text = last_msg.sender === "bot" ?
+            last_msg.text : last_msg.text.replace(/\n/g, "\n\n")
+            last_child.innerHTML = render_markdown(text)
+        } else {
+            messages.appendChild(render_message(last_msg))
+        }
         if (at_the_bottom) scroll_to_bottom()
-            }
+    }
     
     messages.onscroll = () => {
         if (user_scrolling) {
             input.blur()
+            collapsed()
             const sh = messages.scrollHeight
             const ch = messages.clientHeight
             const top = messages.scrollTop
@@ -232,7 +212,6 @@ const init = () => { // called DOMContentLoaded
             const div = document.createElement("div")
             div.className = "item"
             div.onclick = () => {
-//              console.log("onclick: " + c.id)
                 selected = null
                 current = c.id
                 chat = load_chat(current)
@@ -276,14 +255,13 @@ const init = () => { // called DOMContentLoaded
             }]
         }
         save_chat(id, chat)
+        collapsed()
         rebuild_list()
         render_messages()
     }
     
     const recent = () => { // most recent chat -> current
-        const keys = Object.keys(localStorage).filter(k =>
-                                                      k.startsWith("chat.id.")
-                                                      )
+        const keys = Object.keys(localStorage).filter(k => k.startsWith("chat.id."))
         const valid_chats = keys.map(key => {
             const h = load_chat(key2id(key))
             return h && h.timestamp
@@ -350,22 +328,22 @@ const init = () => { // called DOMContentLoaded
     
     const ask = t => {
         if (!current || !t) return
-            if (!chat.messages) chat.messages = []
-                chat.messages.push({ sender: "user", text: t })
-                chat.messages.push({ sender: "bot",  text: "" })
-                save_chat(current, chat)
-                render_messages()
-                scroll_to_bottom()
-                let error = model.ask(t)
-                if (!error) {
-                    placeholder()
-                    polling()
-                } else {
-                    util.toast(error)
-                }
+        if (!chat.messages) chat.messages = []
+        chat.messages.push({ sender: "user", text: t })
+        chat.messages.push({ sender: "bot",  text: "" })
+        save_chat(current, chat)
+        render_messages()
+        scroll_to_bottom()
+        let error = model.ask(t)
+        if (!error) {
+            placeholder()
+            polling()
+        } else {
+            util.toast(error)
+        }
     }
     
-    function show_menu(x, y) {
+    const show_menu = (x, y) => {
         menu.style.display = "block"
         menu.offsetWidth
         const menu_rect = menu.getBoundingClientRect()
@@ -375,7 +353,7 @@ const init = () => { // called DOMContentLoaded
         if (y + menu_rect.height > window_height) {
             new_y = y - menu_rect.height
             if (new_y < 0) new_y = 0
-                }
+        }
         y = new_y
         menu.style.left = x + "px"
         menu.style.top  = y + "px"
@@ -387,7 +365,7 @@ const init = () => { // called DOMContentLoaded
     
     window.addEventListener("resize", () => {
         const px = window.innerHeight * 0.01;
-        //      console.log("resize(--vh: " + px + "px)")
+        console.log("resize(--vh: " + px + "px)")
         document.documentElement.style.setProperty("--vh", px + "px")
     })
     
@@ -482,8 +460,8 @@ const init = () => { // called DOMContentLoaded
     content.onclick = e => {
         if (e.target.closest("#chat-container") ||
             e.target.closest("#input")) collapsed()
-            if (!e.target.closest("#menu")) hide_menu()
-                }
+        if (!e.target.closest("#menu")) hide_menu()
+    }
     
     remove.onclick = () => {
         if (!selected) return
@@ -501,32 +479,29 @@ const init = () => { // called DOMContentLoaded
     
     rename.onclick = () => {
         if (!selected) return
-            hide_menu()
-//          console.log("selected: " + selected)
-//          console.log("current: " + current)
-//          console.log("selected === current " + (selected === current))
-            const c = selected === current ? chat : load_chat(selected)
-            util.rename_in_place(selected_item, c.title).then(new_name => {
-                if (new_name && new_name !== c.title) {
-                    c.title = new_name
-                    save_chat(selected, c)
-                    if (selected === current) {
-                        chat = c
-                        title.textContent = c.title
-                        //                  console.log("title.textContent " + title.textContent)
-                    }
-                    rebuild_list()
-                    render_messages()
+        hide_menu()
+        const c = selected === current ? chat : load_chat(selected)
+        util.rename_in_place(selected_item, c.title).then(new_name => {
+            if (new_name && new_name !== c.title) {
+                c.title = new_name
+                save_chat(selected, c)
+                if (selected === current) {
+                    chat = c
+                    title.textContent = c.title
+//                      console.log("title.textContent " + title.textContent)
                 }
-            })
+                rebuild_list()
+                render_messages()
             }
+        })
+    }
     
     share.onclick = () => {
         if (!selected) return
-            const c = load_chat(selected)
-            prompt("Copy chat data:", JSON.stringify(c))
-            hide_menu()
-            }
+        const c = load_chat(selected)
+        prompt("Copy chat data:", JSON.stringify(c))
+        hide_menu()
+    }
     
     get("font-increase").onclick = () => util.increase_font_size()
     get("font-decrease").onclick = () => util.decrease_font_size()
@@ -562,30 +537,6 @@ const init = () => { // called DOMContentLoaded
     util.init_font_size(macOS, iPhone, iPad)
     placeholder()
     recent()
-    
-    /*
-     iOS Safari intentionally prevents programmatically focusing an input field
-     (which would bring up the keyboard) unless the call is made directly from
-     a user gesture. Even though wrapping the focus call in
-     requestAnimationFrame delays execution until the next repaint,
-     it doesn’t count as a user-initiated event.
-     This behavior is designed to improve user experience and prevent
-     unwanted keyboard pop-ups on iPhone.
-     requestAnimationFrame(() => input.focus())
-     See: iOS 18.x WKWebView keyboardDisplayRequiresUserAction horror stories
-     */
-    
-    if (false) {
-        util.toast("iPad: " + iPad + "\n iPhone: " + iPhone +
-                   "\n macOS: " + macOS + "\n iOS: " + iOS +
-                   "\n font-size: " + localStorage.getItem("settings.font-size"))
-    }
-    if (false) {
-        const glyph = document.querySelector('.glyph')
-        const computed_style = window.getComputedStyle(glyph)
-        const filter_value = computed_style.getPropertyValue('-webkit-filter')
-        util.toast('Glyph filter: ' + filter_value)
-    }
 }
 
 export { init }

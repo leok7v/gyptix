@@ -431,7 +431,20 @@ body {
 
 .upsidedown {
     transform: rotate(180deg);
-    display: inline-block; /* Ensures transform works on inline elements */
+    display: inline-block;
+}
+
+.mirror {
+    transform: scaleX(-1);
+    display: inline-block;
+}
+
+.logo {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    background: url("./logo-256x256.png") no-repeat center center;
+    background-size: contain;
 }
 
 #menu {
@@ -471,3 +484,4 @@ body {
 .menu_item:hover {
     background-color: var(--background-hover);
 }
+
