@@ -22,6 +22,7 @@ document.addEventListener("copy", e => {
 })
 
 const load_chat = id => {
+//  console.log("load_chat")
     const header = localStorage.getItem("chat.id." + id)
     const content = localStorage.getItem("chat." + id)
     const h = JSON.parse(header)
@@ -34,6 +35,7 @@ const load_chat = id => {
 }
 
 const save_chat = (id, c) => {
+//  console.log("save_chat")
     const header  = { title: c.title, timestamp: c.timestamp }
     try {
         localStorage.setItem("chat.id." + id, JSON.stringify(header))
@@ -70,6 +72,7 @@ let bro = "safari"
 let macOS  = false
 let iPhone = false
 let iPad   = false
+let iOS    = false
 
 const detect = () => {
     const html = document.documentElement
@@ -85,6 +88,14 @@ const detect = () => {
     macOS  = /\(macintosh;/.test(ua)
     iPhone = /\(iphone;/.test(ua)
     iPad   = /\(ipad;/.test(ua)
+    if (macOS && navigator.maxTouchPoints && navigator.maxTouchPoints === 5) {
+        // https://developer.apple.com/forums/thread/748432
+        // (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15
+        // Incorrect UserAgent in iPad OS safari
+        macOS = false
+        iPad = true
+    }
+    iOS = iPad || iPhone
 //  console.log("User-Agent:", ua)
 //  console.log("Platform:", platform)
 //  console.log("Browser:", bro)
@@ -92,6 +103,7 @@ const detect = () => {
     if (macOS)  html.setAttribute("data-macOS",  "true")
     if (iPhone) html.setAttribute("data-iPhone", "true")
     if (iPad)   html.setAttribute("data-iPad",   "true")
+    if (iOS)    html.setAttribute("data-iOS",    "true")
 }
 
 const timestamp = () => Date.now() // UTC timestamp in milliseconds
@@ -108,36 +120,40 @@ detect() // Immediately to apply styles ASAP
 
 const init = () => { // called DOMContentLoaded
     const clear        = get("clear"),
-          collapse     = get("collapse"),
-          content      = get("content"),
-          expand       = get("expand"),
-          input        = get("input"),
-          layout       = get("layout"),
-          list         = get("list"),
-          menu         = get("menu"),
-          messages     = get("messages"),
-          navigation   = get("navigation"),
-          remove       = get("remove"),
-          rename       = get("rename"),
-          restart      = get("restart"),
-          scroll       = get("scroll"),
-          send         = get("send"),
-          send_stop    = get("send_stop"),
-          share        = get("share"),
-          title        = get("title"),
-          toggle_theme = get("toggle_theme")
+    collapse     = get("collapse"),
+    content      = get("content"),
+    expand       = get("expand"),
+    input        = get("input"),
+    layout       = get("layout"),
+    list         = get("list"),
+    menu         = get("menu"),
+    messages     = get("messages"),
+    navigation   = get("navigation"),
+    remove       = get("remove"),
+    rename       = get("rename"),
+    restart      = get("restart"),
+    scroll       = get("scroll"),
+    send         = get("send"),
+    send_stop    = get("send_stop"),
+    share        = get("share"),
+    title        = get("title"),
+    toggle_theme = get("toggle_theme")
+
+    const hide_scroll_to_bottom = () => {
+        scroll.style.display = "none"
+    }
     
     const show_hide_scroll_to_bottom = () => {
         const d = messages.scrollHeight - messages.scrollTop
         scroll.style.display = d > messages.clientHeight + 10 &&
         (!model.is_answering() || !at_the_bottom)
-            ? "block" : "none"
+        ? "block" : "none"
     }
-
+    
     const scroll_to_bottom = () => {
         messages.scrollTop = messages.scrollHeight
         at_the_bottom = true
-//      console.log("at_the_bottom := " + at_the_bottom)
+        //      console.log("at_the_bottom := " + at_the_bottom)
         setTimeout(() => { scroll.style.display = "none" }, 50)
     }
     
@@ -149,37 +165,37 @@ const init = () => { // called DOMContentLoaded
         d.innerHTML = render_markdown(text)
         return d
     }
-
+    
     const render_messages = () => {
         if (!chat || !chat.messages) return
-        const sh = messages.scrollHeight
-        const ch = messages.clientHeight
-        const top = messages.scrollTop
-        at_the_bottom = sh - ch <= top + 5
-//      console.log("at_the_bottom := " + at_the_bottom)
-        messages.innerHTML = ""
-        chat.messages.forEach(msg => {
-            messages.appendChild(render_message(msg))
-        })
-        if (at_the_bottom) scroll_to_bottom()
-        title.textContent = chat.title
-    }
-
+            const sh = messages.scrollHeight
+            const ch = messages.clientHeight
+            const top = messages.scrollTop
+            at_the_bottom = sh - ch <= top + 5
+            //      console.log("at_the_bottom := " + at_the_bottom)
+            messages.innerHTML = ""
+            chat.messages.forEach(msg => {
+                messages.appendChild(render_message(msg))
+            })
+            if (at_the_bottom) scroll_to_bottom()
+                title.textContent = chat.title
+                }
+    
     const render_last = () => {
         if (!chat || !chat.messages || chat.messages.length === 0) return
-        const last_index = chat.messages.length - 1
-        const last_msg = chat.messages[last_index]
-        // Get last child element (assumed to be the last message).
-        const last_child = messages.lastElementChild
-        if (last_child) {
-            let text = last_msg.sender === "bot" ?
+            const last_index = chat.messages.length - 1
+            const last_msg = chat.messages[last_index]
+            // Get last child element (assumed to be the last message).
+            const last_child = messages.lastElementChild
+            if (last_child) {
+                let text = last_msg.sender === "bot" ?
                 last_msg.text : last_msg.text.replace(/\n/g, "\n\n")
-            last_child.innerHTML = render_markdown(text)
-        } else {
-            messages.appendChild(render_message(last_msg))
-        }
+                last_child.innerHTML = render_markdown(text)
+            } else {
+                messages.appendChild(render_message(last_msg))
+            }
         if (at_the_bottom) scroll_to_bottom()
-    }
+            }
     
     messages.onscroll = () => {
         if (user_scrolling) {
@@ -188,7 +204,7 @@ const init = () => { // called DOMContentLoaded
             const ch = messages.clientHeight
             const top = messages.scrollTop
             at_the_bottom = (sh - ch <= top + 5)
-//          console.log("at_the_bottom := " + at_the_bottom)
+            //          console.log("at_the_bottom := " + at_the_bottom)
             requestAnimationFrame(() => {
                 show_hide_scroll_to_bottom()
             })
@@ -222,6 +238,7 @@ const init = () => { // called DOMContentLoaded
                 chat = load_chat(current)
                 render_messages()
                 hide_menu()
+                hide_scroll_to_bottom()
                 collapsed()
             }
             const span = document.createElement("span")
@@ -240,7 +257,7 @@ const init = () => { // called DOMContentLoaded
             list.appendChild(div)
         })
     }
-
+    
     const start = () => {
         let id = timestamp()
         let k = "chat.id." + id
@@ -255,7 +272,7 @@ const init = () => { // called DOMContentLoaded
             messages: [{
                 sender: "bot",
                 text: "What would you like to discuss today?<br>" +
-                      "<sup>Using full sentences helps me respond better.<sup>"
+                "<sup>Using full sentences helps me respond better.<sup>"
             }]
         }
         save_chat(id, chat)
@@ -265,22 +282,22 @@ const init = () => { // called DOMContentLoaded
     
     const recent = () => { // most recent chat -> current
         const keys = Object.keys(localStorage).filter(k =>
-            k.startsWith("chat.id.")
-        )
+                                                      k.startsWith("chat.id.")
+                                                      )
         const valid_chats = keys.map(key => {
             const h = load_chat(key2id(key))
             return h && h.timestamp
-                ? { id: key2id(key),
-                    timestamp: h.timestamp,
-                    title: h.title }
-                : null
+            ? { id: key2id(key),
+                timestamp: h.timestamp,
+                title: h.title }
+            : null
         }).filter(chat => chat !== null)
         if (valid_chats.length > 0) {
             valid_chats.sort((a, b) => b.timestamp - a.timestamp)
             const most_recent = valid_chats[0]
             current = most_recent.id
             chat = load_chat(most_recent.id)
-//          console.log("recent id: " + most_recent.id)
+            //          console.log("recent id: " + most_recent.id)
             render_messages()
             rebuild_list()
         } else {
@@ -292,10 +309,10 @@ const init = () => { // called DOMContentLoaded
         // double quotes improtant for css variable inside value
         if (model.is_answering()) {
             input.style.setProperty("--placeholder",
-                                    '"click ⏹ to stop"');
+                                    '"use (◾) to stop"');
         } else if (!macOS) { // double quotes improtant for css variable:
             input.style.setProperty("--placeholder",
-                                    '"Ask anything... and click (⇧)"');
+                                    '"Ask anything... and click (⇧) to send"');
         } else {
             input.style.setProperty("--placeholder",
                                     '"Ask anything... Use ⇧⏎ for line break"');
@@ -323,31 +340,31 @@ const init = () => { // called DOMContentLoaded
             }
         }
     }
-
+    
     const polling = () => {
-        send_stop.innerText = "⏹"
+        send_stop.innerText = "◾" // ▣ ◾ ◼ ■ ▣ ◻
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
         }, 10)
     }
-
+    
     const ask = t => {
         if (!current || !t) return
-        if (!chat.messages) chat.messages = []
-        chat.messages.push({ sender: "user", text: t })
-        chat.messages.push({ sender: "bot",  text: "" })
-        save_chat(current, chat)
-        render_messages()
-        scroll_to_bottom()
-        let error = model.ask(t)
-        if (!error) {
-            placeholder()
-            polling()
-        } else {
-            util.toast(error)
-        }
+            if (!chat.messages) chat.messages = []
+                chat.messages.push({ sender: "user", text: t })
+                chat.messages.push({ sender: "bot",  text: "" })
+                save_chat(current, chat)
+                render_messages()
+                scroll_to_bottom()
+                let error = model.ask(t)
+                if (!error) {
+                    placeholder()
+                    polling()
+                } else {
+                    util.toast(error)
+                }
     }
-
+    
     function show_menu(x, y) {
         menu.style.display = "block"
         menu.offsetWidth
@@ -358,30 +375,28 @@ const init = () => { // called DOMContentLoaded
         if (y + menu_rect.height > window_height) {
             new_y = y - menu_rect.height
             if (new_y < 0) new_y = 0
-        }
+                }
         y = new_y
         menu.style.left = x + "px"
         menu.style.top  = y + "px"
     }
-
+    
     const hide_menu = () => {
         menu.style.display = "none"
     }
     
     window.addEventListener("resize", () => {
         const px = window.innerHeight * 0.01;
-//      console.log("resize(--vh: " + px + "px)")
+        //      console.log("resize(--vh: " + px + "px)")
         document.documentElement.style.setProperty("--vh", px + "px")
     })
-
+    
     toggle_theme.onclick = () => util.toggle_theme()
-
+    
     send.onclick = e => {
         e.preventDefault()
         const s = input.innerText.trim()
-//      console.log("send.onclick")
         if (model.is_answering()) {
-//          console.log("<--interrupt-->")
             model.poll("<--interrupt-->")
             placeholder()
         } else if (s !== "") {
@@ -390,7 +405,7 @@ const init = () => { // called DOMContentLoaded
             requestAnimationFrame(() => input.blur())
         }
     }
-
+    
     restart.onclick = () => start()
     
     clear.onclick = () => {
@@ -398,26 +413,28 @@ const init = () => { // called DOMContentLoaded
         current = null
         start()
     }
-
+    
     const collapsed = () => {
         navigation.classList.add("collapsed")
         layout.classList.add("is_collapsed")
         hide_menu()
     }
-
+    
     const expanded = () => {
-        navigation.classList.remove("collapsed")
-        layout.classList.remove("is_collapsed")
+        if (!model.is_answering()){
+            navigation.classList.remove("collapsed")
+            layout.classList.remove("is_collapsed")
+        }
     }
-
+    
     collapse.onclick = () => collapsed()
     expand.onclick = () => expanded()
-
+    
     scroll.onclick = () => {
         user_scrolling = false
         scroll_to_bottom()
     }
-
+    
     scroll.addEventListener("touchend", e => {
         e.preventDefault()
         user_scrolling = false
@@ -426,24 +443,24 @@ const init = () => { // called DOMContentLoaded
     
     input.onkeydown = e => {
         // for iOS enable ignore enter
-//      console.log("macOS: " + macOS + " e.key: " + e.key)
+        //      console.log("macOS: " + macOS + " e.key: " + e.key)
         let s = input.innerText.trim()
         if (macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             input.innerText = ""
             requestAnimationFrame(() => {
                 const sel = window.getSelection()
                 if (sel) sel.removeAllRanges()
-                ask(s)
-            })
+                    ask(s)
+                    })
         }
     }
-
+    
     const observer = new MutationObserver(() => {
         scroll.style.display = "none"
     })
     
     observer.observe(input, { childList: true, subtree: true,
-                              characterData: true });
+        characterData: true });
     
     input.onblur = () => { // focus lost
         show_hide_scroll_to_bottom()
@@ -455,78 +472,78 @@ const init = () => { // called DOMContentLoaded
         document.body.style.overflow = "hidden"
         collapsed()
     }
-
+    
     input.oninput = () => {
         const lines = input.innerText.split("\n").length
         input.style.maxHeight = lines > 1
-            ? window.innerHeight * 0.5 + "px" : ""
+        ? window.innerHeight * 0.5 + "px" : ""
     }
-
+    
     content.onclick = e => {
         if (e.target.closest("#chat-container") ||
             e.target.closest("#input")) collapsed()
-        if (!e.target.closest("#menu")) hide_menu()
-    }
+            if (!e.target.closest("#menu")) hide_menu()
+                }
     
     remove.onclick = () => {
         if (!selected) return
-        localStorage.removeItem("chat.id." + selected)
-        localStorage.removeItem("chat." + selected)
-        if (current === selected) {
-            current = null
-            recent()
-        }
+            localStorage.removeItem("chat.id." + selected)
+            localStorage.removeItem("chat." + selected)
+            if (current === selected) {
+                current = null
+                recent()
+            }
         selected = null
         hide_menu()
         rebuild_list()
         render_messages()
     }
-
+    
     rename.onclick = () => {
         if (!selected) return
-        hide_menu()
-//      console.log("selected: " + selected)
-//      console.log("current: " + current)
-//      console.log("selected === current " + (selected === current))
-        const c = selected === current ? chat : load_chat(selected)
-        util.rename_in_place(selected_item, c.title).then(new_name => {
-            if (new_name && new_name !== c.title) {
-                c.title = new_name
-                save_chat(selected, c)
-                if (selected === current) {
-                    chat = c
-                    title.textContent = c.title
-//                  console.log("title.textContent " + title.textContent)
+            hide_menu()
+//          console.log("selected: " + selected)
+//          console.log("current: " + current)
+//          console.log("selected === current " + (selected === current))
+            const c = selected === current ? chat : load_chat(selected)
+            util.rename_in_place(selected_item, c.title).then(new_name => {
+                if (new_name && new_name !== c.title) {
+                    c.title = new_name
+                    save_chat(selected, c)
+                    if (selected === current) {
+                        chat = c
+                        title.textContent = c.title
+                        //                  console.log("title.textContent " + title.textContent)
+                    }
+                    rebuild_list()
+                    render_messages()
                 }
-                rebuild_list()
-                render_messages()
+            })
             }
-        })
-    }
     
     share.onclick = () => {
         if (!selected) return
-        const c = load_chat(selected)
-        prompt("Copy chat data:", JSON.stringify(c))
-        hide_menu()
-    }
-
+            const c = load_chat(selected)
+            prompt("Copy chat data:", JSON.stringify(c))
+            hide_menu()
+            }
+    
     get("font-increase").onclick = () => util.increase_font_size()
     get("font-decrease").onclick = () => util.decrease_font_size()
-
+    
     messages.addEventListener("mousedown", () => { user_scrolling = true })
     messages.addEventListener("touchstart", () => { user_scrolling = true })
-
+    
     messages.addEventListener("mouseup", () => {
         setTimeout(() => { user_scrolling = false }, 50)
     })
-
+    
     messages.addEventListener("touchend", () => {
         setTimeout(() => { user_scrolling = false }, 50)
     })
-
+    
     let user_scrolling_timeout = null
-
+    
     messages.addEventListener("wheel", () => {
         user_scrolling = true
         if (user_scrolling_timeout) {
@@ -538,17 +555,17 @@ const init = () => { // called DOMContentLoaded
     })
     
 //  localStorage.clear() // DEBUG
-
+    
     marked.use({pedantic: false, gfm: true, breaks: false})
     detect()
     util.init_theme()
-    util.init_font_size()
+    util.init_font_size(macOS, iPhone, iPad)
     placeholder()
     recent()
     
     /*
-    iOS Safari intentionally prevents programmatically focusing an input field
-    (which would bring up the keyboard) unless the call is made directly from
+     iOS Safari intentionally prevents programmatically focusing an input field
+     (which would bring up the keyboard) unless the call is made directly from
      a user gesture. Even though wrapping the focus call in
      requestAnimationFrame delays execution until the next repaint,
      it doesn’t count as a user-initiated event.
@@ -556,10 +573,19 @@ const init = () => { // called DOMContentLoaded
      unwanted keyboard pop-ups on iPhone.
      requestAnimationFrame(() => input.focus())
      See: iOS 18.x WKWebView keyboardDisplayRequiresUserAction horror stories
-    */
-
-//  util.toast("Testing Toast")
-//  util.toast(ua)
+     */
+    
+    if (false) {
+        util.toast("iPad: " + iPad + "\n iPhone: " + iPhone +
+                   "\n macOS: " + macOS + "\n iOS: " + iOS +
+                   "\n font-size: " + localStorage.getItem("settings.font-size"))
+    }
+    if (false) {
+        const glyph = document.querySelector('.glyph')
+        const computed_style = window.getComputedStyle(glyph)
+        const filter_value = computed_style.getPropertyValue('-webkit-filter')
+        util.toast('Glyph filter: ' + filter_value)
+    }
 }
 
 export { init }

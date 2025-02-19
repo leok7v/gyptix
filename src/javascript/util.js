@@ -99,22 +99,25 @@ export const toggle_theme = () => {
     localStorage.setItem("settings.theme", theme)
 }
 
-export const init_font_size = () => {
-  let font_size = localStorage.getItem("settings.font-size") || 100;
-  document.body.style.fontSize = font_size + "%";
-  localStorage.setItem("settings.font-size", font_size);
+export const init_font_size = (macOS, iPhone, iPad) => {
+    let fs = 100
+    if (iPhone) fs = 130
+    if (iPad)   fs = 160
+    let font_size = localStorage.getItem("settings.font-size") || fs;
+    document.body.style.fontSize = font_size + "%";
+    localStorage.setItem("settings.font-size", font_size);
 }
 
 export const decrease_font_size = () => {
-   let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-   font_size = Math.max(90, font_size - 10);
-   document.body.style.fontSize = font_size + "%";
-   localStorage.setItem("settings.font-size", font_size);
+    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
+    font_size = Math.max(90, font_size - 10);
+    document.body.style.fontSize = font_size + "%";
+    localStorage.setItem("settings.font-size", font_size);
 }
 
 export const increase_font_size = () => {
-   let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-   font_size = Math.min(150, font_size + 10);
-   document.body.style.fontSize = font_size + "%";
-   localStorage.setItem("settings.font-size", font_size);
+    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
+    font_size = Math.min(160, font_size + 10);
+    document.body.style.fontSize = font_size + "%";
+    localStorage.setItem("settings.font-size", font_size);
 }
