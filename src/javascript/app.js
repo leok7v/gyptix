@@ -301,6 +301,7 @@ const init = () => { // called DOMContentLoaded
             summarize_to_title()
             save_chat(current, chat)
             rebuild_list()
+            send.classList.remove("pulsing")
             placeholder()
             return
         }
@@ -317,7 +318,8 @@ const init = () => { // called DOMContentLoaded
     }
     
     const polling = () => {
-        send_stop.innerText = "◾" // ▣ ◾ ◼ ■ ▣ ◻
+        send_stop.innerText = "▣" // ▣ ◾ ◼ ■ ▣ ◻
+        send.classList.add("pulsing")
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
         }, 10)
@@ -426,6 +428,8 @@ const init = () => { // called DOMContentLoaded
         scroll_to_bottom()
     })
     
+    let last_key_down_time = 0
+    
     input.onkeydown = e => {
         let s = input.innerText.trim()
         if (macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
@@ -436,6 +440,15 @@ const init = () => { // called DOMContentLoaded
                     ask(s)
                     })
         }
+        if (s.length > 0 && last_key_down_time !== 0) {
+            setTimeout(() => {
+                if (Date.now() - last_key_down_time > 2000) {
+                    send.classList.add("pulsing")
+                    setTimeout(() => send.classList.remove("pulsing"), 2000)
+                }
+            }, 3000)
+        }
+        last_key_down_time = Date.now()
     }
     
     const observer = new MutationObserver(() => {

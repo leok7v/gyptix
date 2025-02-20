@@ -487,4 +487,18 @@ body {
 
 .selected { font-weight: bold; }
 
+.pulsing {
+    border: 2px solid #888; /* Base border color */
+    animation: pulse-border 0.5s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-border {
+    from {
+        border-color: #666;
+    }
+    to {
+        border-color: #AAA;
+    }
+}
+
 #share { display: none; } /* TODO: not implemented yet */
