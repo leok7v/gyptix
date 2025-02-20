@@ -15,13 +15,35 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         }
     }
 
-    func question(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+    func ask(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
         if let body = urlSchemeTask.request.httpBody {
             guard let request = String(data: body, encoding: .utf8) else {
                 print("Failed to decode body as UTF-8 string.")
                 return
             }
-            request.withCString { s in ask(s) }
+            request.withCString { s in gyptix.ask(s) }
+        }
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "OK")
+    }
+
+    func save(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        if let body = urlSchemeTask.request.httpBody {
+            guard let request = String(data: body, encoding: .utf8) else {
+                print("Failed to decode body as UTF-8 string.")
+                return
+            }
+            request.withCString { s in gyptix.save(s) }
+        }
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "OK")
+    }
+
+    func load(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        if let body = urlSchemeTask.request.httpBody {
+            guard let request = String(data: body, encoding: .utf8) else {
+                print("Failed to decode body as UTF-8 string.")
+                return
+            }
+            request.withCString { s in gyptix.load(s) }
         }
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: "OK")
     }
@@ -34,7 +56,7 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
                 return
             }
             request.withCString { s in
-                if let response = answer(s) {
+                if let response = gyptix.answer(s) {
                     text = String(cString: response)
                     free(UnsafeMutableRawPointer(mutating: response))
                 } else {
@@ -45,13 +67,13 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: text)
     }
 
-    func answering(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
-        let text = is_answering() != 0 ? "true" : "false"
+    func is_answering(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        let text = gyptix.is_answering() != 0 ? "true" : "false"
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: text)
     }
 
-    func running(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
-        let text = is_running() != 0 ? "true" : "false"
+    func is_running(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        let text = gyptix.is_running() != 0 ? "true" : "false"
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: text)
     }
 
@@ -74,13 +96,19 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
             failWithError(); return
         }
         if resourcePath == "ask" {
-            question(webView, urlSchemeTask: urlSchemeTask, url: u)
+            ask(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "load" {
+            load(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "save" {
+            save(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "is_answering" {
-            answering(webView, urlSchemeTask: urlSchemeTask, url: u)
+            is_answering(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "is_running" {
-            running(webView, urlSchemeTask: urlSchemeTask, url: u)
+            is_running(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "quit" {
             fatalError("Quit")

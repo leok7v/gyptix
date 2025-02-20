@@ -211,10 +211,15 @@ const init = () => { // called DOMContentLoaded
         chats.forEach(c => {
             const div = document.createElement("div")
             div.className = "item"
+            console.log("current: " + current + " c.id: " + c.id)
+            if (c.id === current) div.classList.add("selected")
             div.onclick = () => {
                 selected = null
+                if (current) { model.save(current) }
                 current = c.id
+                model.load(c.id)
                 chat = load_chat(current)
+                rebuild_list()
                 render_messages()
                 hide_menu()
                 hide_scroll_to_bottom()
@@ -275,7 +280,7 @@ const init = () => { // called DOMContentLoaded
             const most_recent = valid_chats[0]
             current = most_recent.id
             chat = load_chat(most_recent.id)
-            //          console.log("recent id: " + most_recent.id)
+            console.log("recent id: " + most_recent.id)
             render_messages()
             rebuild_list()
         } else {

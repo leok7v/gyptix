@@ -204,6 +204,40 @@ static int ggml(struct context &context) {
     return 0;
 }
 
+static int64_t extract_id(const std::string &input, const std::string &prefix) {
+    std::size_t start = input.find(":") + 1;
+    std::size_t end = input.find("-->", start);
+    if (start != std::string::npos && end != std::string::npos) {
+        std::string id_str = input.substr(start, end - start);
+        return std::stoll(id_str);
+    }
+    return 0;
+}
+
+static void save_session(struct context &context, int64_t id) {
+    printf("save: %lld\n", id);
+    if (id == 0) { return; }
+    // TODO: Implement saving logic
+}
+
+static void load_session(struct context &context, int64_t id) {
+    printf("load: %lld\n", id);
+    if (id == 0) { return; }
+    // TODO: Implement loading logic
+}
+
+static void special(struct context &context, std::string &input) {
+    int64_t id = 0;
+    if (input.starts_with("<--")) {
+        if (input.starts_with("<--save:") && input.ends_with("-->")) {
+            save_session(context, extract_id(input, "<--save:"));
+        } else if (input.starts_with("<--load:") && input.ends_with("-->")) {
+            load_session(context, extract_id(input, "<--load:"));
+        }
+        input.clear();
+    }
+}
+
 static int chat(struct context &context) {
     llama_context              * &ctx = context.ctx;
     const llama_model          * &model = context.model;
@@ -306,7 +340,6 @@ static int chat(struct context &context) {
             LOG_DBG("use session tokens\n");
             embd_inp = session_tokens;
         }
-
         LOG_DBG("prompt: \"%s\"\n", prompt.c_str());
         LOG_DBG("tokens: %s\n", string_from(ctx, embd_inp).c_str());
     }
@@ -376,7 +409,6 @@ static int chat(struct context &context) {
         for (int i = 0; i < (int) embd_inp.size(); i++) {
             LOG_INF("%6d -> '%s'\n", embd_inp[i], common_token_to_piece(ctx, embd_inp[i]).c_str());
         }
-
         if (params.n_keep > add_bos) {
             LOG_INF("%s: static prompt based on n_keep: '", __func__);
             for (int i = 0; i < params.n_keep; i++) {
@@ -445,21 +477,6 @@ static int chat(struct context &context) {
     }
     LOG_INF("\n");
     if (params.interactive) {
-        const char * control_message;
-        if (params.multiline_input) {
-            control_message = " - To return control to the AI, end your input with '\\'.\n"
-                              " - To return control without starting a new line, end your input with '/'.\n";
-        } else {
-            control_message = " - Press Return to return control to the AI.\n"
-                              " - To return control without starting a new line, end your input with '/'.\n"
-                              " - If you want to submit another line, end your input with '\\'.\n";
-        }
-        LOG_INF("== Running in interactive mode. ==\n");
-        LOG_INF(       "%s", control_message);
-        if (params.conversation_mode && params.enable_chat_template && params.prompt.empty()) {
-            LOG_INF(   " - Using default system message. To change it, set a different value via -p PROMPT or -f FILE argument.\n");
-        }
-        LOG_INF("\n");
         context.is_interacting = params.interactive_first;
     }
     context.need_to_save_session = !path_session.empty() && n_matching_session_tokens < embd_inp.size();
@@ -734,6 +751,7 @@ static int chat(struct context &context) {
                 }
                 buffer += line;
                 free((void*)line);
+                special(context, buffer);
                 // done taking input, reset color
                 console::set_display(console::reset);
                 context.display = true;

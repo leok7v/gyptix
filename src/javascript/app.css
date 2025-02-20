@@ -485,3 +485,5 @@ body {
     background-color: var(--background-hover);
 }
 
+.selected { font-weight: bold; }
+

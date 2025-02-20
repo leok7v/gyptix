@@ -140,7 +140,7 @@ static void sleep_for_ns(long nsec) {
     pselect(0, NULL, NULL, NULL, &delay, NULL);
 }
 
-void ask(const char* s) {
+static void ask(const char* s) {
     if (running) {
         pthread_mutex_lock(&lock);
         assert(question == NULL);
@@ -152,8 +152,8 @@ void ask(const char* s) {
     }
 }
 
-int is_answering() { return (int)answering; }
-int is_running()   { return (int)running; }
+static int is_answering() { return (int)answering; }
+static int is_running()   { return (int)running; }
 
 const char* answer(const char* i) {
     pthread_mutex_lock(&lock);
@@ -200,18 +200,27 @@ static bool output_text_impl(const char* s) {
     return result;
 }
 
-void start(const char* model) {
+static void start(const char* model) {
     read_line   = read_line_impl;
     output_text = output_text_impl;
     pthread_create(&thread, NULL, worker, (void*)strdup(model));
     while (!is_running()) { sleep_for_ns(1000* 1000); }
 }
 
-void inactive(void) {
+static void save(const char* id) {
+    printf("save %s\n", id);
+}
+
+static void load(const char* id) {
+    printf("load %s\n", id);
+}
+
+
+static void inactive(void) {
     printf("inactive\n");
 }
 
-void stop(void) {
+static void stop(void) {
     quit = true;
     interrupted = true;
     wakeup();
@@ -219,6 +228,18 @@ void stop(void) {
     pthread_mutex_destroy(&lock);
     pthread_cond_destroy(&cond);
 }
+
+struct gyptix gyptix = {
+    .start = start,
+    .save = save,
+    .load = load,
+    .ask = ask,
+    .answer = answer,
+    .is_answering = is_answering,
+    .is_running = is_running,
+    .inactive = inactive,
+    .stop = stop
+};
 
 }
 

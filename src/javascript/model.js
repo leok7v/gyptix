@@ -47,6 +47,18 @@ export const ask = (value) => { // returns error message or null on OK
     }
 }
 
+export const save = (id) => {
+    if (server) {
+        util.post("./save", id)
+    }
+}
+
+export const load = (id) => {
+    if (server) {
+        util.post("./load", id)
+    }
+}
+
 export const poll = (command, done) => {
     if (server) {
         return util.post("./poll", command, done)
