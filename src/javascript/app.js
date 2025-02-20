@@ -273,10 +273,10 @@ const init = () => { // called DOMContentLoaded
         // double quotes improtant for css variable inside value
         if (model.is_answering()) {
             input.style.setProperty("--placeholder",
-                                    '"use (◾) to stop"');
+                                    '"click ▣ to stop"');
         } else if (!macOS) { // double quotes improtant for css variable:
             input.style.setProperty("--placeholder",
-                                    '"Ask anything... and click (⇧) to send"');
+                                    '"Ask anything... and click ⇧ to send"');
         } else {
             input.style.setProperty("--placeholder",
                                     '"Ask anything... Use ⇧⏎ for line break"');
@@ -326,7 +326,7 @@ const init = () => { // called DOMContentLoaded
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
         }, 10)
-        if (macOS) {
+        if (!macOS) {
             title.innerHTML =
                 "<div class='logo-container shimmering'>" +
                     "<span class='logo'></span>" +

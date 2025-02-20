@@ -73,7 +73,7 @@ struct Gyptix: App {
             forName: UIApplication.willTerminateNotification,
             object: nil,
             queue: .main
-        ) { _ in stop() }
+        ) { _ in gyptix.stop() }
         #endif
     }
     
