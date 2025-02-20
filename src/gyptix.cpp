@@ -9,7 +9,6 @@
 
 #include <string>
 
-
 #include "gyptix.h"
 #include "llama-if.h"
 
@@ -36,6 +35,7 @@ static pthread_t thread;
 static char* question;
 static std::string output;
 static bool answering = false;
+static bool running   = false;
 static bool quit = false;
 static bool interrupted = false;
 
@@ -76,7 +76,16 @@ static void load_model_and_run(const char* model) {
     long seed = random();
     char seed_str[64] = {0};
     snprintf(seed_str, countof(seed_str) - 1, "%ld", seed);
-    static char cwd[32*1024];
+    static char cwd[4 * 1024];
+    getcwd(cwd, countof(cwd));
+    static char prompts[4 * 1024];
+    strcpy(prompts, cwd);
+    strcat(prompts, "/prompts");
+    mkdir(prompts, S_IRWXU);
+    static char prompt_cache[4 * 1024];
+    strcpy(prompt_cache, prompts);
+    strcat(prompt_cache, "/cache.nsgg"); // about 1MB
+    printf("%s\n", prompt_cache);
     int argc = 0;
     argv[argc++] = getcwd(cwd, countof(cwd));
     argv[argc++] = (char*)"--seed";
@@ -92,6 +101,8 @@ static void load_model_and_run(const char* model) {
     argv[argc++] = (char*)"--no-warmup";
     argv[argc++] = (char*)"--no-perf";
     argv[argc++] = (char*)"--log-disable";
+    argv[argc++] = (char*)"--prompt_cache";
+    argv[argc++] = (char*)prompt_cache;
 #if !defined(__aarch64__) && !defined(__arm64__)
     // do not use Metal/GPU on x64 platforms
     argv[argc++] = (char*)"--device";
@@ -99,7 +110,15 @@ static void load_model_and_run(const char* model) {
 #endif
 //  argv[argc++] = (char*)"-p";
 //  argv[argc++] = (char*)"You are polite helpful assistant";
-    run(argc, argv);
+    running = true;
+    fprintf(stderr, "running = true\n");
+    try {
+        run(argc, argv);
+    } catch (...) {
+        fprintf(stderr, "Exception in run()\n");
+    }
+    fprintf(stderr, "running = false\n");
+    running = false;
 }
 
 static void* worker(void* p) {
@@ -122,17 +141,19 @@ static void sleep_for_ns(long nsec) {
 }
 
 void ask(const char* s) {
-    pthread_mutex_lock(&lock);
-    assert(question == NULL);
-    question = strdup(s);
-    pthread_mutex_unlock(&lock);
-    wakeup();
-    while (question != NULL) { sleep_for_ns(1000 * 1000); }
-    answering = true;
+    if (running) {
+        pthread_mutex_lock(&lock);
+        assert(question == NULL);
+        question = strdup(s);
+        pthread_mutex_unlock(&lock);
+        wakeup();
+        while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
+        if (question == NULL) { answering = true; }
+    }
 }
 
 int is_answering() { return (int)answering; }
-int is_running()   { return (int)true; } // TODO: detect thread stopping...
+int is_running()   { return (int)running; }
 
 const char* answer(const char* i) {
     pthread_mutex_lock(&lock);
@@ -140,7 +161,7 @@ const char* answer(const char* i) {
         interrupted = true;
     }
     char* s = NULL;
-    if (output.length() == 0 && !answering) {
+    if (output.length() == 0 && (!answering || !running)) {
         s = strdup("<--done-->");
     } else if (output.length() > 0 && validUTF8(output)) {
         s = strdup(output.c_str());
@@ -183,6 +204,7 @@ void start(const char* model) {
     read_line   = read_line_impl;
     output_text = output_text_impl;
     pthread_create(&thread, NULL, worker, (void*)strdup(model));
+    while (!is_running()) { sleep_for_ns(1000* 1000); }
 }
 
 void inactive(void) {

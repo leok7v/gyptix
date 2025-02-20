@@ -35,7 +35,7 @@ const md =
 let index = 0
 let answering = false
 
-const ask = (value) => { // returns error message or null on OK
+export const ask = (value) => { // returns error message or null on OK
     if (server) {
         const text = util.post("./ask", value)
         answering = text === "OK"
@@ -47,7 +47,7 @@ const ask = (value) => { // returns error message or null on OK
     }
 }
 
-const poll = (command, done) => {
+export const poll = (command, done) => {
     if (server) {
         return util.post("./poll", command, done)
     } else {
@@ -69,7 +69,7 @@ const poll = (command, done) => {
     }
 }
 
-const is_running = () => {
+export const is_running = () => {
     if (server) {
         return util.post("./is_running") === "true"
     } else {
@@ -77,7 +77,7 @@ const is_running = () => {
     }
 }
 
-const is_answering = () => {
+export const is_answering = () => {
     if (server) {
         return util.post("./is_answering") === "true"
     } else {
@@ -85,4 +85,10 @@ const is_answering = () => {
     }
 }
 
-export { is_running, ask, poll, is_answering }
+export const quit = () => {
+    if (server) {
+        util.post("./quit")
+    } else {
+        // nothing
+    }
+}

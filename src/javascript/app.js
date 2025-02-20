@@ -42,7 +42,7 @@ const save_chat = (id, c) => {
         localStorage.setItem("chat." + id, JSON.stringify(c.messages))
     } catch (error) {
         console.log(error)
-        util.toast(error)
+        util.toast(error, 5000)
         localStorage.removeItem("chat.id." + id)
         localStorage.removeItem("chat." + id)
         localStorage.clear() // brutal but effective
@@ -325,9 +325,17 @@ const init = () => { // called DOMContentLoaded
             requestAnimationFrame(() => poll(interval))
         }, 10)
     }
+
+    const oops = () => {
+        util.toast("<p>Oops.<br>🤕🧠🤢<br>" +
+                   "Update?<br>⚙️🔧<br>" +
+                   "Try again later?</p>", 5000)
+        setTimeout(() => { model.quit() }, 5100)
+    }
     
     const ask = t => {
         if (!current || !t) return
+        if (!model.is_running()) oops()
         if (!chat.messages) chat.messages = []
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
@@ -339,7 +347,7 @@ const init = () => { // called DOMContentLoaded
             placeholder()
             polling()
         } else {
-            util.toast(error)
+            util.toast(error, 5000)
         }
     }
     
@@ -535,8 +543,8 @@ const init = () => { // called DOMContentLoaded
     detect()
     util.init_theme()
     util.init_font_size(macOS, iPhone, iPad)
-    placeholder()
     recent()
+    placeholder()
 }
 
 export { init }

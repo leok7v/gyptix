@@ -1,19 +1,24 @@
 "use strict"
 
-export const toast = s => {
+export const toast = (s, to) => {
+    if (!s.includes("<") && !s.includes(">")) s = `<p>${s}</p>`
     const div = document.createElement("div")
-    div.style.position  = "fixed"
-    div.style.top       = "10px"
-    div.style.left      = "50%"
-    div.style.transform = "translateX(-50%)"
-    div.style.color     = "white"
-    div.style.padding   = "10px 20px"
-    div.style.zIndex    = "10000"
-    div.style.backgroundColor = "rgba(255,0,0,0.9)"
-    div.textContent   = s
+    div.style.position        = "fixed"
+    div.style.top             = "10px"
+    div.style.left            = "50%"
+    div.style.transform       = "translateX(-50%)"
+    div.style.color           = "white"
+    div.style.padding         = "10px 20px"
+    div.style.zIndex          = "10000"
+    div.style.border          = "2px solid #888"
+    div.style.borderRadius    = "5%"
+    div.style.backgroundColor = "rgba(200, 0, 0, 0.8)"
+    div.style.textAlign       = "center";
+    div.style.display         = "inline-block";
+    div.style.maxWidth        = "80%";
+    div.innerHTML = s
     document.body.appendChild(div)
-//  setTimeout(() => document.body.removeChild(div), 3300)
-    setTimeout(() => document.body.removeChild(div), 6000)
+    setTimeout(() => document.body.removeChild(div), to)
 }
 
 const http = (url, method, req = "", done = null) => {
@@ -121,3 +126,17 @@ export const increase_font_size = () => {
     document.body.style.fontSize = font_size + "%";
     localStorage.setItem("settings.font-size", font_size);
 }
+
+export const shorten_the_sentence = (str, limit) => {
+    const words = str.split(/\s+/)
+    let result = ""
+    for (let word of words) {
+        if ((result.length + word.length + (result ? 1 : 0)) > limit) break
+        result += (result ? " " : "") + word
+    }
+    return result;
+}
+
+// const input = "The Meaning of Life: An Exploration of Perspectives";
+// const result = concatenateWordsWithinLimit(input, 24); console.log(result); // Output: "The Meaning of Life:"
+
