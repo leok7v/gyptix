@@ -447,6 +447,19 @@ body {
     background-size: contain;
 }
 
+.logo-container {
+    display: flex;
+    align-items: center; /* Centers items vertically */
+    justify-content: center; /* Optional: Centers horizontally */
+    gap: 8px; /* Adjust spacing between logo and text */
+    height: 100%; /* Ensure the container takes the full height */
+}
+
+.logo-content {
+    display: flex;
+    align-items: center; /* Ensures text is also centered */
+}
+
 #menu {
     font-size: 80%;
     position: absolute;
@@ -499,6 +512,27 @@ body {
     to {
         border-color: #AAA;
     }
+}
+
+@keyframes rainbow-shift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+.shimmering {
+    background: linear-gradient(90deg, blue, green, yellow, orange, red);
+    background-size: 400% 400%;
+    animation: rainbow-shift 3s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+
+.rainbow {
+    background: linear-gradient(90deg, blue, green, yellow, orange, red);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
 }
 
 #share { display: none; } /* TODO: not implemented yet */

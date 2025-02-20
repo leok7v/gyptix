@@ -149,6 +149,12 @@ export const timestamp_label = (timestamp) => {
     return `${days[d.getDay()]} ${time}`
 }
 
+const stop_words = new Set([
+        "were", "this", "that", "there", "which", "their", "would",
+        "could", "with", "should", "about", "because", "after", "before",
+        "where", "while", "again"
+])
+
 export const summarize = (str) => {
     // three most frequent words
     if (typeof str !== "string") return timestamp_label(timestamp())
@@ -162,8 +168,9 @@ export const summarize = (str) => {
                 word = singular
             }
         }
-        // Skip words that are too short or start with "the"
-        if (word.length <= 3 || word.startsWith("the")) continue
+        if (word.length <= 3 || word.startsWith("the") || stop_words.has(word)) {
+            continue
+        }
         map.set(word, (map.get(word) || 0) + 1)
     }
     let s = [...map.entries()]

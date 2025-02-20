@@ -289,6 +289,8 @@ const init = () => { // called DOMContentLoaded
             chat.title = util.summarize(chat.messages[1].text + " " +
                                         chat.messages[2].text)
             title.textContent = chat.title
+            title.classList.add("shimmering")
+            setTimeout(() => title.classList.remove("shimmering"), 2000)
         }
     }
 
@@ -298,6 +300,7 @@ const init = () => { // called DOMContentLoaded
             clearInterval(interval)
             send_stop.innerText = "⇧"
             chat.timestamp = util.timestamp()
+            title.innerHTML = ""
             summarize_to_title()
             save_chat(current, chat)
             rebuild_list()
@@ -323,6 +326,13 @@ const init = () => { // called DOMContentLoaded
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
         }, 10)
+        if (macOS) {
+            title.innerHTML =
+                "<div class='logo-container shimmering'>" +
+                    "<span class='logo'></span>" +
+                    "<span class='logo-content'>GyPTix</span>" +
+                "</div>"
+        }
     }
 
     const oops = () => {
@@ -525,7 +535,9 @@ const init = () => { // called DOMContentLoaded
     
     messages.addEventListener("mousedown", () => { user_scrolling = true })
     messages.addEventListener("touchstart", () => { user_scrolling = true })
-    
+
+    navigation.addEventListener("mousedown", () => { hide_menu() })
+
     messages.addEventListener("mouseup", () => {
         setTimeout(() => { user_scrolling = false }, 50)
     })
@@ -544,6 +556,17 @@ const init = () => { // called DOMContentLoaded
         user_scrolling_timeout = setTimeout(() => {
             user_scrolling = false
         }, 100)
+    })
+    
+    document.querySelectorAll(".tooltip").forEach(button => {
+        button.addEventListener("mouseenter", function() {
+            let rect = this.getBoundingClientRect()
+            if (rect.top < 30) { // If too close to the top, move tooltip below
+                this.classList.add("tooltip-bottom")
+            } else {
+                this.classList.remove("tooltip-bottom")
+            }
+        })
     })
     
 //  localStorage.clear() // DEBUG
