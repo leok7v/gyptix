@@ -487,3 +487,4 @@ body {
 
 .selected { font-weight: bold; }
 
+#share { display: none; } /* TODO: not implemented yet */

@@ -63,10 +63,8 @@ export const poll = (command, done) => {
     if (server) {
         return util.post("./poll", command, done)
     } else {
-//      console.log("command: " + command)
         if (command === "<--interrupt-->") {
             index = md.length + 1 // next poll will end answering
-//          console.log("interrupt: " + index)
             return ""
         } else if (index >= md.length) {
             index = 0

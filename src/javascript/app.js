@@ -22,20 +22,15 @@ document.addEventListener("copy", e => {
 })
 
 const load_chat = id => {
-//  console.log("load_chat")
     const header = localStorage.getItem("chat.id." + id)
     const content = localStorage.getItem("chat." + id)
     const h = JSON.parse(header)
     const m = JSON.parse(content) // [] messages
     const c  = { title: h.title, timestamp: h.timestamp, messages: m }
-//  console.log("k:" + k)
-//  console.log("s:" + s)
-//  console.log("c:" + c)
     return c
 }
 
 const save_chat = (id, c) => {
-//  console.log("save_chat")
     const header  = { title: c.title, timestamp: c.timestamp }
     try {
         localStorage.setItem("chat.id." + id, JSON.stringify(header))
@@ -85,16 +80,6 @@ const detect = () => {
     if (iOS)    html.setAttribute("data-iOS",    "true")
 }
 
-const timestamp = () => Date.now() // UTC timestamp in milliseconds
-
-const timestamp_label = (timestamp) => {
-    const d = new Date(timestamp)
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    return `${days[d.getDay()]} ${d.getHours().toString().padStart(2, "0")}:` +
-           `${d.getMinutes().toString().padStart(2, "0")}:` +
-           `${d.getSeconds().toString().padStart(2, "0")}`
-}
-
 detect() // Immediately to load script
 
 const init = () => { // called DOMContentLoaded
@@ -133,7 +118,6 @@ const init = () => { // called DOMContentLoaded
     const scroll_to_bottom = () => {
         messages.scrollTop = messages.scrollHeight
         at_the_bottom = true
-        //      console.log("at_the_bottom := " + at_the_bottom)
         setTimeout(() => { scroll.style.display = "none" }, 50)
     }
     
@@ -184,7 +168,6 @@ const init = () => { // called DOMContentLoaded
             const ch = messages.clientHeight
             const top = messages.scrollTop
             at_the_bottom = (sh - ch <= top + 5)
-            //          console.log("at_the_bottom := " + at_the_bottom)
             requestAnimationFrame(() => {
                 show_hide_scroll_to_bottom()
             })
@@ -211,7 +194,6 @@ const init = () => { // called DOMContentLoaded
         chats.forEach(c => {
             const div = document.createElement("div")
             div.className = "item"
-            console.log("current: " + current + " c.id: " + c.id)
             if (c.id === current) div.classList.add("selected")
             div.onclick = () => {
                 selected = null
@@ -243,15 +225,15 @@ const init = () => { // called DOMContentLoaded
     }
     
     const start = () => {
-        let id = timestamp()
+        let id = util.timestamp()
         let k = "chat.id." + id
         while (localStorage.getItem(k)) {
-            id = timestamp()
+            id = util.timestamp()
             k = "chat.id." + id
         }
         current = id
         chat = {
-            title: timestamp_label(id),
+            title: util.timestamp_label(id),
             timestamp: id,
             messages: [{
                 sender: "bot",
@@ -280,7 +262,6 @@ const init = () => { // called DOMContentLoaded
             const most_recent = valid_chats[0]
             current = most_recent.id
             chat = load_chat(most_recent.id)
-            console.log("recent id: " + most_recent.id)
             render_messages()
             rebuild_list()
         } else {
@@ -302,13 +283,24 @@ const init = () => { // called DOMContentLoaded
         }
     }
     
+    const summarize_to_title = () => {
+        // Poor man summarization. TODO: use AI for that
+        if (chat.messages.length == 3) {
+            chat.title = util.summarize(chat.messages[1].text + " " +
+                                        chat.messages[2].text)
+            title.textContent = chat.title
+        }
+    }
+
     const poll = interval => {
         const polledText = model.poll()
         if (polledText === "<--done-->") {
             clearInterval(interval)
             send_stop.innerText = "⇧"
-            chat.timestamp = timestamp()
+            chat.timestamp = util.timestamp()
+            summarize_to_title()
             save_chat(current, chat)
+            rebuild_list()
             placeholder()
             return
         }
@@ -375,13 +367,15 @@ const init = () => { // called DOMContentLoaded
     const hide_menu = () => {
         menu.style.display = "none"
     }
-    
+
+/*  // May be helpful on Android with softKeyboard
     window.addEventListener("resize", () => {
-        const px = window.innerHeight * 0.01;
-        console.log("resize(--vh: " + px + "px)")
-        document.documentElement.style.setProperty("--vh", px + "px")
+//      const px = window.innerHeight * 0.01; // ???
+        console.log("resize() window " +
+                    window.innerWidth + "x" + window.innerHeight)
+//      document.documentElement.style.setProperty("--vh", px + "px")
     })
-    
+*/
     toggle_theme.onclick = () => util.toggle_theme()
     
     send.onclick = e => {
@@ -433,8 +427,6 @@ const init = () => { // called DOMContentLoaded
     })
     
     input.onkeydown = e => {
-        // for iOS enable ignore enter
-        //      console.log("macOS: " + macOS + " e.key: " + e.key)
         let s = input.innerText.trim()
         if (macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             input.innerText = ""
@@ -501,7 +493,6 @@ const init = () => { // called DOMContentLoaded
                 if (selected === current) {
                     chat = c
                     title.textContent = c.title
-//                      console.log("title.textContent " + title.textContent)
                 }
                 rebuild_list()
                 render_messages()

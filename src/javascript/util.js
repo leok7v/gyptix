@@ -128,15 +128,50 @@ export const increase_font_size = () => {
 }
 
 export const shorten_the_sentence = (str, limit) => {
-    const words = str.split(/\s+/)
+    const words = str.split(/\s+/).filter(Boolean) // Remove empty words
     let result = ""
     for (let word of words) {
         if ((result.length + word.length + (result ? 1 : 0)) > limit) break
         result += (result ? " " : "") + word
     }
-    return result;
+    return result
 }
 
-// const input = "The Meaning of Life: An Exploration of Perspectives";
-// const result = concatenateWordsWithinLimit(input, 24); console.log(result); // Output: "The Meaning of Life:"
+export const timestamp = () => Date.now() // UTC timestamp in milliseconds
+
+export const timestamp_label = (timestamp) => {
+    const d = new Date(timestamp)
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    const options = { hour: "2-digit", minute: "2-digit",
+                    second: "2-digit", hour12: true }
+    const time = d.toLocaleTimeString(undefined, options) ||
+                 `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
+    return `${days[d.getDay()]} ${time}`
+}
+
+export const summarize = (str) => {
+    // three most frequent words
+    if (typeof str !== "string") return timestamp_label(timestamp())
+    const words = str.toLowerCase().match(/\b\w+\b/g) || []
+    if (words.length === 0) return timestamp_label(timestamp())
+    let map = new Map()
+    for (let word of words) {
+        if (word.endsWith("s")) {
+            let singular = word.slice(0, -1)
+            if (map.has(singular)) {
+                word = singular
+            }
+        }
+        // Skip words that are too short or start with "the"
+        if (word.length <= 3 || word.startsWith("the")) continue
+        map.set(word, (map.get(word) || 0) + 1)
+    }
+    let s = [...map.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 3)
+        .map(entry => entry[0])
+        .join(" ")
+    s = shorten_the_sentence(s, 24)
+    return s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s
+}
 
