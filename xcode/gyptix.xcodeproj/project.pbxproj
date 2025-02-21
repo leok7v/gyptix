@@ -66,6 +66,7 @@
 		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
 		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
+		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
 		B3A482932D5035DC00FCE4A5 /* SingleWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */; };
 		B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */; };
 		B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */; };
@@ -203,6 +204,7 @@
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
+		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
 		B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = ../src/swift/ContentView.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileSchemeHandler.swift; path = ../src/swift/FileSchemeHandler.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
@@ -480,6 +482,7 @@
 				B3E2499A2D6162110048A24F /* model.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
+				B3A3D8382D67E455000A5839 /* suggestions.js */,
 				B3E2499C2D61621C0048A24F /* util.js */,
 				B3B3F3F92D4AB3C300A2D406 /* eula.md */,
 				B3B3F3FA2D4AB3C300A2D406 /* index.html */,
@@ -566,6 +569,7 @@
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B30D392A2D458EFA00B8196B /* vocab.json in Resources */,
 				B30D392B2D458EFA00B8196B /* README.md in Resources */,
+				B3A3D8392D67E455000A5839 /* suggestions.js in Resources */,
 				B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */,
 				B3B3F4042D4AB3C300A2D406 /* index.html in Resources */,
 				B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */,

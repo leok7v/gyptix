@@ -122,7 +122,7 @@ struct Gyptix: App {
     static var h: CGFloat = 320.0
     #else
     static var w: CGFloat = 480.0
-    static var h: CGFloat = 320.0
+    static var h: CGFloat = 640.0
     #endif
 
 }

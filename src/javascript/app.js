@@ -1,8 +1,10 @@
 "use strict"
 
-import * as marked from "./marked.js"
-import * as model  from "./model.js"
-import * as util   from "./util.js"
+import * as marked      from "./marked.js"
+import * as model       from "./model.js"
+import * as util        from "./util.js"
+import * as prompts     from "./prompts.js"
+import * as suggestions from "./suggestions.js"
 
 const get = id => document.getElementById(id)
 
@@ -101,6 +103,7 @@ const init = () => { // called DOMContentLoaded
         send         = get("send"),
         send_stop    = get("send_stop"),
         share        = get("share"),
+        suggest      = get("suggest"),
         title        = get("title"),
         toggle_theme = get("toggle_theme")
 
@@ -238,13 +241,16 @@ const init = () => { // called DOMContentLoaded
             messages: [{
                 sender: "bot",
                 text: "What would you like to discuss today?<br>" +
-                "<sup>Using full sentences helps me respond better.<sup>"
+                "<sup>Using full sentences helps me respond better.</sup>"
             }]
         }
+        input.innerText = ""
         save_chat(id, chat)
         collapsed()
         rebuild_list()
         render_messages()
+        suggestions.show()
+        suggestions.start()
     }
     
     const recent = () => { // most recent chat -> current
@@ -345,7 +351,12 @@ const init = () => { // called DOMContentLoaded
     const ask = t => {
         if (!current || !t) return
         if (!model.is_running()) oops()
-        if (!chat.messages) chat.messages = []
+        if (!chat.messages ||
+             chat.messages.length == 1 && chat.messages[0].sender === "bot") {
+            chat.messages = []
+        }
+        if (t === "#") t = prompts.random().prompt // DEBUG
+        console.log("ask: " + t)
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
         save_chat(current, chat)
@@ -392,7 +403,7 @@ const init = () => { // called DOMContentLoaded
     
     send.onclick = e => {
         e.preventDefault()
-        const s = input.innerText.trim()
+        let s = input.innerText.trim()
         if (model.is_answering()) {
             model.poll("<--interrupt-->")
             placeholder()
@@ -403,7 +414,9 @@ const init = () => { // called DOMContentLoaded
         }
     }
     
-    restart.onclick = () => start()
+    restart.onclick = () => {
+        if (model.is_running() && !model.is_answering()) start()
+    }
     
     clear.onclick = () => {
         localStorage.clear()
@@ -447,8 +460,8 @@ const init = () => { // called DOMContentLoaded
             requestAnimationFrame(() => {
                 const sel = window.getSelection()
                 if (sel) sel.removeAllRanges()
-                    ask(s)
-                    })
+                ask(s)
+            })
         }
         if (s.length > 0 && last_key_down_time !== 0) {
             setTimeout(() => {
@@ -458,6 +471,7 @@ const init = () => { // called DOMContentLoaded
                 }
             }, 3000)
         }
+        if (s.length > 0) suggestions.hide()
         last_key_down_time = Date.now()
     }
     
@@ -569,6 +583,17 @@ const init = () => { // called DOMContentLoaded
         })
     })
     
+    suggest.innerHTML = suggestions.init({
+        data: prompts.data,
+        callback: s => {
+            console.log("suggestion.category: " + s.category + " .prompt: " + s.prompt)
+            input.innerText = s.prompt
+            suggestions.hide()
+        }
+    })
+    
+
+    
 //  localStorage.clear() // DEBUG
     
     marked.use({pedantic: false, gfm: true, breaks: false})
@@ -577,6 +602,10 @@ const init = () => { // called DOMContentLoaded
     util.init_font_size(macOS, iPhone, iPad)
     recent()
     placeholder()
+    if (chat.messages.length < 2) {
+        suggestions.show()
+        suggestions.start()
+    }
 }
 
 export { init }
