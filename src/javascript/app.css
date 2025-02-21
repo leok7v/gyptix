@@ -535,19 +535,20 @@ body {
     font-weight: bold;
 }
 
+#suggest {
+    display: none;
+    height: 100%;
+    width: 100%;
+}
+
 .suggestions_container {
-    position: relative;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: none; /* flex; */
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
     padding: 0.25em;
     background-color: var(--background);
     border-radius: 8px;
-    width: 100%;
 }
 
 .suggestion_box {
@@ -556,11 +557,10 @@ body {
     border: 1px solid #888;
     border-radius: 8px;
     padding: 0.25em;
-    width: 60%;
-    height: 25%;
-    max-width: 12em;
-    max-height: 5em;
-    text-align: left;
+    width: 90%;
+    max-width: 14em;
+    max-height: 4em;
+    overflow: hidden;
 }
 
 .suggestion_box:hover {

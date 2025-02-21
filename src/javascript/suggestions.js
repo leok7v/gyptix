@@ -4,18 +4,17 @@ let categories = []
 let callback = () => {}
 let interval = null
 let disp = []
-let next = 0
 
 const get = id => document.getElementById(id)
 
-const shuffle = array => {
-    for (let i = array.length - 1; i > 0; i--) {
+const shuffle = a => {
+    for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
-        const temp = array[i]
-        array[i] = array[j]
-        array[j] = temp
+        const t = a[i]
+        a[i] = a[j]
+        a[j] = t
     }
-    return array
+    return a
 }
 
 const create_box = c => {
@@ -32,12 +31,20 @@ const create_box = c => {
     box.appendChild(title)
     box.appendChild(text)
     box.onclick = () => {
-        const category = box.querySelector(".suggestion_title").innerText
-        const prompt = box.querySelector(".suggestion_text span").textContent
-        callback({ category: category, prompt: prompt })
+        const curCat = box.querySelector(".suggestion_title").innerText
+        const curPrompt = box.querySelector(".suggestion_text span").textContent
+        callback({ category: curCat, prompt: curPrompt })
     }
     c.div = box
     return box
+}
+
+export const init = cfg => {
+    callback = cfg.callback || (x => console.log("sel:", x))
+    categories = cfg.data.slice()
+    return `
+        <div id="suggestions_container" class="suggestions_container"></div>
+    `.replace(/\s+/g, " ").trim()
 }
 
 const build = () => {
@@ -49,25 +56,29 @@ const build = () => {
     let container = get("suggestions_container")
     if (!container) return
     container.innerHTML = ""
+    const invite = document.createElement("div")
+    invite.innerHTML = "What would you like to discuss today?<br>" +
+        "<sup>Using full sentences helps me respond better.</sup>"
+    container.appendChild(invite)
     for (let c of disp) {
         container.appendChild(create_box(c))
     }
 }
 
-export const init = cfg => {
-    callback = cfg.callback || (x => console.log("sel:", x))
-    categories = cfg.data.slice()
-    return `
-        <div id="suggestions_container" class="suggestions_container"></div>
-    `.replace(/\s+/g, " ").trim()
+export const show = () => {
+    if (disp.length === 0) build()
+    cycle()
+    cycle()
+    get("suggest").style.display = "block"
 }
-
 
 export const cycle = () => {
     if (!disp.length) return
+    const idx = Math.floor(Math.random() * disp.length)
     let c = shuffle(categories.slice())[0]
-    let p = c.prompts[Math.floor(Math.random() * c.prompts.length)]
-    let box = disp[next].div
+    let i = Math.floor(Math.random() * c.prompts.length)
+    let p = c.prompts[i]
+    let box = disp[idx].div
     let title = box.querySelector(".suggestion_title")
     let text = box.querySelector(".suggestion_text span")
     title.style.transition = "opacity 0.3s ease"
@@ -79,14 +90,13 @@ export const cycle = () => {
         text.textContent = p
         title.style.opacity = 1
         text.style.opacity = 1
-        disp[next] = {
+        disp[idx] = {
             category: c.category,
             prompts: c.prompts,
-            index: 0,
+            index: i,
             div: box
         }
     }, 300)
-    next = (next +  1) % disp.length
 }
 
 export const start = (ms = 5000) => {
@@ -94,15 +104,8 @@ export const start = (ms = 5000) => {
     interval = setInterval(() => { cycle() }, ms)
 }
 
-export const show = () => {
-    let container = get("suggestions_container")
-    if (disp.length === 0) build()
-    if (container) container.style.display = "flex"
-}
-
 export const hide = () => {
-    let container = get("suggestions_container")
-    if (container) container.style.display = "none"
+    get("suggest").style.display = "none"
     if (interval) {
         clearInterval(interval)
         interval = null

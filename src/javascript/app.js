@@ -28,7 +28,7 @@ const load_chat = id => {
     const content = localStorage.getItem("chat." + id)
     const h = JSON.parse(header)
     const m = JSON.parse(content) // [] messages
-    const c  = { title: h.title, timestamp: h.timestamp, messages: m }
+    const c  = { id: h.id, title: h.title, timestamp: h.timestamp, messages: m }
     return c
 }
 
@@ -236,13 +236,10 @@ const init = () => { // called DOMContentLoaded
         }
         current = id
         chat = {
-            title: util.timestamp_label(id),
+            id: id,
             timestamp: id,
-            messages: [{
-                sender: "bot",
-                text: "What would you like to discuss today?<br>" +
-                "<sup>Using full sentences helps me respond better.</sup>"
-            }]
+            title: util.timestamp_label(id),
+            messages: []
         }
         input.innerText = ""
         save_chat(id, chat)
@@ -291,9 +288,11 @@ const init = () => { // called DOMContentLoaded
     
     const summarize_to_title = () => {
         // Poor man summarization. TODO: use AI for that
-        if (chat.messages.length == 3) {
-            chat.title = util.summarize(chat.messages[1].text + " " +
-                                        chat.messages[2].text)
+        console.log("summarize: " + chat.messages.length)
+        if (chat.messages.length == 2) {
+            chat.title = util.summarize(chat.messages[0].text + " " +
+                                        chat.messages[1].text)
+            console.log("title: " + chat.title)
             title.textContent = chat.title
             title.classList.add("shimmering")
             setTimeout(() => title.classList.remove("shimmering"), 2000)
@@ -351,11 +350,6 @@ const init = () => { // called DOMContentLoaded
     const ask = t => {
         if (!current || !t) return
         if (!model.is_running()) oops()
-        if (!chat.messages ||
-             chat.messages.length == 1 && chat.messages[0].sender === "bot") {
-            chat.messages = []
-        }
-        if (t === "#") t = prompts.random().prompt // DEBUG
         console.log("ask: " + t)
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
@@ -592,8 +586,6 @@ const init = () => { // called DOMContentLoaded
         }
     })
     
-
-    
 //  localStorage.clear() // DEBUG
     
     marked.use({pedantic: false, gfm: true, breaks: false})
@@ -602,7 +594,7 @@ const init = () => { // called DOMContentLoaded
     util.init_font_size(macOS, iPhone, iPad)
     recent()
     placeholder()
-    if (chat.messages.length < 2) {
+    if (chat.messages.length == 0) {
         suggestions.show()
         suggestions.start()
     }

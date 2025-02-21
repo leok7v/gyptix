@@ -39,6 +39,11 @@ static bool running   = false;
 static bool quit = false;
 static bool interrupted = false;
 
+static void sleep_for_ns(long nsec) {
+    struct timespec delay = { nsec / 1000000000, nsec % 1000000000 };
+    pselect(0, NULL, NULL, NULL, &delay, NULL);
+}
+
 static bool validUTF8(const std::string& s) {
     const unsigned char* p = reinterpret_cast<const unsigned char*>(s.data());
     size_t len = s.size(), i = 0;
@@ -123,6 +128,7 @@ static void load_model_and_run(const char* model) {
 
 static void* worker(void* p) {
     const char* model = (const char*)p;
+    sleep_for_ns(1000 * 1000 * 1000); // 1.0s to let UI load and init
     load_model_and_run(model);
     free(p);
     return NULL;
@@ -133,11 +139,6 @@ static void wakeup(void) {
     event = 1;
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&lock);
-}
-
-static void sleep_for_ns(long nsec) {
-    struct timespec delay = { nsec / 1000000000, nsec % 1000000000 };
-    pselect(0, NULL, NULL, NULL, &delay, NULL);
 }
 
 static void ask(const char* s) {
