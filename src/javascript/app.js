@@ -200,9 +200,8 @@ const init = () => { // called DOMContentLoaded
             if (c.id === current) div.classList.add("selected")
             div.onclick = () => {
                 selected = null
-                if (current) { model.save(current) }
                 current = c.id
-                model.load(c.id)
+                model.run(c.id)
                 chat = load_chat(current)
                 rebuild_list()
                 render_messages()
@@ -227,7 +226,7 @@ const init = () => { // called DOMContentLoaded
         })
     }
     
-    const start = () => {
+    const new_session = () => {
         let id = util.timestamp()
         let k = "chat.id." + id
         while (localStorage.getItem(k)) {
@@ -248,6 +247,7 @@ const init = () => { // called DOMContentLoaded
         render_messages()
         suggestions.show()
         suggestions.start()
+        model.run(id)
     }
     
     const recent = () => { // most recent chat -> current
@@ -265,10 +265,11 @@ const init = () => { // called DOMContentLoaded
             const most_recent = valid_chats[0]
             current = most_recent.id
             chat = load_chat(most_recent.id)
+            model.run(most_recent.id)
             render_messages()
             rebuild_list()
         } else {
-            start()
+            new_session()
         }
     }
     
@@ -277,6 +278,7 @@ const init = () => { // called DOMContentLoaded
         if (model.is_answering()) {
             input.style.setProperty("--placeholder",
                                     '"click ▣ to stop"');
+            send.title = "Click to Stop"
         } else if (!macOS) { // double quotes improtant for css variable:
             input.style.setProperty("--placeholder",
                                     '"Ask anything... and click ⇧ to send"');
@@ -311,6 +313,7 @@ const init = () => { // called DOMContentLoaded
             rebuild_list()
             send.classList.remove("pulsing")
             placeholder()
+            send.title = "Click to Submit"
             return
         }
         if (polledText !== "") {
@@ -399,7 +402,7 @@ const init = () => { // called DOMContentLoaded
         e.preventDefault()
         let s = input.innerText.trim()
         if (model.is_answering()) {
-            model.poll("<--interrupt-->")
+            model.interrupt()
             placeholder()
         } else if (s !== "") {
             ask(s)
@@ -409,13 +412,13 @@ const init = () => { // called DOMContentLoaded
     }
     
     restart.onclick = () => {
-        if (model.is_running() && !model.is_answering()) start()
+        if (model.is_running() && !model.is_answering()) new_session()
     }
     
     clear.onclick = () => {
         localStorage.clear()
         current = null
-        start()
+        new_session()
     }
     
     const collapsed = () => {
@@ -594,6 +597,7 @@ const init = () => { // called DOMContentLoaded
     util.init_font_size(macOS, iPhone, iPad)
     recent()
     placeholder()
+    send.title = "Click to Submit"
     if (chat.messages.length == 0) {
         suggestions.show()
         suggestions.start()

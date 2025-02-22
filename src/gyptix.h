@@ -6,13 +6,13 @@ extern "C" {
 #endif
 
 struct gyptix {
-    void (*start)(const char* model);
-    void (*save)(const char* id);
-    void (*load)(const char* id);
+    void (*load)(const char* model);
+    void (*run)(const char* id);
+    int  (*is_running)(void);
     void (*ask)(const char* question);
-    const char* (*answer)(const char* interrupt);
-    int (*is_answering)();
-    int (*is_running)();
+    int  (*is_answering)(void);
+    const char* (*poll)(const char* interrupt);
+    void (*interrupt)(void);
     void (*inactive)(void);
     void (*stop)(void);
 };

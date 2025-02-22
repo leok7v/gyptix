@@ -41,7 +41,7 @@ struct Gyptix: App {
                                                   withExtension: nil) else {
                         fatalError("Could not get bundle url")
                     }
-                    gyptix.start(f.absoluteString);
+                    gyptix.load(f.absoluteString); // load model
                     setupTerminationObserver()
                 }
                 .onChange(of: scenePhase) { oldPhase, newPhase in

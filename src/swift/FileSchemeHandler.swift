@@ -26,26 +26,20 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: "OK")
     }
 
-    func save(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+    func run(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
         if let body = urlSchemeTask.request.httpBody {
             guard let request = String(data: body, encoding: .utf8) else {
                 print("Failed to decode body as UTF-8 string.")
                 return
             }
-            request.withCString { s in gyptix.save(s) }
+            request.withCString { s in gyptix.run(s) }
         }
-        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "OK")
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
     }
 
-    func load(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
-        if let body = urlSchemeTask.request.httpBody {
-            guard let request = String(data: body, encoding: .utf8) else {
-                print("Failed to decode body as UTF-8 string.")
-                return
-            }
-            request.withCString { s in gyptix.load(s) }
-        }
-        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "OK")
+    func interrupt(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        gyptix.interrupt();
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
     }
 
     func poll(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
@@ -56,7 +50,7 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
                 return
             }
             request.withCString { s in
-                if let response = gyptix.answer(s) {
+                if let response = gyptix.poll(s) {
                     text = String(cString: response)
                     free(UnsafeMutableRawPointer(mutating: response))
                 } else {
@@ -98,11 +92,14 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         if resourcePath == "ask" {
             ask(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
-        } else if resourcePath == "load" {
-            load(webView, urlSchemeTask: urlSchemeTask, url: u)
+        } else if resourcePath == "run" {
+            run(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
-        } else if resourcePath == "save" {
-            save(webView, urlSchemeTask: urlSchemeTask, url: u)
+        } else if resourcePath == "poll" {
+            poll(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "interrupt" {
+            interrupt(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "is_answering" {
             is_answering(webView, urlSchemeTask: urlSchemeTask, url: u)
@@ -124,9 +121,6 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
             #endif
             return
 */
-        } else if resourcePath == "poll" {
-            poll(webView, urlSchemeTask: urlSchemeTask, url: u)
-            return
         }
         guard let f = Bundle.main.url(forResource: resourcePath,
                                       withExtension: nil) else {

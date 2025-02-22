@@ -4,6 +4,8 @@
 #include "log.h"
 #include "sampling.h"
 #include "llama.h"
+#include "llama-if.h"
+#include <sys/stat.h>
 #include "chat-template.hpp"
 
 #include <cstdio>
@@ -90,36 +92,6 @@ static bool file_is_empty(const std::string & path) {
     return f.tellg() == 0;
 }
 
-extern "C" {
-
-char* (*read_line)(void); // returns NULL on EOF
-bool  (*output_text)(const char* s);
-bool  (*interrupt)(void);
-
-static int load_session(struct context &context,
-                        std::string path_session) {
-    std::vector<llama_token> session_tokens;
-    LOG_INF("%s: attempting to load saved session from '%s'\n", __func__, path_session.c_str());
-    if (!file_exists(path_session)) {
-        LOG_INF("%s: session file does not exist, will create.\n", __func__);
-    } else if (file_is_empty(path_session)) {
-        LOG_INF("%s: The session file is empty. A new session will be initialized.\n", __func__);
-    } else {
-        // The file exists and is not empty
-        session_tokens.resize(context.n_ctx);
-        size_t n_token_count_out = 0;
-        if (!llama_state_load_file(context.ctx, path_session.c_str(), session_tokens.data(), session_tokens.capacity(), &n_token_count_out)) {
-            LOG_ERR("%s: failed to load session file '%s'\n", __func__, path_session.c_str());
-            return 1;
-        }
-        session_tokens.resize(n_token_count_out);
-        LOG_INF("%s: loaded a session with prompt size of %d tokens\n", __func__, (int)session_tokens.size());
-    }
-    context.path_session = path_session;
-    context.session_tokens = session_tokens;
-    return 0;
-}
-
 static int parse_params(struct context &context, int argc, char* argv[]) {
     common_params &params = context.params;
     if (!common_params_parse(argc, argv, params, LLAMA_EXAMPLE_MAIN, print_usage)) {
@@ -156,8 +128,6 @@ static int parse_params(struct context &context, int argc, char* argv[]) {
 
 static int load(struct context &context) {
     LOG_INF("%s: llama backend init\n", __func__);
-    llama_backend_init();
-    llama_numa_init(context.params.numa);
     context.model = nullptr;
     context.ctx = nullptr;
     context.smpl = nullptr;
@@ -175,7 +145,7 @@ static int load(struct context &context) {
     return 0;
 }
 
-static int ggml(struct context &context) {
+static int ggml_init(struct context &context) {
     LOG_INF("%s: llama threadpool init, n_threads = %d\n", __func__, (int)context.params.cpuparams.n_threads);
     context.ggml_reg = ggml_backend_dev_backend_reg(ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU));
     auto &reg = context.ggml_reg;
@@ -201,6 +171,8 @@ static int ggml(struct context &context) {
         return 1;
     }
     llama_attach_threadpool(context.ctx, context.threadpool, context.threadpool_batch);
+    llama_backend_init();
+    llama_numa_init(context.params.numa);
     return 0;
 }
 
@@ -214,31 +186,35 @@ static int64_t extract_id(const std::string &input, const std::string &prefix) {
     return 0;
 }
 
-static void save_session(struct context &context, int64_t id) {
-    printf("save: %lld\n", id);
-    if (id == 0) { return; }
-    // TODO: Implement saving logic
+static std::string prompt_cache_filename(const char* session) {
+    static char cwd[4 * 1024];
+    getcwd(cwd, sizeof(cwd));
+    static char prompts[4 * 1024];
+    strcpy(prompts, cwd);
+    strcat(prompts, "/prompts");
+    mkdir(prompts, S_IRWXU);
+    static char prompt_cache[4 * 1024];
+    strcpy(prompt_cache, prompts);
+    strcat(prompt_cache, "/");
+    strcat(prompt_cache, session);
+    printf("%s\n", prompt_cache);
+    return std::string(prompt_cache);
 }
 
-static void load_session(struct context &context, int64_t id) {
-    printf("load: %lld\n", id);
-    if (id == 0) { return; }
-    // TODO: Implement loading logic
-}
-
-static void special(struct context &context, std::string &input) {
-    int64_t id = 0;
-    if (input.starts_with("<--")) {
-        if (input.starts_with("<--save:") && input.ends_with("-->")) {
-            save_session(context, extract_id(input, "<--save:"));
-        } else if (input.starts_with("<--load:") && input.ends_with("-->")) {
-            load_session(context, extract_id(input, "<--load:"));
-        }
-        input.clear();
-    }
-}
-
-static int chat(struct context &context) {
+static int chat(struct context &context, const char* session) {
+    printf(">>>chat\n");
+    context.chat_msgs.clear();
+    context.embd.clear();
+    context.embd_inp.clear();
+    context.session_tokens.clear();
+    context.input_tokens.clear();
+    context.output_tokens.clear();
+    context.output_ss.clear();
+    context.assistant_ss.clear();
+    context.antiprompt_ids.clear();
+    context.is_interacting = false;
+    context.input_echo = false;
+    context.display = false;
     llama_context              * &ctx = context.ctx;
     const llama_model          * &model = context.model;
     common_sampler             * &smpl  = context.smpl;
@@ -293,24 +269,29 @@ static int chat(struct context &context) {
         LOG_INF("%s\n", common_params_get_system_info(context.params).c_str());
         LOG_INF("\n");
     }
-    std::string path_session = context.params.path_prompt_cache;
+    std::string path_session = prompt_cache_filename(session);
     std::vector<llama_token> &session_tokens = context.session_tokens;
     if (!path_session.empty()) {
         LOG_INF("%s: attempting to load saved session from '%s'\n", __func__, path_session.c_str());
         if (!file_exists(path_session)) {
-            LOG_INF("%s: session file does not exist, will create.\n", __func__);
+            printf("%s: session file does not exist, will create.\n", __func__);
         } else if (file_is_empty(path_session)) {
-            LOG_INF("%s: The session file is empty. A new session will be initialized.\n", __func__);
+            printf("%s: The session file is empty. A new session will be initialized.\n", __func__);
         } else {
             // The file exists and is not empty
             session_tokens.resize(n_ctx);
             size_t n_token_count_out = 0;
-            if (!llama_state_load_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.capacity(), &n_token_count_out)) {
-                LOG_ERR("%s: failed to load session file '%s'\n", __func__, path_session.c_str());
+            if (!llama_state_load_file(ctx, path_session.c_str(),
+                                       session_tokens.data(),
+                                       session_tokens.capacity(),
+                                       &n_token_count_out)) {
+                printf("%s: failed to load session file '%s'\n", __func__,
+                        path_session.c_str());
                 return 1;
             }
             session_tokens.resize(n_token_count_out);
-            LOG_INF("%s: loaded a session with prompt size of %d tokens\n", __func__, (int)session_tokens.size());
+            printf("%s: loaded a session with prompt size of %d tokens\n",
+                   __func__, (int)session_tokens.size());
         }
     }
     const bool add_bos = llama_vocab_get_add_bos(context.vocab);
@@ -609,11 +590,13 @@ static int chat(struct context &context) {
         embd.clear();
         if ((int) embd_inp.size() <= context.n_consumed && !context.is_interacting) {
             // optionally save the session on first sample (for faster prompt loading next time)
+/*
             if (!path_session.empty() && context.need_to_save_session && !params.prompt_cache_ro) {
                 context.need_to_save_session = false;
                 llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
                 LOG_DBG("saved session to %s\n", path_session.c_str());
             }
+*/
             const llama_token id = common_sampler_sample(smpl, ctx, -1);
             common_sampler_accept(smpl, id, /* accept_grammar= */ true);
             // LOG_DBG("last: %s\n", string_from(ctx, smpl->prev.to_vector()).c_str());
@@ -641,9 +624,8 @@ static int chat(struct context &context) {
         if (context.input_echo && context.display) {
             for (auto id : embd) {
                 const std::string token_str = common_token_to_piece(ctx, id, params.special);
-                // Console/Stream Output
-//              LOG("%s", token_str.c_str());
-                if (!output_text(token_str.c_str())) {
+//              printf("token_str.c_str(): %s\n", token_str.c_str());
+                if (!llama.output_text(token_str.c_str())) {
                     interrupted  = true;
                     break;
                 }
@@ -716,7 +698,15 @@ static int chat(struct context &context) {
                         chat_add_and_format("assistant", assistant_ss.str());
                     }
                     context.is_interacting = true;
-                    output_text("<--done-->");
+                    llama.output_text("<--done-->");
+                    if (!path_session.empty()) {
+                        printf("\n%s: saving %zd tokens "
+                               "to session file '%s'\n", __func__,
+                               session_tokens.size(),
+                               path_session.c_str());
+                        llama_state_save_file(ctx, path_session.c_str(),
+                                              session_tokens.data(), session_tokens.size());
+                    }
                     LOG("\n");
                 }
             }
@@ -726,7 +716,7 @@ static int chat(struct context &context) {
                 assistant_ss << common_token_to_piece(ctx, id, false);
             }
             if (interrupted) {
-                output_text("<--done-->");
+                llama.output_text("<--done-->");
                 context.is_interacting = true;
             }
             if (context.n_past > 0 && context.is_interacting) {
@@ -745,13 +735,21 @@ static int chat(struct context &context) {
                 }
                 console::set_display(console::user_input);
                 context.display = params.display_prompt;
-                const char* line = read_line();
+                const char* line = llama.read_line();
                 if (!line) {
+                    context.is_interacting = true;
+                    llama.output_text("<--done-->");
+                    printf("%s <--done-->", __func__);
                     break;
                 }
                 buffer += line;
                 free((void*)line);
-                special(context, buffer);
+                if (buffer == "<--end-->") {
+                    context.is_interacting = true;
+                    llama.output_text("<--done-->");
+                    printf("%s <--done-->", __func__);
+                    break;
+                }
                 // done taking input, reset color
                 console::set_display(console::reset);
                 context.display = true;
@@ -819,41 +817,64 @@ static int chat(struct context &context) {
         if (params.interactive && context.n_remain <= 0 && params.n_predict >= 0) {
             context.n_remain = params.n_predict;
             context.is_interacting = true;
-            output_text("<--done-->");
+            llama.output_text("<--done-->");
         }
     }
-    if (!path_session.empty() && params.prompt_cache_all && !params.prompt_cache_ro) {
-        LOG("\n%s: saving final output to session file '%s'\n", __func__, path_session.c_str());
-        llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
+    if (!path_session.empty()) {
+        printf("\n%s: saving final output %zd tokens "
+               "to session file '%s'\n", __func__,
+               session_tokens.size(),
+               path_session.c_str());
+        llama_state_save_file(ctx, path_session.c_str(),
+                              session_tokens.data(), session_tokens.size());
     }
     LOG("\n\n");
     common_perf_print(ctx, smpl);
     common_sampler_free(smpl);
-    llama_detach_threadpool(ctx);
+    printf("<<<chat\n");
+    return 0;
+}
+
+static void ggml_free(struct context &context) {
+    llama_detach_threadpool(context.ctx);
     llama_backend_free();
     auto * ggml_threadpool_free_fn = (decltype(ggml_threadpool_free) *)
         ggml_backend_reg_get_proc_address(context.ggml_reg, "ggml_threadpool_free");
     ggml_threadpool_free_fn(context.threadpool);
     ggml_threadpool_free_fn(context.threadpool_batch);
+}
+
+static struct context *context;
+
+int llama_load(int argc, char* argv[]) {
+    context = new struct context();
+    if (!context) { return 1; }
+    if (parse_params(*context, argc, argv) != 0) {
+        return 1;
+    }
+    if (load(*context) != 0) {
+        return 1;
+    }
+    if (ggml_init(*context) != 0) {
+        return 1;
+    }
     return 0;
 }
 
-int run(int argc, char* argv[]) {
-    int r = 1;
-    {
-        context context;
-        if (parse_params(context, argc, argv) != 0) {
-            return 1;
-        }
-        if (load(context) != 0) {
-            return 1;
-        }
-        if (ggml(context) != 0) {
-            return 1;
-        }
-        r = chat(context);
-    }
-    return r;
+int llama_run(const char* session) {
+    return chat(*context, session);
 }
 
-} // extern "C"
+void llama_fini(void) {
+    ggml_free(*context);
+    delete context;
+}
+
+struct llama_if llama = {
+    .load = llama_load,
+    .run  = llama_run,
+    .fini = llama_fini,
+    .read_line = 0,
+    .output_text = 0,
+};
+

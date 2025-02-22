@@ -34,10 +34,11 @@ static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_t thread;
 static char* question;
 static std::string output;
-static bool answering = false;
-static bool running   = false;
-static bool quit = false;
+static bool answering   = false;
+static bool running     = false;
+static bool quit        = false;
 static bool interrupted = false;
+static char* session_id = nullptr;
 
 static void sleep_for_ns(long nsec) {
     struct timespec delay = { nsec / 1000000000, nsec % 1000000000 };
@@ -75,7 +76,7 @@ static void init_random_seed() {
     #define APPLE_SILICON 0
 #endif
 
-static void load_model_and_run(const char* model) {
+static void load_model(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
     init_random_seed();
     long seed = random();
@@ -89,7 +90,7 @@ static void load_model_and_run(const char* model) {
     mkdir(prompts, S_IRWXU);
     static char prompt_cache[4 * 1024];
     strcpy(prompt_cache, prompts);
-    strcat(prompt_cache, "/cache.nsgg"); // about 1MB
+    strcat(prompt_cache, "/last");
     printf("%s\n", prompt_cache);
     int argc = 0;
     argv[argc++] = getcwd(cwd, countof(cwd));
@@ -115,21 +116,40 @@ static void load_model_and_run(const char* model) {
 #endif
 //  argv[argc++] = (char*)"-p";
 //  argv[argc++] = (char*)"You are polite helpful assistant";
-    running = true;
-    fprintf(stderr, "running = true\n");
     try {
-        run(argc, argv);
+        llama.load(argc, argv);
+        printf("llama.load() done\n");
+        for (;;) {
+            pthread_mutex_lock(&lock);
+            while (!event) { pthread_cond_wait(&cond, &lock); }
+            event = 0;
+            char* id = strdup(session_id);
+            session_id = nullptr;
+            pthread_mutex_unlock(&lock);
+            question = NULL;
+            free(session_id);
+            if (quit || id == NULL) { break; }
+            running = true;
+            int r = llama.run(id);
+            free(id);
+            running = false;
+            if (r != 0) { break; }
+            if (quit) {
+                break;
+            }
+        }
+        pthread_mutex_lock(&lock);
+        llama.fini();
+        pthread_mutex_unlock(&lock);
     } catch (...) {
         fprintf(stderr, "Exception in run()\n");
     }
     fprintf(stderr, "running = false\n");
-    running = false;
 }
 
 static void* worker(void* p) {
     const char* model = (const char*)p;
-    sleep_for_ns(1000 * 1000 * 1000); // 1.0s to let UI load and init
-    load_model_and_run(model);
+    load_model(model);
     free(p);
     return NULL;
 }
@@ -149,14 +169,18 @@ static void ask(const char* s) {
         pthread_mutex_unlock(&lock);
         wakeup();
         while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
-        if (question == NULL) { answering = true; }
+        if (question == NULL) {
+            answering = true;
+            printf("%s : %s\n", __func__, s);
+            printf("%s answering = true;\n", __func__);
+        }
     }
 }
 
 static int is_answering() { return (int)answering; }
 static int is_running()   { return (int)running; }
 
-const char* answer(const char* i) {
+const char* poll(const char* i) {
     pthread_mutex_lock(&lock);
     if (strcmp(i, "<--interrupt-->") == 0) {
         interrupted = true;
@@ -174,7 +198,7 @@ const char* answer(const char* i) {
     return s;
 }
 
-static char* read_line_impl(void) {
+static char* read_line(void) {
     char* s = NULL;
     for (;;) {
         pthread_mutex_lock(&lock);
@@ -188,58 +212,68 @@ static char* read_line_impl(void) {
     return s;
 }
 
-static bool output_text_impl(const char* s) {
+static bool output_text(const char* s) {
     pthread_mutex_lock(&lock);
     if (strcmp(s, "<--done-->") == 0) {
         answering = false;
+        printf("%s answering = false;\n", __func__);
     } else {
         output += s;
     }
     bool result = !interrupted;
-    interrupted = false;
+    if (interrupted) {
+        interrupted = false;
+        printf("%s interrupted = false;\n", __func__);
+    }
     pthread_mutex_unlock(&lock);
     return result;
 }
 
-static void start(const char* model) {
-    read_line   = read_line_impl;
-    output_text = output_text_impl;
+static void load(const char* model) {
+    llama.read_line   = read_line;
+    llama.output_text = output_text;
     pthread_create(&thread, NULL, worker, (void*)strdup(model));
-    while (!is_running()) { sleep_for_ns(1000* 1000); }
 }
 
-static void save(const char* id) {
-    printf("save %s\n", id);
+static void run(const char* id) {
+    session_id = strdup(id);
+    printf("session: %s\n", id);
+    ask("<--end-->"); // end previous session
+    answering = false; // because no one will be polling right after run
+    printf("%s answering = false;\n", __func__);
+    wakeup();
+    printf("running: %s\n", id);
+    
 }
-
-static void load(const char* id) {
-    printf("load %s\n", id);
-}
-
 
 static void inactive(void) {
     printf("inactive\n");
 }
 
-static void stop(void) {
-    quit = true;
+static void interrupt(void) {
     interrupted = true;
+    printf("%s interrupted = true;\n", __func__);
     wakeup();
     pthread_join(thread, NULL);
     pthread_mutex_destroy(&lock);
     pthread_cond_destroy(&cond);
 }
 
+static void stop(void) {
+    quit = true;
+    interrupt();
+}
+
 struct gyptix gyptix = {
-    .start = start,
-    .save = save,
     .load = load,
+    .run = run,
     .ask = ask,
-    .answer = answer,
+    .poll = poll,
     .is_answering = is_answering,
     .is_running = is_running,
     .inactive = inactive,
-    .stop = stop
+    .interrupt = interrupt,
+    .stop = stop,
 };
 
 }

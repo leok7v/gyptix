@@ -5,6 +5,17 @@ let callback = () => {}
 let interval = null
 let disp = []
 
+/*
+ TODO: left and right of category title add button:"◀" title button:"▶"
+ TODO: left and right of prompt add button:"▲" title button:"▼"
+ if any of these buttons is clicked random cycle stops and the buttons
+ allow user manually scroll thru categories and thru pprompts in the category
+ .css already defines .button and .glyph styles for buttons customization
+ <button id="id"  class="button"
+     title="Hint"
+     ><span class="glyph">◀</span></button>
+ */
+
 const get = id => document.getElementById(id)
 
 const shuffle = a => {

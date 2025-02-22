@@ -1,17 +1,22 @@
-#ifndef LLAMA_SO
-#define LLAMA_SO
+#ifndef LLAMA_IF
+#define LLAMA_IF
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern char* (*read_line)(void); // returns malloc()ed string
-extern bool  (*output_text)(const char* s); // returns false on stop interruption
+struct llama_if {
+    int   (*load)(int argc, char** argv);
+    int   (*run)(const char* session);
+    void  (*fini)(void);
+    char* (*read_line)(void); // returns malloc()ed string
+    bool  (*output_text)(const char* s); // returns false on stop interruption
+};
 
-int run(int argc, char** argv);
+extern struct llama_if llama;
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // LLAMA_SO
+#endif // LLAMA_IF
