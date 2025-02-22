@@ -37,12 +37,14 @@ struct Gyptix: App {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         removeTabRelatedMenuItems()
                     }
-                    guard let f = Bundle.main.url(forResource: "granite-3.1-1b-a400m-instruct-Q8_0.gguf",
-                                                  withExtension: nil) else {
-                        fatalError("Could not get bundle url")
+                    guard let f = Bundle.main.url(
+                        forResource: "granite-3.1-1b-a400m-instruct-Q8_0.gguf",
+                        withExtension: nil) else {
+                            fatalError("Could not get bundle url")
                     }
                     gyptix.load(f.absoluteString); // load model
                     setupTerminationObserver()
+                    AppRating.trackAppLaunch()
                 }
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     if newPhase == .background || newPhase == .inactive {

@@ -90,6 +90,7 @@
 		B3E249A12D617E300048A24F /* marked.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E249A02D617E300048A24F /* marked.js */; };
 		B3F590542D69E7C5008B5B7D /* getcwd.m in Sources */ = {isa = PBXBuildFile; fileRef = B3F590532D69E7C5008B5B7D /* getcwd.m */; };
 		B3F590562D6A7294008B5B7D /* detect.js in Resources */ = {isa = PBXBuildFile; fileRef = B3F590552D6A7294008B5B7D /* detect.js */; };
+		B3F590582D6A77CE008B5B7D /* AppRating.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F590572D6A77CE008B5B7D /* AppRating.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -231,6 +232,7 @@
 		B3F590522D69E7C5008B5B7D /* getcwd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = getcwd.h; path = ../src/getcwd.h; sourceTree = SOURCE_ROOT; };
 		B3F590532D69E7C5008B5B7D /* getcwd.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = getcwd.m; path = ../src/getcwd.m; sourceTree = SOURCE_ROOT; };
 		B3F590552D6A7294008B5B7D /* detect.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = detect.js; sourceTree = "<group>"; };
+		B3F590572D6A77CE008B5B7D /* AppRating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppRating.swift; path = ../src/swift/AppRating.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -469,6 +471,7 @@
 		B3756DF12D41D46B00BCF111 /* swift */ = {
 			isa = PBXGroup;
 			children = (
+				B3F590572D6A77CE008B5B7D /* AppRating.swift */,
 				B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */,
 				B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */,
 				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
@@ -644,6 +647,7 @@
 				B30D38EA2D458C4E00B8196B /* llama-impl.cpp in Sources */,
 				B30D38EB2D458C4E00B8196B /* llama-model-loader.cpp in Sources */,
 				B30D38EC2D458C4E00B8196B /* llama-kv-cache.cpp in Sources */,
+				B3F590582D6A77CE008B5B7D /* AppRating.swift in Sources */,
 				B30D38ED2D458C4E00B8196B /* llama-chat.cpp in Sources */,
 				B34A04482D458A880010D066 /* ggml-quants.c in Sources */,
 				B34A044C2D458A880010D066 /* ggml-threading.cpp in Sources */,
