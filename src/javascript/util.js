@@ -1,5 +1,7 @@
 "use strict"
 
+import * as detect      from "./detect.js"
+
 export const toast = (s, to) => {
     if (!s.includes("<") && !s.includes(">")) s = `<p>${s}</p>`
     const div = document.createElement("div")
@@ -104,10 +106,10 @@ export const toggle_theme = () => {
     localStorage.setItem("settings.theme", theme)
 }
 
-export const init_font_size = (macOS, iPhone, iPad) => {
+export const init_font_size = () => {
     let fs = 100
-    if (iPhone) fs = 130
-    if (iPad)   fs = 160
+    if (detect.iPhone) fs = 130
+    if (detect.iPad)   fs = 160
     let font_size = localStorage.getItem("settings.font-size") || fs;
     document.body.style.fontSize = font_size + "%";
     localStorage.setItem("settings.font-size", font_size);

@@ -1,10 +1,11 @@
 "use strict"
 
+import * as detect      from "./detect.js"
 import * as marked      from "./marked.js"
 import * as model       from "./model.js"
-import * as util        from "./util.js"
 import * as prompts     from "./prompts.js"
 import * as suggestions from "./suggestions.js"
+import * as util        from "./util.js"
 
 const get = id => document.getElementById(id)
 
@@ -46,46 +47,8 @@ const save_chat = (c) => {
         localStorage.clear() // brutal but effective
     }
 }
-    
-let ua = "mozilla/5.0 (macintosh; intel mac os x 10_15_7) applewebkit/605.1.15"
-let platform = "macintel"
-let apple = true
-let bro = "safari"
-let macOS  = false
-let iPhone = false
-let iPad   = false
-let iOS    = false
 
-const detect = () => {
-    const html = document.documentElement
-    ua = navigator.userAgent.toLowerCase()
-    platform = navigator.platform ? navigator.platform.toLowerCase() : ""
-    apple =
-        /iphone|ipad|macintosh/.test(ua) ||
-        (platform.includes("mac") && navigator.maxTouchPoints > 1) ||
-        (ua.includes("macintosh") &&
-         ua.includes("applewebkit") &&
-        !ua.includes("chrome"))
-    bro = apple ? "safari" : "chrome"
-    macOS  = /\(macintosh;/.test(ua)
-    iPhone = /\(iphone;/.test(ua)
-    iPad   = /\(ipad;/.test(ua)
-    if (macOS && navigator.maxTouchPoints && navigator.maxTouchPoints === 5) {
-        // Incorrect UserAgent in iPad OS WebKit
-        macOS = false
-        iPad = true
-    }
-    iOS = iPad || iPhone
-    html.setAttribute("data-bro", bro)
-    if (macOS)  html.setAttribute("data-macOS",  "true")
-    if (iPhone) html.setAttribute("data-iPhone", "true")
-    if (iPad)   html.setAttribute("data-iPad",   "true")
-    if (iOS)    html.setAttribute("data-iOS",    "true")
-}
-
-detect() // Immediately to load script
-
-const init = () => { // called DOMContentLoaded
+export const run = () => { // called DOMContentLoaded
     const
         clear        = get("clear"),
         collapse     = get("collapse"),
@@ -604,10 +567,10 @@ const init = () => { // called DOMContentLoaded
         let v = localStorage.setItem("app.version", version)
     }
     
+    detect.init()
     marked.use({pedantic: false, gfm: true, breaks: false})
-    detect()
     util.init_theme()
-    util.init_font_size(macOS, iPhone, iPad)
+    util.init_font_size()
     recent()
     placeholder()
     send.title = "Click to Submit"
@@ -618,5 +581,3 @@ const init = () => { // called DOMContentLoaded
         }
     }, 5000)
 }
-
-export { init }
