@@ -123,12 +123,15 @@ static void load_model(const char* model) {
             pthread_mutex_lock(&lock);
             while (!event) { pthread_cond_wait(&cond, &lock); }
             event = 0;
-            char* id = strdup(session_id);
-            session_id = nullptr;
+            char* id = nullptr;
+            if (session_id != nullptr) {
+                char* id = strdup(session_id);
+                session_id = nullptr;
+                free(session_id);
+            }
             pthread_mutex_unlock(&lock);
-            question = NULL;
-            free(session_id);
-            if (quit || id == NULL) { break; }
+            question = nullptr;
+            if (quit || id == nullptr) { break; }
             running = true;
 //          fprintf(stderr, "running = true\n");
             int r = llama.run(id);

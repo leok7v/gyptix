@@ -611,10 +611,12 @@ const init = () => { // called DOMContentLoaded
     recent()
     placeholder()
     send.title = "Click to Submit"
-    if (chat.messages.length == 0) {
-        suggestions.show()
-        suggestions.start()
-    }
+    setTimeout(() => {
+        if (chat.messages.length == 0) {
+            suggestions.show()
+            suggestions.start()
+        }
+    }, 5000)
 }
 
 export { init }
