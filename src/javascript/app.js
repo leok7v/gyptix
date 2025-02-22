@@ -32,16 +32,17 @@ const load_chat = id => {
     return c
 }
 
-const save_chat = (id, c) => {
-    const header  = { title: c.title, timestamp: c.timestamp }
+const save_chat = (c) => {
+    console.log("save_chat(" + c.id + ")")
+    const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
     try {
-        localStorage.setItem("chat.id." + id, JSON.stringify(header))
-        localStorage.setItem("chat." + id, JSON.stringify(c.messages))
+        localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
+        localStorage.setItem("chat." + c.id, JSON.stringify(c.messages))
     } catch (error) {
         console.log(error)
         util.toast(error, 5000)
-        localStorage.removeItem("chat.id." + id)
-        localStorage.removeItem("chat." + id)
+        localStorage.removeItem("chat.id." + c.id)
+        localStorage.removeItem("chat." + c.id)
         localStorage.clear() // brutal but effective
     }
 }
@@ -139,9 +140,13 @@ const init = () => { // called DOMContentLoaded
         const ch = messages.clientHeight
         const top = messages.scrollTop
         at_the_bottom = sh - ch <= top + 5
-        messages.innerHTML = ""
+        // this is optimization because markdown rendering is slow
+        var i = 0
         chat.messages.forEach(msg => {
-            messages.appendChild(render_message(msg))
+            if (i > messages.childNodes.length - 1) {
+                messages.appendChild(render_message(msg))
+            }
+            i++;
         })
         if (at_the_bottom) scroll_to_bottom()
         title.textContent = chat.title
@@ -204,6 +209,7 @@ const init = () => { // called DOMContentLoaded
                 model.run(c.id)
                 chat = load_chat(current)
                 rebuild_list()
+                messages.innerHTML = ""
                 render_messages()
                 hide_menu()
                 hide_scroll_to_bottom()
@@ -241,9 +247,10 @@ const init = () => { // called DOMContentLoaded
             messages: []
         }
         input.innerText = ""
-        save_chat(id, chat)
+        save_chat(chat)
         collapsed()
         rebuild_list()
+        messages.innerText = ""
         render_messages()
         suggestions.show()
         suggestions.start()
@@ -266,6 +273,7 @@ const init = () => { // called DOMContentLoaded
             current = most_recent.id
             chat = load_chat(most_recent.id)
             model.run(most_recent.id)
+            messages.innerHTML = ""
             render_messages()
             rebuild_list()
         } else {
@@ -309,7 +317,7 @@ const init = () => { // called DOMContentLoaded
             chat.timestamp = util.timestamp()
             title.innerHTML = ""
             summarize_to_title()
-            save_chat(current, chat)
+            save_chat(chat)
             rebuild_list()
             send.classList.remove("pulsing")
             placeholder()
@@ -333,7 +341,7 @@ const init = () => { // called DOMContentLoaded
         send.classList.add("pulsing")
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
-        }, 10)
+        }, 100)
         if (!macOS) {
             title.innerHTML =
                 "<div class='logo-container shimmering'>" +
@@ -345,8 +353,8 @@ const init = () => { // called DOMContentLoaded
 
     const oops = () => {
         util.toast("<p>Oops.<br>🤕🧠🤢<br>" +
-                   "Update?<br>⚙️🔧<br>" +
-                   "Try again later?</p>", 5000)
+                   "Maybe AppStore update?<br>⚙️🔧<br>" +
+                   "Or try again later?</p>", 5000)
         setTimeout(() => { model.quit() }, 5100)
     }
     
@@ -356,7 +364,7 @@ const init = () => { // called DOMContentLoaded
         console.log("ask: " + t)
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
-        save_chat(current, chat)
+        save_chat(chat)
         render_messages()
         scroll_to_bottom()
         let error = model.ask(t)
@@ -412,6 +420,7 @@ const init = () => { // called DOMContentLoaded
     }
     
     restart.onclick = () => {
+        console.log("running: " + model.is_running() + " answering: " + model.is_answering())
         if (model.is_running() && !model.is_answering()) new_session()
     }
     
@@ -523,7 +532,7 @@ const init = () => { // called DOMContentLoaded
         util.rename_in_place(selected_item, c.title).then(new_name => {
             if (new_name && new_name !== c.title) {
                 c.title = new_name
-                save_chat(selected, c)
+                save_chat(c)
                 if (selected === current) {
                     chat = c
                     title.textContent = c.title
@@ -583,13 +592,17 @@ const init = () => { // called DOMContentLoaded
     suggest.innerHTML = suggestions.init({
         data: prompts.data,
         callback: s => {
-            console.log("suggestion.category: " + s.category + " .prompt: " + s.prompt)
             input.innerText = s.prompt
             suggestions.hide()
         }
     })
     
-//  localStorage.clear() // DEBUG
+    let version = "25.02.20"
+    let v = localStorage.getItem("app.version")
+    if (v !== version) {
+        localStorage.clear() // no one promissed to keep data forever
+        let v = localStorage.setItem("app.version", version)
+    }
     
     marked.use({pedantic: false, gfm: true, breaks: false})
     detect()

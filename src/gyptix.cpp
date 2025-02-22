@@ -91,7 +91,7 @@ static void load_model(const char* model) {
     static char prompt_cache[4 * 1024];
     strcpy(prompt_cache, prompts);
     strcat(prompt_cache, "/last");
-    printf("%s\n", prompt_cache);
+//  printf("%s\n", prompt_cache);
     int argc = 0;
     argv[argc++] = getcwd(cwd, countof(cwd));
     argv[argc++] = (char*)"--seed";
@@ -118,7 +118,7 @@ static void load_model(const char* model) {
 //  argv[argc++] = (char*)"You are polite helpful assistant";
     try {
         llama.load(argc, argv);
-        printf("llama.load() done\n");
+//      printf("llama.load() done\n");
         for (;;) {
             pthread_mutex_lock(&lock);
             while (!event) { pthread_cond_wait(&cond, &lock); }
@@ -130,9 +130,11 @@ static void load_model(const char* model) {
             free(session_id);
             if (quit || id == NULL) { break; }
             running = true;
+//          fprintf(stderr, "running = true\n");
             int r = llama.run(id);
             free(id);
             running = false;
+//          fprintf(stderr, "running = false\n");
             if (r != 0) { break; }
             if (quit) {
                 break;
@@ -142,9 +144,9 @@ static void load_model(const char* model) {
         llama.fini();
         pthread_mutex_unlock(&lock);
     } catch (...) {
+        running = false;
         fprintf(stderr, "Exception in run()\n");
     }
-    fprintf(stderr, "running = false\n");
 }
 
 static void* worker(void* p) {
@@ -171,8 +173,8 @@ static void ask(const char* s) {
         while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
         if (question == NULL) {
             answering = true;
-            printf("%s : %s\n", __func__, s);
-            printf("%s answering = true;\n", __func__);
+//          printf("%s : %s\n", __func__, s);
+//          printf("%s answering = true;\n", __func__);
         }
     }
 }
@@ -216,14 +218,14 @@ static bool output_text(const char* s) {
     pthread_mutex_lock(&lock);
     if (strcmp(s, "<--done-->") == 0) {
         answering = false;
-        printf("%s answering = false;\n", __func__);
+//      printf("%s answering = false;\n", __func__);
     } else {
         output += s;
     }
     bool result = !interrupted;
     if (interrupted) {
         interrupted = false;
-        printf("%s interrupted = false;\n", __func__);
+//      printf("%s interrupted = false;\n", __func__);
     }
     pthread_mutex_unlock(&lock);
     return result;
@@ -237,13 +239,12 @@ static void load(const char* model) {
 
 static void run(const char* id) {
     session_id = strdup(id);
-    printf("session: %s\n", id);
+//  printf("session: %s\n", id);
     ask("<--end-->"); // end previous session
     answering = false; // because no one will be polling right after run
-    printf("%s answering = false;\n", __func__);
+//  printf("%s answering = false;\n", __func__);
     wakeup();
-    printf("running: %s\n", id);
-    
+//  printf("running: %s\n", id);
 }
 
 static void inactive(void) {
@@ -252,7 +253,7 @@ static void inactive(void) {
 
 static void interrupt(void) {
     interrupted = true;
-    printf("%s interrupted = true;\n", __func__);
+//  printf("%s interrupted = true;\n", __func__);
     wakeup();
     pthread_join(thread, NULL);
     pthread_mutex_destroy(&lock);

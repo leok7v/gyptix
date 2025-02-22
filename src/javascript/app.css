@@ -306,7 +306,8 @@ body {
 
 .user {
     background: var(--background-user);
-    margin: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
     margin-left: 1em;
     margin-right: 1em;
     padding: 0.125em;
@@ -325,6 +326,7 @@ body {
 .bot {
     background: var(--background-color);
     margin: 0.25em;
+    margin-top: 1em;
     padding: 0.25em;
     border-radius: 4px;
     overflow-y: auto;
@@ -555,11 +557,12 @@ body {
     background-color: var(--background-input);
     color: var(--color);
     border: 1px solid #888;
-    border-radius: 8px;
+    border-radius: 0.5em;
     padding: 0.25em;
     width: 90%;
     max-width: 14em;
     max-height: 4em;
+    min-height: 4em;
     overflow: hidden;
 }
 
@@ -568,16 +571,18 @@ body {
 }
 
 .suggestion_title {
-    font-size: 80%;
+    font-size: 90%;
     font-weight: 600;
     margin-bottom: 0;
 }
 
 .suggestion_text {
-    font-size: 70%;
+    padding-top: 0.25em;
+    font-size: 75%;
     overflow: hidden;
     white-space: normal;
     position: relative;
+    text-overflow: ellipsis;
 }
 
 .suggestion_text span {

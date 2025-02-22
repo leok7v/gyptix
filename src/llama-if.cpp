@@ -335,7 +335,6 @@ static int chat(struct context &context, const char* session) {
             printf("use session tokens\n");
             embd_inp = session_tokens;
         }
-        embd_inp = session_tokens;
         LOG_DBG("prompt: \"%s\"\n", prompt.c_str());
         LOG_DBG("tokens: %s\n", string_from(ctx, embd_inp).c_str());
     }
@@ -757,7 +756,7 @@ static int chat(struct context &context, const char* session) {
                 if (!line) {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-                    printf("%s <--done-->", __func__);
+//                  printf("%s <--done-->", __func__);
                     break;
                 }
                 buffer += line;
@@ -765,7 +764,7 @@ static int chat(struct context &context, const char* session) {
                 if (buffer == "<--end-->") {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-                    printf("%s <--done-->", __func__);
+//                  printf("%s <--done-->", __func__);
                     break;
                 }
                 // done taking input, reset color
@@ -849,7 +848,6 @@ static int chat(struct context &context, const char* session) {
     LOG("\n\n");
     common_perf_print(ctx, smpl);
     common_sampler_free(smpl);
-    printf("<<<chat\n");
     return 0;
 }
 
@@ -880,7 +878,16 @@ int llama_load(int argc, char* argv[]) {
 }
 
 int llama_run(const char* session) {
-    return chat(*context, session);
+    int r = 0;
+    printf(">>>chat\n");
+    try {
+        r = chat(*context, session);
+    } catch (...) {
+        fprintf(stderr, "exception in chat()\n");
+        // Oops...
+    }
+    printf("<<<chat return: %d\n", r);
+    return r;
 }
 
 void llama_fini(void) {
