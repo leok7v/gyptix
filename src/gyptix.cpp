@@ -10,6 +10,7 @@
 #include <string>
 
 #include "gyptix.h"
+#include "getcwd.h"
 #include "llama-if.h"
 
 extern "C" {
@@ -82,8 +83,7 @@ static void load_model(const char* model) {
     long seed = random();
     char seed_str[64] = {0};
     snprintf(seed_str, countof(seed_str) - 1, "%ld", seed);
-    static char cwd[4 * 1024];
-    getcwd(cwd, countof(cwd));
+    static const char* cwd = get_cwd();
     static char prompts[4 * 1024];
     strcpy(prompts, cwd);
     strcat(prompts, "/prompts");
@@ -93,7 +93,7 @@ static void load_model(const char* model) {
     strcat(prompt_cache, "/last");
 //  printf("%s\n", prompt_cache);
     int argc = 0;
-    argv[argc++] = getcwd(cwd, countof(cwd));
+    argv[argc++] = (char*)cwd;
     argv[argc++] = (char*)"--seed";
     argv[argc++] = seed_str;
     argv[argc++] = (char*)"-cnv";
@@ -125,7 +125,7 @@ static void load_model(const char* model) {
             event = 0;
             char* id = nullptr;
             if (session_id != nullptr) {
-                char* id = strdup(session_id);
+                id = strdup(session_id);
                 session_id = nullptr;
                 free(session_id);
             }

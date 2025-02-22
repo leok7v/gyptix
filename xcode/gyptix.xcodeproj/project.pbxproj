@@ -88,6 +88,7 @@
 		B3E2499D2D61621C0048A24F /* util.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499C2D61621C0048A24F /* util.js */; };
 		B3E2499F2D617B780048A24F /* app.html in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499E2D617B780048A24F /* app.html */; };
 		B3E249A12D617E300048A24F /* marked.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E249A02D617E300048A24F /* marked.js */; };
+		B3F590542D69E7C5008B5B7D /* getcwd.m in Sources */ = {isa = PBXBuildFile; fileRef = B3F590532D69E7C5008B5B7D /* getcwd.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -226,6 +227,8 @@
 		B3E2499C2D61621C0048A24F /* util.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = util.js; sourceTree = "<group>"; };
 		B3E2499E2D617B780048A24F /* app.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app.html; sourceTree = "<group>"; };
 		B3E249A02D617E300048A24F /* marked.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = marked.js; sourceTree = "<group>"; };
+		B3F590522D69E7C5008B5B7D /* getcwd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = getcwd.h; path = ../src/getcwd.h; sourceTree = SOURCE_ROOT; };
+		B3F590532D69E7C5008B5B7D /* getcwd.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = getcwd.m; path = ../src/getcwd.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -369,6 +372,8 @@
 				B30D39142D458DA600B8196B /* llama-build.cpp */,
 				B30D39152D458DA600B8196B /* llama-if.h */,
 				B30D39162D458DA600B8196B /* llama-if.cpp */,
+				B3F590522D69E7C5008B5B7D /* getcwd.h */,
+				B3F590532D69E7C5008B5B7D /* getcwd.m */,
 				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
 				B33E9D0E2D4B262E005FEE9B /* GyPTix.entitlements */,
 				B33E9D0F2D4B262E005FEE9B /* GyPTixDebug.entitlements */,
@@ -620,6 +625,7 @@
 				B30D38DB2D458C4E00B8196B /* llama-adapter.cpp in Sources */,
 				B30D38DC2D458C4E00B8196B /* llama-grammar.cpp in Sources */,
 				B30D38DD2D458C4E00B8196B /* unicode.cpp in Sources */,
+				B3F590542D69E7C5008B5B7D /* getcwd.m in Sources */,
 				B30D38DE2D458C4E00B8196B /* llama-arch.cpp in Sources */,
 				B30D38DF2D458C4E00B8196B /* llama-quant.cpp in Sources */,
 				B30D38E02D458C4E00B8196B /* llama-context.cpp in Sources */,

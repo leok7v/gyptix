@@ -5,6 +5,7 @@
 #include "sampling.h"
 #include "llama.h"
 #include "llama-if.h"
+#include "getcwd.h"
 #include <sys/stat.h>
 #include "chat-template.hpp"
 
@@ -187,8 +188,7 @@ static int64_t extract_id(const std::string &input, const std::string &prefix) {
 }
 
 static std::string prompt_cache_filename(const char* session) {
-    static char cwd[4 * 1024];
-    getcwd(cwd, sizeof(cwd));
+    static const char* cwd = get_cwd();
     static char prompts[4 * 1024];
     strcpy(prompts, cwd);
     strcat(prompts, "/prompts");
@@ -202,7 +202,6 @@ static std::string prompt_cache_filename(const char* session) {
 }
 
 static int chat(struct context &context, const char* session) {
-    printf(">>>chat\n");
     llama_kv_cache_clear(context.ctx);
     context.chat_msgs.clear();
     context.embd.clear();

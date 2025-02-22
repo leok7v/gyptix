@@ -597,7 +597,7 @@ const init = () => { // called DOMContentLoaded
         }
     })
     
-    let version = "25.02.20"
+    let version = "25.02.21"
     let v = localStorage.getItem("app.version")
     if (v !== version) {
         localStorage.clear() // no one promissed to keep data forever
