@@ -203,6 +203,7 @@ static std::string prompt_cache_filename(const char* session) {
 
 static int chat(struct context &context, const char* session) {
     printf(">>>chat\n");
+    llama_kv_cache_clear(context.ctx);
     context.chat_msgs.clear();
     context.embd.clear();
     context.embd_inp.clear();
@@ -232,6 +233,10 @@ static int chat(struct context &context, const char* session) {
     context.n_remain             = params.n_predict;
     context.n_consumed           = 0;
     context.n_session_consumed   = 0;
+    params.interactive_first     = false; // it will be modified later...
+    // https://github.com/ggml-org/llama.cpp/issues/1790
+    // https://github.com/ggml-org/llama.cpp/issues/1647
+    context.params.n_keep = -1;
     int &n_ctx = context.n_ctx;
     n_ctx = llama_n_ctx(ctx);
     int &n_ctx_train = context.n_ctx_train;
@@ -314,13 +319,23 @@ static int chat(struct context &context, const char* session) {
             ? chat_add_and_format("system", params.prompt.empty() ? DEFAULT_SYSTEM_MESSAGE : params.prompt)
             // otherwise use the prompt as is
             : params.prompt;
+/*      THIS IS WRONG:
         if (params.interactive_first || !params.prompt.empty() || session_tokens.empty()) {
-            LOG_DBG("tokenize the prompt\n");
+            printf("tokenize the prompt\n");
             embd_inp = common_tokenize(ctx, prompt, true, true);
         } else {
-            LOG_DBG("use session tokens\n");
+            printf("use session tokens\n");
             embd_inp = session_tokens;
         }
+*/
+        if (session_tokens.empty()) { // because params.interactive_first is set to true for next session
+            printf("tokenize the prompt\n");
+            embd_inp = common_tokenize(ctx, prompt, true, true);
+        } else {
+            printf("use session tokens\n");
+            embd_inp = session_tokens;
+        }
+        embd_inp = session_tokens;
         LOG_DBG("prompt: \"%s\"\n", prompt.c_str());
         LOG_DBG("tokens: %s\n", string_from(ctx, embd_inp).c_str());
     }
@@ -550,6 +565,7 @@ static int chat(struct context &context, const char* session) {
                 size_t i = 0;
                 for ( ; i < embd.size(); i++) {
                     if (embd[i] != session_tokens[context.n_session_consumed]) {
+//                      printf("context.n_session_consumed: %d\n", context.n_session_consumed);
                         session_tokens.resize(context.n_session_consumed);
                         break;
                     }
@@ -590,13 +606,15 @@ static int chat(struct context &context, const char* session) {
         embd.clear();
         if ((int) embd_inp.size() <= context.n_consumed && !context.is_interacting) {
             // optionally save the session on first sample (for faster prompt loading next time)
-/*
             if (!path_session.empty() && context.need_to_save_session && !params.prompt_cache_ro) {
                 context.need_to_save_session = false;
+                printf("\n%s: saving %zd tokens "
+                       "to session file '%s'\n", __func__,
+                       session_tokens.size(),
+                       path_session.c_str());
                 llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
                 LOG_DBG("saved session to %s\n", path_session.c_str());
             }
-*/
             const llama_token id = common_sampler_sample(smpl, ctx, -1);
             common_sampler_accept(smpl, id, /* accept_grammar= */ true);
             // LOG_DBG("last: %s\n", string_from(ctx, smpl->prev.to_vector()).c_str());
