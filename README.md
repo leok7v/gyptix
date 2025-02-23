@@ -1,6 +1,6 @@
 # gyptix
 
-# GyPTix: Private & Offline AI for Apple Devices
+# GyPTix: Chat with GPT AI on Apple Devices
 
 GyPTix is an AI-powered app designed for Apple devices, prioritizing **privacy** and **offline functionality**. Here’s what it offers:
 
