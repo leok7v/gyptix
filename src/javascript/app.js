@@ -2,6 +2,7 @@
 
 import * as detect      from "./detect.js"
 import * as marked      from "./marked.js"
+import * as modal       from "./modal.js"
 import * as model       from "./model.js"
 import * as prompts     from "./prompts.js"
 import * as suggestions from "./suggestions.js"
@@ -41,7 +42,7 @@ const save_chat = (c) => {
         localStorage.setItem("chat." + c.id, JSON.stringify(c.messages))
     } catch (error) {
         console.log(error)
-        util.toast(error, 5000)
+        modal.toast(error, 5000)
         localStorage.removeItem("chat.id." + c.id)
         localStorage.removeItem("chat." + c.id)
         localStorage.clear() // brutal but effective
@@ -250,7 +251,7 @@ export const run = () => { // called DOMContentLoaded
             input.style.setProperty("--placeholder",
                                     '"click ▣ to stop"');
             send.title = "Click to Stop"
-        } else if (!macOS) { // double quotes improtant for css variable:
+        } else if (!detect.macOS) { // double quotes improtant for css variable:
             input.style.setProperty("--placeholder",
                                     '"Ask anything... and click ⇧ to send"');
         } else {
@@ -305,7 +306,7 @@ export const run = () => { // called DOMContentLoaded
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
         }, 100)
-        if (!macOS) {
+        if (!detect.macOS) {
             title.innerHTML =
                 "<div class='logo-container shimmering'>" +
                     "<span class='logo'></span>" +
@@ -315,7 +316,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const oops = () => {
-        util.toast("<p>Oops.<br>🤕🧠🤢<br>" +
+        modal.toast("<p>Oops.<br>🤕🧠🤢<br>" +
                    "Maybe AppStore update?<br>⚙️🔧<br>" +
                    "Or try again later?</p>", 5000)
         setTimeout(() => { model.quit() }, 5100)
@@ -335,7 +336,7 @@ export const run = () => { // called DOMContentLoaded
             placeholder()
             polling()
         } else {
-            util.toast(error, 5000)
+            modal.toast(error, 5000)
         }
     }
     
@@ -424,7 +425,7 @@ export const run = () => { // called DOMContentLoaded
     
     input.onkeydown = e => {
         let s = input.innerText.trim()
-        if (macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
+        if (detect.macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             input.innerText = ""
             requestAnimationFrame(() => {
                 const sel = window.getSelection()
@@ -492,7 +493,7 @@ export const run = () => { // called DOMContentLoaded
         if (!selected) return
         hide_menu()
         const c = selected === current ? chat : load_chat(selected)
-        util.rename_in_place(selected_item, c.title).then(new_name => {
+        modal.rename_in_place(selected_item, c.title).then(new_name => {
             if (new_name && new_name !== c.title) {
                 c.title = new_name
                 save_chat(c)
@@ -569,6 +570,15 @@ export const run = () => { // called DOMContentLoaded
     
     detect.init()
     marked.use({pedantic: false, gfm: true, breaks: false})
+
+    if (!localStorage.getItem("app.eula")) {
+        modal.show(util.load("./eula.md"), (action) => {
+            console.log("action: " + action)
+            if (action === "Disagree") { model.quit() }
+            localStorage.setItem("app.eula", "agreed")
+        }, "<green>  Agree  </green>", "<red>Disagree</red>")
+    }
+    
     util.init_theme()
     util.init_font_size()
     recent()

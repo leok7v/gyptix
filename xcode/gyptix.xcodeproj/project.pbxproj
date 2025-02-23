@@ -91,6 +91,7 @@
 		B3F590542D69E7C5008B5B7D /* getcwd.m in Sources */ = {isa = PBXBuildFile; fileRef = B3F590532D69E7C5008B5B7D /* getcwd.m */; };
 		B3F590562D6A7294008B5B7D /* detect.js in Resources */ = {isa = PBXBuildFile; fileRef = B3F590552D6A7294008B5B7D /* detect.js */; };
 		B3F590582D6A77CE008B5B7D /* AppRating.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F590572D6A77CE008B5B7D /* AppRating.swift */; };
+		B3F5905A2D6A848C008B5B7D /* modal.js in Resources */ = {isa = PBXBuildFile; fileRef = B3F590592D6A848C008B5B7D /* modal.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -233,6 +234,7 @@
 		B3F590532D69E7C5008B5B7D /* getcwd.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = getcwd.m; path = ../src/getcwd.m; sourceTree = SOURCE_ROOT; };
 		B3F590552D6A7294008B5B7D /* detect.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = detect.js; sourceTree = "<group>"; };
 		B3F590572D6A77CE008B5B7D /* AppRating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppRating.swift; path = ../src/swift/AppRating.swift; sourceTree = SOURCE_ROOT; };
+		B3F590592D6A848C008B5B7D /* modal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = modal.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -490,8 +492,9 @@
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
-				B3E2499A2D6162110048A24F /* model.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
+				B3F590592D6A848C008B5B7D /* modal.js */,
+				B3E2499A2D6162110048A24F /* model.js */,
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
 				B3A3D8382D67E455000A5839 /* suggestions.js */,
 				B3E2499C2D61621C0048A24F /* util.js */,
@@ -573,6 +576,7 @@
 				B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */,
 				B3E2499B2D6162110048A24F /* model.js in Resources */,
 				B30D39252D458EFA00B8196B /* added_tokens.json in Resources */,
+				B3F5905A2D6A848C008B5B7D /* modal.js in Resources */,
 				B30D39262D458EFA00B8196B /* merges.txt in Resources */,
 				B30D39272D458EFA00B8196B /* tokenizer.json in Resources */,
 				B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */,

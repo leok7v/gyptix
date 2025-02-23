@@ -108,19 +108,16 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
             is_running(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "quit" {
-            fatalError("Quit")
-/*
             #if os(macOS)
             DispatchQueue.main.async {
                 NSApplication.shared.windows.forEach { $0.close() }
             }
             #elseif os(iOS)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
                 fatalError("Quit")
             }
             #endif
             return
-*/
         }
         guard let f = Bundle.main.url(forResource: resourcePath,
                                       withExtension: nil) else {

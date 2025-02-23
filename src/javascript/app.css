@@ -590,4 +590,23 @@ body {
     transition: opacity 0.1s ease;
 }
 
+#modal {
+    display: none;
+    z-index: 10000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    color: var(--color);
+    background-color: var(--background-color);
+    padding: 1em;
+    margin: 0;
+    overflow: none;
+}
+
+#modal .translucent {
+    background-color: color-mix(in srgb, var(--background-color), transparent 80%);
+}
+
 #share { display: none; } /* TODO: not implemented yet */

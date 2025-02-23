@@ -2,27 +2,6 @@
 
 import * as detect      from "./detect.js"
 
-export const toast = (s, to) => {
-    if (!s.includes("<") && !s.includes(">")) s = `<p>${s}</p>`
-    const div = document.createElement("div")
-    div.style.position        = "fixed"
-    div.style.top             = "10px"
-    div.style.left            = "50%"
-    div.style.transform       = "translateX(-50%)"
-    div.style.color           = "white"
-    div.style.padding         = "10px 20px"
-    div.style.zIndex          = "10000"
-    div.style.border          = "2px solid #888"
-    div.style.borderRadius    = "5%"
-    div.style.backgroundColor = "rgba(200, 0, 0, 0.8)"
-    div.style.textAlign       = "center";
-    div.style.display         = "inline-block";
-    div.style.maxWidth        = "80%";
-    div.innerHTML = s
-    document.body.appendChild(div)
-    setTimeout(() => document.body.removeChild(div), to)
-}
-
 const http = (url, method, req = "", done = null) => {
     let error = null
     let text = `Failed to load ${url}`
@@ -52,42 +31,6 @@ export const load = (url) => http(url, "GET")
 
 export const post = (url, req = "", done = null) => http(url, "POST", req, done)
 
-export const rename_in_place = (span, old_name) => {
-    return new Promise(resolve => {
-        span.contentEditable = "true"
-        const original_text = span.innerText
-        span.focus()
-        const range = document.createRange()
-        range.selectNodeContents(span)
-        const sel = window.getSelection()
-        sel.removeAllRanges()
-        sel.addRange(range)
-        function finish(value) {
-            span.contentEditable = "false"
-            resolve(value)
-        }
-        span.addEventListener("keydown", e => {
-            if (e.key === "Enter") {
-                e.preventDefault()
-                const new_text = span.innerText.trim() || old_name
-                finish(new_text)
-            } else if (e.key === "Escape") {
-                e.preventDefault()
-                span.innerText = original_text
-                finish(null)
-            }
-        })
-        span.addEventListener("blur", () => {
-            const new_text = span.innerText.trim()
-            if (new_text && new_text !== original_text) {
-                finish(new_text)
-            } else {
-                span.innerText = original_text
-                finish(null)
-            }
-        }, { once: true })
-    })
-}
 
 export const init_theme = () => {
     let theme = localStorage.getItem("settings.theme")

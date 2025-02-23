@@ -1,32 +1,16 @@
-Open Source Licenses
+## Open Source Licenses
 
-*** llama.cpp ***
+### llama.cpp
 
-MIT License
-Copyright (c) 2023-2024 The ggml authors
-https://github.com/ggerganov/llama.cpp/blob/master/LICENSE
+**License:** MIT License  
+**Copyright:** (c) 2023-2024 The ggml authors  
+**Source:** [GitHub](https://github.com/ggerganov/llama.cpp/blob/master/LICENSE)
 
-*** hyperapp.js ***
+### granite-3.1-language-models
 
-Copyright © Jorge Bucaran https://jorgebucaran.com
-https://github.com/jorgebucaran/hyperapp/blob/main/LICENSE.md
-
-*** granite-3.1-language-models ***
-
-Copyright © IBM
-
-Apache License
-Version 2.0, January 2004
-https://github.com/ibm-granite/granite-3.1-language-models/blob/main/LICENSE
-
-
-
-
-
-
-
-
-
+**License:** Apache License 2.0  
+**Copyright:** © IBM  
+**Source:** [GitHub](https://github.com/ibm-granite/granite-3.1-language-models/blob/main/LICENSE)
 
 
 
