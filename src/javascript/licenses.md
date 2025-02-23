@@ -17,11 +17,13 @@ So we urge the user to use models with proper safety testing and tuning tailored
 **License:** [MIT](https://github.com/ggerganov/llama.cpp/blob/master/LICENSE)  
 **README:** [GitHub](https://github.com/ggerganov/llama.cpp/blob/master/README.md)
 
-### granite-3.1-language-models
+### IBM Granite Language Models
 
-**Copyright:** © IBM
-**License:** [Apache 2.0](https://github.com/ibm-granite/granite-3.1-language-models/blob/main/LICENSE)
-**README:** [GitHub](https://github.com/ibm-granite/granite-3.1-language-models/blob/main/README.md)
+**Copyright:** © IBM  
+**License:** [Apache 2.0](https://github.com/ibm-granite/granite-3.1-language-models/blob/main/LICENSE)  
+**README:** [GitHub](https://github.com/ibm-granite/granite-3.1-language-models/blob/main/README.md)  
+
+
 
 
 
