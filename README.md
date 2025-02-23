@@ -1,5 +1,3 @@
-# gyptix
-
 # GyPTix: Chat with GPT AI on Apple Devices
 
 GyPTix is an AI-powered app designed for Apple devices, prioritizing **privacy** and **offline** use. Here’s what it offers:
@@ -25,9 +23,9 @@ GyPTix app provides a **secure, private, and offline AI experience**, allowing y
    - Get access to the latest beta versions.
 
 📺 **Why GyPTix?**
-   - [![Watch on YouTube](https://img.youtube.com/vi/WgS3qm5V8OE/maxresdefault.jpg)](https://youtu.be/WgS3qm5V8OE)
+   - [![Watch on YouTube](https://img.youtube.com/vi/WgS3qm5V8OE/default.jpg)](https://youtu.be/WgS3qm5V8OE)
 
-# Build Yourself:
+# Build for command line use:
 
 ```
 git clone --recursive https://github.com/leok7v/gyptix.git
@@ -45,7 +43,7 @@ scripts/download.sh
 scripts/run.sh
 ```
 
-SwingUI app:
+# Build GyPTix UI:
 
 ```
 open xcode/gyptix.xcodeproj
