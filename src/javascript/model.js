@@ -30,3 +30,7 @@ export const is_answering = () => {
 export const quit = () => {
     util.post("./quit")
 }
+
+export const erase = () => {
+    util.post("./erase")
+}

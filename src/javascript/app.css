@@ -35,6 +35,7 @@ html::-webkit-scrollbar, ul::-webkit-scrollbar {
     --background-button:       color-mix(in srgb, var(--background-color) 70%, var(--color) 30%);
     --background-button-hover: color-mix(in srgb, var(--background-color) 65%, var(--color) 35%);
     --background-hover:        color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
+    --background-message-box:  color-mix(in srgb, var(--background-color) 80%, var(--color) 20%);
     --background-input:        color-mix(in srgb, var(--background-color) 95%, var(--color)  5%);
     --background-menu:         color-mix(in srgb, var(--background-color) 97%, var(--color)  3%);
     --background-code:         color-mix(in srgb, var(--background-color) 94%, var(--color)  6%);
@@ -157,8 +158,11 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
+    padding: 0;
+    margin: 0;
     display: flex;
-    height: calc(var(--vh) * 100); /* Adapts to dynamic viewport height */
+    /* Adapts to dynamic viewport height */
+/*  height: calc(var(--vh) * 100); */
 }
 
 .layout {
@@ -594,19 +598,12 @@ body {
     display: none;
     z-index: 10000;
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     color: var(--color);
     background-color: var(--background-color);
     padding: 1em;
+    padding-top: 0;
     margin: 0;
     overflow: none;
-}
-
-#modal .translucent {
-    background-color: color-mix(in srgb, var(--background-color), transparent 80%);
 }
 
 #share { display: none; } /* TODO: not implemented yet */

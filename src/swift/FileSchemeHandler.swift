@@ -42,6 +42,11 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
     }
 
+    func erase(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        gyptix.erase();
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
+    }
+
     func poll(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
         var text: String = ""
         if let body = urlSchemeTask.request.httpBody {
@@ -94,6 +99,9 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         } else if resourcePath == "run" {
             run(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "erase" {
+            erase(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "poll" {
             poll(webView, urlSchemeTask: urlSchemeTask, url: u)

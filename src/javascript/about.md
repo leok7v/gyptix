@@ -1,17 +1,11 @@
-Gyptix
+### About GyPTix
 
-Copyright © Dmitry "Leo" Kuznetsov https://leok7v.github.io
+Copyright © 2025-... Dmitry "Leo" Kuznetsov [leo.k7v](https://leok7v.github.io)
 
-Gyptix is an open-source application designed as a "GPT toy" for macOS and iOS platforms. It provides users with an interactive interface to experiment with GPT-based language models. The application is built using a combination of C++, JavaScript, CSS, and Swift, with the user interface implemented in JavaScript utilizing the Hyperapp framework. The project is licensed under the BSD-3-Clause license.
+Gyptix is an open-source application designed
+as a "GPT toy" for macOS and iOS platforms. 
 
-https://github.com/leok7v/gyptix
+It provides users with an interactive interface 
+to experiment with GPT-based language models. 
 
-
-
-
-
-
-
-
-
-
+[leo.k7v](https://gyptix.github.com)

@@ -239,6 +239,7 @@ export const run = () => { // called DOMContentLoaded
             model.run(most_recent.id)
             messages.innerHTML = ""
             render_messages()
+            scroll_to_bottom()
             rebuild_list()
         } else {
             new_session()
@@ -325,11 +326,10 @@ export const run = () => { // called DOMContentLoaded
     const ask = t => {
         if (!current || !t) return
         if (!model.is_running()) oops()
-        console.log("ask: " + t)
+//      console.log("ask: " + t)
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
         save_chat(chat)
-        render_messages()
         scroll_to_bottom()
         let error = model.ask(t)
         if (!error) {
@@ -387,11 +387,30 @@ export const run = () => { // called DOMContentLoaded
         console.log("running: " + model.is_running() + " answering: " + model.is_answering())
         if (model.is_running() && !model.is_answering()) new_session()
     }
-    
-    clear.onclick = () => {
-        localStorage.clear()
+
+    const erase = () => {
+        const count = localStorage.length
+        for (let i = 0; i < count; i++) {
+            const key = localStorage.key(i)
+            if (key && key.startsWith("chat.")) {
+                localStorage.removeItem(key)
+            }
+        }
+        model.erase()
         current = null
         new_session()
+    }
+    
+    clear.onclick = () => {
+        modal.ask("### **Erase All Chat History**  \n" +
+                  "For the privacy reasons<br>"+
+                  "and recycling of electrons<br>" +
+                  "maybe not such a bad idea.<br>But...\n\n" +
+                  "**This cannot be undone.**",
+        (action) => {
+            if (action === "Delete") erase()
+        },
+        "Cancel", "<red>Delete</red>")
     }
     
     const collapsed = () => {
@@ -474,19 +493,33 @@ export const run = () => { // called DOMContentLoaded
             e.target.closest("#input")) collapsed()
         if (!e.target.closest("#menu")) hide_menu()
     }
-    
-    remove.onclick = () => {
-        if (!selected) return
-            localStorage.removeItem("chat.id." + selected)
-            localStorage.removeItem("chat." + selected)
-            if (current === selected) {
-                current = null
-                recent()
-            }
+
+    const delete_chat = () => {
+        localStorage.removeItem("chat.id." + selected)
+        localStorage.removeItem("chat." + selected)
+        if (current === selected) {
+            current = null
+            recent()
+        }
         selected = null
         hide_menu()
         rebuild_list()
+        messages.innerHTML = ""
         render_messages()
+        scroll_to_bottom()
+    }
+    
+    remove.onclick = () => {
+        hide_menu()
+        if (!selected) return
+        let c = load_chat(selected)
+        modal.ask("# **Delete Chat**\n\n" +
+                          '"' + c.title + '"\n\n' +
+                          "This cannot be undone.",
+            (action) => {
+                if (action === "Delete") delete_chat()
+            },
+        "Cancel", "<red>Delete</red>")
     }
     
     rename.onclick = () => {
@@ -509,6 +542,7 @@ export const run = () => { // called DOMContentLoaded
     
     share.onclick = () => {
         if (!selected) return
+        hide_menu()
         const c = load_chat(selected)
         prompt("Copy chat data:", JSON.stringify(c))
         hide_menu()
@@ -561,7 +595,7 @@ export const run = () => { // called DOMContentLoaded
         }
     })
     
-    let version = "25.02.21"
+    let version = "25.02.22"
     let v = localStorage.getItem("app.version")
     if (v !== version) {
         localStorage.clear() // no one promissed to keep data forever
@@ -590,4 +624,10 @@ export const run = () => { // called DOMContentLoaded
             suggestions.start()
         }
     }, 5000)
+
+    if (false) {
+        modal.mbx("Two lines<br>Are you sure?", (action) => {
+            modal.show(util.load("./eula.md"), null, "<green>  Agree  </green>", "<red>Disagree</red>")
+        }, "Yes", "No")
+    }
 }

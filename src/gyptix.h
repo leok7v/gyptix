@@ -13,8 +13,9 @@ struct gyptix {
     int  (*is_answering)(void);
     const char* (*poll)(const char* interrupt);
     void (*interrupt)(void);
-    void (*inactive)(void);
+    void (*erase)(void); // erase all chats
     void (*stop)(void);
+    void (*inactive)(void);
 };
 
 extern struct gyptix gyptix; // interface

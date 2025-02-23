@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,8 +84,8 @@ static void load_model(const char* model) {
     long seed = random();
     char seed_str[64] = {0};
     snprintf(seed_str, countof(seed_str) - 1, "%ld", seed);
-    static const char* cwd = get_cwd();
-    static char prompts[4 * 1024];
+    const char* cwd = get_cwd();
+    char prompts[4 * 1024];
     strcpy(prompts, cwd);
     strcat(prompts, "/prompts");
     mkdir(prompts, S_IRWXU);
@@ -150,6 +151,30 @@ static void load_model(const char* model) {
         running = false;
         fprintf(stderr, "Exception in run()\n");
     }
+}
+
+static void erase(void) {
+    static const char *cwd = get_cwd();
+    char prompts[4 * 1024];
+    strcpy(prompts, cwd);
+    strcat(prompts, "/prompts");
+    DIR *dir = opendir(prompts);
+    if (!dir) {
+        perror("opendir");
+        return;
+    }
+    struct dirent *entry;
+    char path[4 * 1024];
+    while ((entry = readdir(dir))) {
+        if (strcmp(entry->d_name, ".") != 0 &&
+            strcmp(entry->d_name, "..") != 0) {
+            snprintf(path, sizeof(path), "%s/%s", prompts, entry->d_name);
+            if (unlink(path) != 0) {
+                perror("unlink");
+            }
+        }
+    }
+    closedir(dir);
 }
 
 static void* worker(void* p) {
@@ -275,9 +300,10 @@ struct gyptix gyptix = {
     .poll = poll,
     .is_answering = is_answering,
     .is_running = is_running,
-    .inactive = inactive,
     .interrupt = interrupt,
+    .erase = erase,
     .stop = stop,
+    .inactive = inactive,
 };
 
 }
