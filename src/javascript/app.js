@@ -35,7 +35,7 @@ const load_chat = id => {
 }
 
 const save_chat = (c) => {
-    console.log("save_chat(" + c.id + ")")
+//  console.log("save_chat(" + c.id + ")")
     const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
     try {
         localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
@@ -263,11 +263,11 @@ export const run = () => { // called DOMContentLoaded
     
     const summarize_to_title = () => {
         // Poor man summarization. TODO: use AI for that
-        console.log("summarize: " + chat.messages.length)
+//      console.log("summarize: " + chat.messages.length)
         if (chat.messages.length == 2) {
             chat.title = util.summarize(chat.messages[0].text + " " +
                                         chat.messages[1].text)
-            console.log("title: " + chat.title)
+//          console.log("title: " + chat.title)
             title.textContent = chat.title
             title.classList.add("shimmering")
             setTimeout(() => title.classList.remove("shimmering"), 2000)
@@ -384,18 +384,13 @@ export const run = () => { // called DOMContentLoaded
     }
     
     restart.onclick = () => {
-        console.log("running: " + model.is_running() + " answering: " + model.is_answering())
+//      console.log("running: " + model.is_running() + " answering: " + model.is_answering())
         if (model.is_running() && !model.is_answering()) new_session()
     }
 
     const erase = () => {
-        const count = localStorage.length
-        for (let i = 0; i < count; i++) {
-            const key = localStorage.key(i)
-            if (key && key.startsWith("chat.")) {
-                localStorage.removeItem(key)
-            }
-        }
+        const keys = Object.keys(localStorage).filter(k => k.startsWith("chat."))
+        keys.forEach(k => localStorage.removeItem(k))
         model.erase()
         current = null
         new_session()
@@ -607,7 +602,6 @@ export const run = () => { // called DOMContentLoaded
 
     if (!localStorage.getItem("app.eula")) {
         modal.show(util.load("./eula.md"), (action) => {
-            console.log("action: " + action)
             if (action === "Disagree") { model.quit() }
             localStorage.setItem("app.eula", "agreed")
         }, "<green>  Agree  </green>", "<red>Disagree</red>")
