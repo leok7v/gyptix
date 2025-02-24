@@ -9,6 +9,8 @@
 #include <unistd.h>
 
 #include <string>
+#include <ctime>
+
 
 #include "gyptix.h"
 #include "getcwd.h"
@@ -78,6 +80,112 @@ static void init_random_seed() {
     #define APPLE_SILICON 0
 #endif
 
+/*
+ https://www.ibm.com/granite/docs/models/granite/
+ ### system prompt for regular multi-turn conversations
+ Today's Date: December 14, 2024.
+ You are Granite, developed by IBM. You are a helpful AI assistant.
+ 
+ ### system prompt for function-calling tasks
+ Knowledge Cutoff Date: April 2024.
+ Today's Date: December 16, 2024.
+ You are Granite, developed by IBM.
+ You are a helpful AI assistant with access to the following tools.
+ When a tool is required to answer the user's query,
+ respond with <|tool_call|> followed by a JSON list of tools used.
+ If a tool does not exist in the provided list of tools,
+ notify the user that you do not have the ability to fulfill the request.
+ 
+ ### system prompt for RAG generation tasks
+ Knowledge Cutoff Date: April 2024.
+ Today's Date: December 16, 2024.
+ You are Granite, developed by IBM. Write the response to the user's
+ input by strictly aligning with the facts in the provided documents.
+ If the information needed to answer the question is not available
+ in the documents, inform the user that the question cannot be answered
+ based on the available data.
+ 
+ ### tools
+ <|start_of_role|>system<|end_of_role|>Knowledge Cutoff Date: April 2024.
+ Today's Date: December 16, 2024.
+ You are Granite, developed by IBM. You are a helpful AI assistant with
+ access to the following tools. When a tool is required to answer the
+ user's query, respond with <|tool_call|> followed by a JSON list of tools used.
+ If a tool does not exist in the provided list of tools, notify the user
+ that you do not have the ability to fulfill the request.<|end_of_text|>
+
+ <|start_of_role|>tools<|end_of_role|>[
+     {
+         "name": "c4",
+         "description": "C compiler. Compiles and executes minimalistic subset of C language.
+                 supports
+                 char, int, and pointer types only
+                 if, while, return, and expression statements only
+                         ",
+         "arguments": {
+             "code": {
+                 "description": "C source code to compile and execute"
+             }
+         }
+     }
+ ]<|end_of_text|>
+ <|start_of_role|>user<|end_of_role|>What's the current weather in New York?<|end_of_text|>
+ <|start_of_role|>assistant<|end_of_role|>
+
+  https://github.com/rswier/c4
+
+ https://www.ibm.com/granite/docs/models/granite/#retrieval-augmented-generation-(rag)
+ 
+ <|start_of_role|>documents<|end_of_role|>Document 0
+ Bridget Jones is a binge drinking and chain smoking thirty-something British woman trying to keep her love life in order while also dealing with her job as a publisher. When she attends a Christmas party with her parents, they try to set her up with their neighbours' son, Mark. After being snubbed by Mark, she starts to fall for her boss Daniel, a handsome man who begins to send her suggestive e-mails that leads to a dinner date. Daniel reveals that he and Mark attended college together, in that time Mark had an affair with his fiancée. Bridget decides to get a new job as a TV presenter after finding Daniel being frisky with a colleague. At a dinner party, she runs into Mark who expresses his affection for her, Daniel claims he wants Bridget back, the two fight over her and Bridget must make a decision who she wants to be with.
+
+ Document 1
+ Bridget is currently living a happy life with her lawyer boyfriend Mark Darcy, however not only does she start to become threatened and jealous of Mark's new young intern, she is angered by the fact Mark is a Conservative voter. With so many issues already at hand, things get worse for Bridget as her ex-lover, Daniel Cleaver, re-enters her life; the only help she has are her friends and her reliable diary.,
+
+ Document 2
+ Bridget Jones is struggling with her current state of life, including her break up with her love Mark Darcy. As she pushes forward and works hard to find fulfilment in her life seems to do wonders until she meets a dashing and handsome American named Jack Quant. Things from then on go great, until she discovers that she is pregnant but the biggest twist of all, she does not know if Mark or Jack is the father of her child.
+
+ Document 3
+ Bridget Jones - Renée Zellweger, Mark Darcy - Colin Firth, Daniel Cleaver - Hugh Grant
+
+ Document 4
+ Bridget Jones - Renée Zellweger, Mark Darcy - Colin Firth, Daniel Cleaver - Hugh Grant
+
+ ...
+
+ Document 50
+ Bridget Jones - Renée Zellweger, Mark Darcy - Colin Firth, Daniel Cleaver - Hugh Grant, Jack Qwant - Patrick Dempsey
+ <|end_of_text|>
+
+ ### Summarization
+ https://www.ibm.com/granite/docs/models/granite/#summarization
+ 
+ <|start_of_role|>user<|end_of_role|>Summarize a fragament of an interview transcript.
+ In this interview, an NBC reporter interviews Simone Biles about her participation in Paris 2024 Olimpic games.
+ Your response should only include the answer. Do not provide any further explanation.
+ Summary:<|end_of_text|>
+ 
+*/
+
+static std::string today() {
+    std::time_t t = std::time(nullptr);
+    std::tm* local_tm = std::localtime(&t);
+    char buf[64];
+    std::strftime(buf, sizeof(buf), "%B %d, %Y", local_tm);
+    return std::string(buf);
+}
+
+static std::string system_prompt() {
+    // <|start_of_role|>system<|end_of_role|>
+    // IBM Granite 3.1 specific
+    return std::string("Knowledge Cutoff Date: April 2024.") +
+    std::string("Today's Date: ") + today() + "."
+    "[curent_date] is " + today() + "."
+    "You are GyPTix. You are a helpful and polite AI assistant."
+    "Answer the questions accurately. "
+    "If you do not know the answer, simply say you do not know.";
+}
+
 static void load_model(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
     init_random_seed();
@@ -93,6 +201,7 @@ static void load_model(const char* model) {
     strcpy(prompt_cache, prompts);
     strcat(prompt_cache, "/last");
 //  printf("%s\n", prompt_cache);
+    static std::string sp = system_prompt();
     int argc = 0;
     argv[argc++] = (char*)cwd;
     argv[argc++] = (char*)"--seed";
@@ -115,8 +224,9 @@ static void load_model(const char* model) {
     argv[argc++] = (char*)"--device";
     argv[argc++] = (char*)"none";
 #endif
-//  argv[argc++] = (char*)"-p";
-//  argv[argc++] = (char*)"You are polite helpful assistant";
+    argv[argc++] = (char*)"-p";
+    argv[argc++] = (char*)sp.c_str();
+    printf("%s\n", sp.c_str());
     try {
         llama.load(argc, argv);
 //      printf("llama.load() done\n");

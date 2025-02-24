@@ -7,5 +7,8 @@ struct ContentView: View {
     
     var body: some View {
         WebView(htmlFileName: "app", schemeHandler: schemeHandler)
+        #if os(iOS)
+            .toolbar(.hidden, for: .navigationBar)
+        #endif
     }
 }

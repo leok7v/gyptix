@@ -44,6 +44,9 @@ struct WebView: ViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
+        webView.allowsBackForwardNavigationGestures = false
+        webView.translatesAutoresizingMaskIntoConstraints = false
+//      webView.scrollView.isScrollEnabled = false
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
             webView.load(URLRequest(url: url))
         }

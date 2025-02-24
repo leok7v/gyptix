@@ -2,9 +2,19 @@
 
 import * as util from "./util.js"
 
+const sleep = async (ms) => {
+    await new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export const ask = (value) => { // returns error message or null on OK
-    const error = util.post("./ask", value)
-    return error === "OK" ? null : error
+    const deadline = Date.now() + 3000 // 3s deadline
+    while (Date.now() && !is_running()) { sleep(100) }
+    if (is_running()) {
+        const error = util.post("./ask", value)
+        return error === "OK" ? null : error
+    } else {
+        return "Model session is not running"
+    }
 }
 
 export const run = (id) => {

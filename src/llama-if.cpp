@@ -197,7 +197,7 @@ static std::string prompt_cache_filename(const char* session) {
     strcpy(prompt_cache, prompts);
     strcat(prompt_cache, "/");
     strcat(prompt_cache, session);
-    printf("%s\n", prompt_cache);
+    LOG_INF("%s\n", prompt_cache);
     return std::string(prompt_cache);
 }
 
@@ -278,9 +278,9 @@ static int chat(struct context &context, const char* session) {
     if (!path_session.empty()) {
         LOG_INF("%s: attempting to load saved session from '%s'\n", __func__, path_session.c_str());
         if (!file_exists(path_session)) {
-            printf("%s: session file does not exist, will create.\n", __func__);
+            LOG_INF("%s: session file does not exist, will create.\n", __func__);
         } else if (file_is_empty(path_session)) {
-            printf("%s: The session file is empty. A new session will be initialized.\n", __func__);
+            LOG_INF("%s: The session file is empty. A new session will be initialized.\n", __func__);
         } else {
             // The file exists and is not empty
             session_tokens.resize(n_ctx);
@@ -289,12 +289,12 @@ static int chat(struct context &context, const char* session) {
                                        session_tokens.data(),
                                        session_tokens.capacity(),
                                        &n_token_count_out)) {
-                printf("%s: failed to load session file '%s'\n", __func__,
+                LOG_INF("%s: failed to load session file '%s'\n", __func__,
                         path_session.c_str());
                 return 1;
             }
             session_tokens.resize(n_token_count_out);
-            printf("%s: loaded a session with prompt size of %d tokens\n",
+            LOG_INF("%s: loaded a session with prompt size of %d tokens\n",
                    __func__, (int)session_tokens.size());
         }
     }
@@ -320,18 +320,18 @@ static int chat(struct context &context, const char* session) {
             : params.prompt;
 /*      THIS IS WRONG:
         if (params.interactive_first || !params.prompt.empty() || session_tokens.empty()) {
-            printf("tokenize the prompt\n");
+            LOG_INF("tokenize the prompt\n");
             embd_inp = common_tokenize(ctx, prompt, true, true);
         } else {
-            printf("use session tokens\n");
+            LOG_INF("use session tokens\n");
             embd_inp = session_tokens;
         }
 */
         if (session_tokens.empty()) { // because params.interactive_first is set to true for next session
-            printf("tokenize the prompt\n");
+            LOG_INF("tokenize the prompt\n");
             embd_inp = common_tokenize(ctx, prompt, true, true);
         } else {
-            printf("use session tokens\n");
+            LOG_INF("use session tokens\n");
             embd_inp = session_tokens;
         }
         LOG_DBG("prompt: \"%s\"\n", prompt.c_str());
@@ -563,7 +563,7 @@ static int chat(struct context &context, const char* session) {
                 size_t i = 0;
                 for ( ; i < embd.size(); i++) {
                     if (embd[i] != session_tokens[context.n_session_consumed]) {
-//                      printf("context.n_session_consumed: %d\n", context.n_session_consumed);
+//                      LOG_INF("context.n_session_consumed: %d\n", context.n_session_consumed);
                         session_tokens.resize(context.n_session_consumed);
                         break;
                     }
@@ -606,7 +606,7 @@ static int chat(struct context &context, const char* session) {
             // optionally save the session on first sample (for faster prompt loading next time)
             if (!path_session.empty() && context.need_to_save_session && !params.prompt_cache_ro) {
                 context.need_to_save_session = false;
-                printf("\n%s: saving %zd tokens "
+                LOG_INF("\n%s: saving %zd tokens "
                        "to session file '%s'\n", __func__,
                        session_tokens.size(),
                        path_session.c_str());
@@ -640,7 +640,7 @@ static int chat(struct context &context, const char* session) {
         if (context.input_echo && context.display) {
             for (auto id : embd) {
                 const std::string token_str = common_token_to_piece(ctx, id, params.special);
-//              printf("token_str.c_str(): %s\n", token_str.c_str());
+//              LOG_INF("token_str.c_str(): %s\n", token_str.c_str());
                 if (!llama.output_text(token_str.c_str())) {
                     interrupted  = true;
                     break;
@@ -716,7 +716,7 @@ static int chat(struct context &context, const char* session) {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
                     if (!path_session.empty()) {
-                        printf("\n%s: saving %zd tokens "
+                        LOG_INF("\n%s: saving %zd tokens "
                                "to session file '%s'\n", __func__,
                                session_tokens.size(),
                                path_session.c_str());
@@ -755,7 +755,7 @@ static int chat(struct context &context, const char* session) {
                 if (!line) {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-//                  printf("%s <--done-->", __func__);
+//                  LOG_INF("%s <--done-->", __func__);
                     break;
                 }
                 buffer += line;
@@ -763,7 +763,7 @@ static int chat(struct context &context, const char* session) {
                 if (buffer == "<--end-->") {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-//                  printf("%s <--done-->", __func__);
+//                  LOG_INF("%s <--done-->", __func__);
                     break;
                 }
                 // done taking input, reset color
@@ -837,7 +837,7 @@ static int chat(struct context &context, const char* session) {
         }
     }
     if (!path_session.empty()) {
-        printf("\n%s: saving final output %zd tokens "
+        LOG_INF("\n%s: saving final output %zd tokens "
                "to session file '%s'\n", __func__,
                session_tokens.size(),
                path_session.c_str());
@@ -863,7 +863,9 @@ static struct context *context;
 
 int llama_load(int argc, char* argv[]) {
     context = new struct context();
-    if (!context) { return 1; }
+    if (!context) {
+        return 1;
+    }
     if (parse_params(*context, argc, argv) != 0) {
         return 1;
     }
@@ -878,14 +880,14 @@ int llama_load(int argc, char* argv[]) {
 
 int llama_run(const char* session) {
     int r = 0;
-    printf(">>>chat\n");
+    LOG_INF(">>>chat\n");
     try {
         r = chat(*context, session);
     } catch (...) {
         fprintf(stderr, "exception in chat()\n");
         // Oops...
     }
-    printf("<<<chat return: %d\n", r);
+    LOG_INF("<<<chat return: %d\n", r);
     return r;
 }
 

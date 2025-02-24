@@ -1,13 +1,11 @@
-## About
-
-**Any model may in some cases produce inaccurate, biased, or unsafe responses to user prompts. 
-So we urge the user to use models with proper safety testing and tuning tailored for their specific tasks.**
-
 ## Open Source Licenses
+
+*The following open-source code and data sources were used in building*
+GyPTix, *with gratitude and respect for their permissive licenses.*
 
 ### GyPTix
 
-**Copyright:** © 2025-... Dmitry Kuznetsov  
+**Copyright:** © 2025-... Dmitry "Leo" Kuznetsov [leo.k7v](https://leok7v.github.io)  
 **License:** [BSD 3](https://github.com/leok7v/gyptix/blob/main/LICENSE)  
 **README:** [GitHub](https://github.com/leok7v/gyptix/blob/main/README.md)
 

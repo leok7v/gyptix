@@ -44,7 +44,6 @@ const save_chat = (c) => {
         modal.toast(error, 5000)
         localStorage.removeItem("chat.id." + c.id)
         localStorage.removeItem("chat." + c.id)
-        localStorage.clear() // brutal but effective
     }
 }
 
@@ -277,22 +276,40 @@ export const run = () => { // called DOMContentLoaded
         }
     }
 
+    const substitutions = (s) => {
+        const now = new Date()
+        const replacements = {
+            "[insert current date]": now.toLocaleDateString(),
+            "[insert day of the week]": now.toLocaleDateString(undefined, { weekday: "long" }),
+            "[insert current time]": now.toLocaleTimeString()
+        };
+        return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
+            return replacements[match.toLowerCase()] || match;
+        })
+    }
+    
+    const done = () => {
+        send_stop.innerText = "⇧"
+        chat.timestamp = util.timestamp()
+        title.innerHTML = ""
+        summarize_to_title()
+        save_chat(chat)
+        rebuild_list()
+        send.classList.remove("pulsing")
+        placeholder()
+        send.title = "Click to Submit"
+        const last_index = chat.messages.length - 1
+        const last_msg = chat.messages[last_index]
+        last_msg.text = substitutions(last_msg.text)
+        render_last() // because of substitutions
+    }
+    
     const poll = interval => {
         const polledText = model.poll()
         if (polledText === "<--done-->") {
             clearInterval(interval)
-            send_stop.innerText = "⇧"
-            chat.timestamp = util.timestamp()
-            title.innerHTML = ""
-            summarize_to_title()
-            save_chat(chat)
-            rebuild_list()
-            send.classList.remove("pulsing")
-            placeholder()
-            send.title = "Click to Submit"
-            return
-        }
-        if (polledText !== "") {
+            done()
+        } else if (polledText !== "") {
             if (chat.messages.length > 0) {
                 chat.messages[chat.messages.length - 1].text += polledText
                 requestAnimationFrame(() => {
@@ -477,6 +494,8 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.onfocus = () => {
+        suggestions.hide()
+        setTimeout(() => scroll_to_bottom(), 50)
         scroll.style.display = "none"
         document.body.style.overflow = "hidden"
         collapsed()
@@ -594,23 +613,36 @@ export const run = () => { // called DOMContentLoaded
             suggestions.hide()
         }
     })
-    
-    let version = "25.02.22"
-    let v = localStorage.getItem("app.version")
-    if (v !== version) {
+
+    const licenses = () => {
+        modal.show(util.load("./licenses.md"), (action) => {
+        }, "OK")
+    }
+
+    let version_app  = "25.02.22" // application version
+    let version_data = "25.02.22" // data scheme version
+
+    const showEULA = () => {
+        // localStorage.removeItem("app.eula") // DEBUG
+        if (!localStorage.getItem("app.eula")) {
+            localStorage.clear() // no one promissed to keep data forever
+            modal.show(util.load("./eula.md"), (action) => {
+                if (action === "Disagree") { model.quit() }
+                localStorage.setItem("app.eula", "true")
+                localStorage.setItem("version.data", version_data)
+                licenses()
+            }, "<green>  Agree  </green>", "<red>Disagree</red>")
+        }
+    }
+
+    let v = localStorage.getItem("version.data")
+    if (v !== version_data) {
         localStorage.clear() // no one promissed to keep data forever
-        let v = localStorage.setItem("app.version", version)
+        localStorage.setItem("version.data", version_data)
     }
     
     detect.init()
     marked.use({pedantic: false, gfm: true, breaks: false})
-
-    if (!localStorage.getItem("app.eula")) {
-        modal.show(util.load("./eula.md"), (action) => {
-            if (action === "Disagree") { model.quit() }
-            localStorage.setItem("app.eula", "agreed")
-        }, "<green>  Agree  </green>", "<red>Disagree</red>")
-    }
     
     util.init_theme()
     util.init_font_size()
@@ -618,12 +650,15 @@ export const run = () => { // called DOMContentLoaded
     placeholder()
     send.title = "Click to Submit"
     setTimeout(() => {
-        if (chat.messages.length == 0) {
+        if (chat.messages.length == 0 &&
+            input !== document.activeElement) {
             suggestions.show()
             suggestions.start()
         }
-    }, 5000)
+    }, 3000)
 
+    showEULA()
+    
     if (false) { // DEBUG
         modal.mbx("Two lines<br>Are you sure?", (action) => {
             modal.show(util.load("./eula.md"), null, "<green>  Agree  </green>", "<red>Disagree</red>")
