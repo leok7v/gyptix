@@ -618,7 +618,7 @@ export const run = () => { // called DOMContentLoaded
         }
     }, 5000)
 
-    if (true) { // DEBUG
+    if (false) { // DEBUG
         modal.mbx("Two lines<br>Are you sure?", (action) => {
             modal.show(util.load("./eula.md"), null, "<green>  Agree  </green>", "<red>Disagree</red>")
         }, "Yes", "No")
