@@ -35,7 +35,6 @@ const load_chat = id => {
 }
 
 const save_chat = (c) => {
-//  console.log("save_chat(" + c.id + ")")
     const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
     try {
         localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
@@ -98,12 +97,16 @@ export const run = () => { // called DOMContentLoaded
         return d
     }
     
-    const render_messages = () => {
-        if (!chat || !chat.messages) return
+    const scrolled_to_bottom = () => {
         const sh = messages.scrollHeight
         const ch = messages.clientHeight
         const top = messages.scrollTop
-        at_the_bottom = sh - ch <= top + 5
+        at_the_bottom = sh - ch <= top + 10
+    }
+    
+    const render_messages = () => {
+        if (!chat || !chat.messages) return
+        scrolled_to_bottom()
         // this is optimization because markdown rendering is slow
         var i = 0
         chat.messages.forEach(msg => {
@@ -136,11 +139,8 @@ export const run = () => { // called DOMContentLoaded
         if (user_scrolling) {
             input.blur()
             collapsed()
-            const sh = messages.scrollHeight
-            const ch = messages.clientHeight
-            const top = messages.scrollTop
-            at_the_bottom = (sh - ch <= top + 5)
             requestAnimationFrame(() => {
+                scrolled_to_bottom()
                 show_hide_scroll_to_bottom()
             })
         }
@@ -254,7 +254,7 @@ export const run = () => { // called DOMContentLoaded
             send.title = "Click to Stop"
         } else if (!detect.macOS) { // double quotes improtant for css variable:
             input.style.setProperty("--placeholder",
-                                    '"Ask anything... and click ⇧ to send"');
+                                    '"Ask anything... and click ⇧"');
         } else {
             input.style.setProperty("--placeholder",
                                     '"Ask anything... Use ⇧⏎ for line break"');
@@ -263,11 +263,9 @@ export const run = () => { // called DOMContentLoaded
     
     const summarize_to_title = () => {
         // Poor man summarization. TODO: use AI for that
-//      console.log("summarize: " + chat.messages.length)
         if (chat.messages.length == 2) {
             chat.title = util.summarize(chat.messages[0].text + " " +
                                         chat.messages[1].text)
-//          console.log("title: " + chat.title)
             title.textContent = chat.title
             title.classList.add("shimmering")
             setTimeout(() => title.classList.remove("shimmering"), 2000)
@@ -326,10 +324,10 @@ export const run = () => { // called DOMContentLoaded
     const ask = t => {
         if (!current || !t) return
         if (!model.is_running()) oops()
-//      console.log("ask: " + t)
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
         save_chat(chat)
+        render_messages()
         scroll_to_bottom()
         let error = model.ask(t)
         if (!error) {
@@ -384,7 +382,6 @@ export const run = () => { // called DOMContentLoaded
     }
     
     restart.onclick = () => {
-//      console.log("running: " + model.is_running() + " answering: " + model.is_answering())
         if (model.is_running() && !model.is_answering()) new_session()
     }
 
@@ -395,13 +392,15 @@ export const run = () => { // called DOMContentLoaded
         current = null
         new_session()
     }
-    
+
     clear.onclick = () => {
         modal.ask("### **Erase All Chat History**  \n" +
-                  "For the privacy reasons<br>"+
-                  "and recycling of electrons<br>" +
-                  "maybe not such a bad idea.<br>But...\n\n" +
-                  "**This cannot be undone.**",
+            "For your privacy and storage<br>" +
+            "efficiency, wiping everything<br>" +
+            "clean and shredding the data<br>" +
+            "might be a good idea. *Recycle*<br>" +
+            "*the ellectrons!* But...\n\n" +
+            "**This action is irreversible.**",
         (action) => {
             if (action === "Delete") erase()
         },
@@ -619,7 +618,7 @@ export const run = () => { // called DOMContentLoaded
         }
     }, 5000)
 
-    if (false) {
+    if (true) { // DEBUG
         modal.mbx("Two lines<br>Are you sure?", (action) => {
             modal.show(util.load("./eula.md"), null, "<green>  Agree  </green>", "<red>Disagree</red>")
         }, "Yes", "No")

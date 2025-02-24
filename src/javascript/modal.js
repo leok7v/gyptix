@@ -43,9 +43,9 @@ const buttons = (actions, done) => {
     return buttons
 }
 
-const page = () => {
+const page = (pts) => {
     const panel = document.createElement("div")
-    panel.style.fontSize = detect.iPhone ? "8pt" : "10pt"
+    panel.style.fontSize = pts
     panel.style.padding = "0"
     panel.style.border = "none"
     panel.style.minWidth  = "100%"
@@ -59,7 +59,7 @@ const page = () => {
 
 const message_box = (centered, markdown, done, actions) => {
     const html = marked.parse(markdown)
-    const panel = page()
+    const panel = page(detect.iOS ? "11pt" : "10pt")
     panel.style.justifyContent = "center"
     panel.style.alignItems = "center"
     const mbx = document.createElement("div") // message box
@@ -112,7 +112,7 @@ export const mbx = (markdown, done, ...actions) =>
 
 export const show = (markdown, done, ...actions) => {
     const html = marked.parse(markdown)
-    const panel = page()
+    const panel = page(detect.iPhone ? "8pt" : "10pt")
     panel.style.justifyContent = "top"
     const content = document.createElement("div")
     content.style.overflow = "auto"
