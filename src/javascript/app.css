@@ -572,8 +572,8 @@ body {
     padding: 0.25em;
     width: 90%;
     max-width: 14em;
-    max-height: 4em;
-    min-height: 4em;
+    max-height: 4.5em;
+    min-height: 4.5em;
     overflow: hidden;
 }
 

@@ -74,14 +74,26 @@ export const run = () => { // called DOMContentLoaded
     const hide_scroll_to_bottom = () => {
         scroll.style.display = "none"
     }
+
+    const scroll_gap = 20
     
     const show_hide_scroll_to_bottom = () => {
-        const d = messages.scrollHeight - messages.scrollTop
-        scroll.style.display = d > messages.clientHeight + 10 &&
+        const sh = messages.scrollHeight
+        const ch = messages.clientHeight
+        const top = messages.scrollTop
+        const d = sh - top
+        scroll.style.display = d > ch + scroll_gap &&
         (!model.is_answering() || !at_the_bottom)
         ? "block" : "none"
     }
     
+    const scrolled_to_bottom = () => {
+        const sh = messages.scrollHeight
+        const ch = messages.clientHeight
+        const top = messages.scrollTop
+        at_the_bottom = sh - ch <= top + scroll_gap
+    }
+
     const scroll_to_bottom = () => {
         messages.scrollTop = messages.scrollHeight
         at_the_bottom = true
@@ -96,14 +108,7 @@ export const run = () => { // called DOMContentLoaded
         d.innerHTML = render_markdown(text)
         return d
     }
-    
-    const scrolled_to_bottom = () => {
-        const sh = messages.scrollHeight
-        const ch = messages.clientHeight
-        const top = messages.scrollTop
-        at_the_bottom = sh - ch <= top + 10
-    }
-    
+
     const render_messages = () => {
         if (!chat || !chat.messages) return
         scrolled_to_bottom()
@@ -466,6 +471,7 @@ export const run = () => { // called DOMContentLoaded
         characterData: true });
     
     input.onblur = () => { // focus lost
+        scroll_to_bottom()
         show_hide_scroll_to_bottom()
         document.body.style.overflow = ""
     }
