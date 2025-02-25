@@ -678,7 +678,8 @@ export const run = () => { // called DOMContentLoaded
         }, "OK")
     }
 
-    let version_app  = "25.02.22" // application version
+    let version_app  = "25.02.24" // application version
+    // data version should be changed only of scheme needs to be wiped out
     let version_data = "25.02.22" // data scheme version
 
     const showEULA = () => {
