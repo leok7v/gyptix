@@ -26,13 +26,14 @@ const buttons = (actions, done) => {
     actions.forEach(a => {
         const { color, text } = button_color(a)
         const b = document.createElement("button")
-        b.style.padding = "0.5em 2em"
+        b.style.padding = "0.75em 2em"
         b.style.border = "none"
         b.style.borderRadius = "0.5em"
         b.style.cursor = "pointer"
         b.style.color = "white"
         b.style.fontWeight = "bold"
         b.style.backgroundColor = color
+        if (detect.iPad) b.style.fontSize = "15pt"
         b.innerText = text
         b.addEventListener("click", () => {
             get("modal").style.display = "none"
@@ -112,7 +113,7 @@ export const mbx = (markdown, done, ...actions) =>
 
 export const show = (markdown, done, ...actions) => {
     const html = marked.parse(markdown)
-    const panel = page(detect.iPhone ? "8pt" : "10pt")
+    const panel = page(detect.iPhone ? "8pt" : detect.iPad ? "14pt" : "10pt")
     panel.style.justifyContent = "top"
     const content = document.createElement("div")
     content.style.overflow = "auto"

@@ -388,7 +388,9 @@ static void run(const char* id) {
 }
 
 static void inactive(void) {
+    // TODO: via WKWebView javascript evan event into app.js
     printf("inactive\n");
+    // TODO: also need memory low or about to get killed (to save state)
 }
 
 static void stop(void) {

@@ -211,7 +211,8 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const new_session = () => {
-        if (chat.messages.length == 0) return // already new empty chat
+        // already have new empty chat?
+        if (chat && chat.messages && chat.messages.length == 0) return
         let id = util.timestamp()
         let k = "chat.id." + id
         while (localStorage.getItem(k)) {
@@ -681,7 +682,7 @@ export const run = () => { // called DOMContentLoaded
     let version_data = "25.02.22" // data scheme version
 
     const showEULA = () => {
-        localStorage.removeItem("app.eula") // DEBUG
+//      localStorage.removeItem("app.eula") // DEBUG
         const nbsp4 = "    " // 4 non-breakable spaces
         if (!localStorage.getItem("app.eula")) {
             localStorage.clear() // no one promissed to keep data forever
