@@ -46,7 +46,7 @@ struct WebView: ViewRepresentable {
         webView.scrollView.backgroundColor = .clear
         webView.allowsBackForwardNavigationGestures = false
         webView.translatesAutoresizingMaskIntoConstraints = false
-//      webView.scrollView.isScrollEnabled = false
+        webView.scrollView.isScrollEnabled = false // prevents input scroll up
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
             webView.load(URLRequest(url: url))
         }
