@@ -380,8 +380,19 @@ body {
 
 .button_row {
     display: flex;
-    justify-content: flex-end;
+    padding-top: .25em;
+    justify-content: space-between;
     width: 100%;
+}
+
+.left-buttons { display: flex; }
+
+#clear, #carry, #stop, #send { transition: visibility 0s linear; }
+
+#clear, #carry, #stop { display: none; }
+
+#stop.hidden, #clear.hidden, #carry.hidden, #send.hidden {
+    visibility: hidden;
 }
 
 .button {

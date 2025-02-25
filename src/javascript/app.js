@@ -17,6 +17,8 @@ let selected = null // selected chat
 let chat     = null // chat
 let selected_item = null // item in chats list
 
+let interrupted = false // output was interrupted
+
 const render_markdown = md => marked.parse(md)
 
 document.addEventListener("copy", e => {
@@ -49,7 +51,7 @@ const save_chat = (c) => {
 
 export const run = () => { // called DOMContentLoaded
     const
-        clear        = get("clear"),
+        shred        = get("shred"), // shred & recycle 
         collapse     = get("collapse"),
         content      = get("content"),
         expand       = get("expand"),
@@ -63,12 +65,20 @@ export const run = () => { // called DOMContentLoaded
         rename       = get("rename"),
         restart      = get("restart"),
         scroll       = get("scroll"),
+        stop         = get("stop"),
+        carry        = get("carry"),
+        clear        = get("clear"),
         send         = get("send"),
-        send_stop    = get("send_stop"),
         share        = get("share"),
         suggest      = get("suggest"),
         title        = get("title"),
         toggle_theme = get("toggle_theme")
+    
+    // TODO:
+    // visiblility (hidden) and display none state management is from HELL
+    // It was Q&D hack on spur of the moment. Need to subscribe to state
+    // changes and update all visibility in one place.
+    // Maybe also need "disabled" style with <glyp> 50% oppacity
 
     const hide_scroll_to_bottom = () => {
         scroll.style.display = "none"
@@ -201,6 +211,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const new_session = () => {
+        if (chat.messages.length == 0) return // already new empty chat
         let id = util.timestamp()
         let k = "chat.id." + id
         while (localStorage.getItem(k)) {
@@ -215,6 +226,7 @@ export const run = () => { // called DOMContentLoaded
             messages: []
         }
         input.innerText = ""
+        send.classList.add('hidden')
         save_chat(chat)
         collapsed()
         rebuild_list()
@@ -289,13 +301,18 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const done = () => {
-        send_stop.innerText = "⇧"
+        send.classList.remove('hidden')
+        stop.style.display = "none"
+        console.log("interrupted: " + interrupted)
+        carry.style.display = interrupted ? "inline" : "none"
+        console.log("carry.style.display: " + carry.style.display)
+        clear.style.display = "none"
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
         summarize_to_title()
         save_chat(chat)
         rebuild_list()
-        send.classList.remove("pulsing")
+        stop.classList.remove("pulsing")
         placeholder()
         send.title = "Click to Submit"
         const last_index = chat.messages.length - 1
@@ -322,11 +339,12 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const polling = () => {
-        send_stop.innerText = "▣" // ▣ ◾ ◼ ■ ▣ ◻
-        send.classList.add("pulsing")
+        stop.style.display = "inline" // ? ▣ ◾ ◼ ■ ▣ ◻
+        send.classList.add('hidden')
+        stop.classList.add("pulsing")
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
-        }, 100)
+        }, 50)
         if (!detect.macOS) {
             title.innerHTML =
                 "<div class='logo-container shimmering'>" +
@@ -393,16 +411,41 @@ export const run = () => { // called DOMContentLoaded
     send.onclick = e => {
         e.preventDefault()
         let s = input.innerText.trim()
-        if (model.is_answering()) {
-            model.interrupt()
-            placeholder()
-        } else if (s !== "") {
-            ask(s)
+        if (!model.is_answering() && s !== "") {
+            carry.style.display = "none"
+            clear.style.display = "none"
+            interrupted = false
             input.innerText = ""
+            send.classList.add('hidden')
             requestAnimationFrame(() => input.blur())
+            ask(s)
         }
     }
-    
+
+    stop.onclick = e => {
+        e.preventDefault()
+        let s = input.innerText.trim()
+        if (model.is_answering()) {
+            interrupted = true
+            model.interrupt()
+            placeholder()
+            stop.style.display = "none"
+            carry.style.display = "inline"
+            console.log("carry.style.display: " + carry.style.display)
+        }
+    }
+
+    clear.onclick = e => {
+        input.innerText = ""
+        clear.style.display = "none"
+        requestAnimationFrame(() => input.focus())
+    }
+
+    carry.onclick = e => {
+        carry.style.display = "none"
+        ask("carry on")
+    }
+
     restart.onclick = () => {
         if (model.is_running() && !model.is_answering()) new_session()
     }
@@ -415,7 +458,7 @@ export const run = () => { // called DOMContentLoaded
         new_session()
     }
 
-    clear.onclick = () => {
+    shred.onclick = () => {
         modal.ask("### **Erase All Chat History**  \n" +
             "For your privacy and storage<br>" +
             "efficiency, wiping everything<br>" +
@@ -462,6 +505,7 @@ export const run = () => { // called DOMContentLoaded
         let s = input.innerText.trim()
         if (detect.macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             input.innerText = ""
+            send.classList.add('hidden')
             requestAnimationFrame(() => {
                 const sel = window.getSelection()
                 if (sel) sel.removeAllRanges()
@@ -502,14 +546,23 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.oninput = () => {
+        let s = input.innerText
+        if (s !== "" && !model.is_answering()) {
+            send.classList.remove('hidden')
+            stop.style.display = "none"
+            carry.style.display = "none"
+            console.log("carry.style.display: " + carry.style.display)
+            clear.style.display = "inline"
+        }
         const lines = input.innerText.split("\n").length
         input.style.maxHeight = lines > 1
         ? window.innerHeight * 0.5 + "px" : ""
     }
     
     content.onclick = e => {
-        if (e.target.closest("#chat-container") ||
-            e.target.closest("#input")) collapsed()
+        if (e.target.closest("#chat-container") || e.target.closest("#input")) {
+            collapsed()
+        }
         if (!e.target.closest("#menu")) hide_menu()
     }
 
@@ -609,7 +662,12 @@ export const run = () => { // called DOMContentLoaded
     suggest.innerHTML = suggestions.init({
         data: prompts.data,
         callback: s => {
+            interrupted = false;
             input.innerText = s.prompt
+            stop.style.display  = "none"
+            carry.style.display = "none"
+            clear.style.display = "inline"
+            send.classList.remove('hidden')
             suggestions.hide()
         }
     })
@@ -623,7 +681,8 @@ export const run = () => { // called DOMContentLoaded
     let version_data = "25.02.22" // data scheme version
 
     const showEULA = () => {
-        // localStorage.removeItem("app.eula") // DEBUG
+        localStorage.removeItem("app.eula") // DEBUG
+        const nbsp4 = "    " // 4 non-breakable spaces
         if (!localStorage.getItem("app.eula")) {
             localStorage.clear() // no one promissed to keep data forever
             modal.show(util.load("./eula.md"), (action) => {
@@ -631,7 +690,8 @@ export const run = () => { // called DOMContentLoaded
                 localStorage.setItem("app.eula", "true")
                 localStorage.setItem("version.data", version_data)
                 licenses()
-            }, "<green>  Agree  </green>", "<red>Disagree</red>")
+            }, "<red>Disagree</red>",
+               "<green>" + nbsp4 + "Agree" + nbsp4 + "</green>")
         }
     }
 
