@@ -51,7 +51,6 @@ struct Gyptix: App {
                         gyptix.inactive();
                     }
                 }
-                .navigationTitle("GyPTix")
         }
         .commands { // Disable "New Window" (Cmd+N):
             CommandGroup(replacing: .newItem) { }
