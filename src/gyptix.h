@@ -12,7 +12,6 @@ struct gyptix {
     void (*ask)(const char* question);
     int  (*is_answering)(void);
     const char* (*poll)(const char* interrupt);
-    void (*interrupt)(void);
     void (*erase)(void); // erase all chats
     void (*stop)(void);
     void (*inactive)(void);

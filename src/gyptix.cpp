@@ -372,7 +372,9 @@ static bool output_text(const char* s) {
 static void load(const char* model) {
     llama.read_line   = read_line;
     llama.output_text = output_text;
-    pthread_create(&thread, NULL, worker, (void*)strdup(model));
+    if (thread == nullptr) {
+        pthread_create(&thread, NULL, worker, (void*)strdup(model));
+    }
 }
 
 static void run(const char* id) {
@@ -389,18 +391,18 @@ static void inactive(void) {
     printf("inactive\n");
 }
 
-static void interrupt(void) {
-    interrupted = true;
-//  printf("%s interrupted = true;\n", __func__);
-    wakeup();
-    pthread_join(thread, NULL);
-    pthread_mutex_destroy(&lock);
-    pthread_cond_destroy(&cond);
-}
-
 static void stop(void) {
+    printf("%s\n", __func__);
     quit = true;
-    interrupt();
+    if (thread != nullptr) {
+        interrupted = true;
+//      printf("%s interrupted = true;\n", __func__);
+        wakeup();
+        pthread_join(thread, NULL);
+        pthread_mutex_destroy(&lock);
+        pthread_cond_destroy(&cond);
+        thread = nullptr;
+    }
 }
 
 struct gyptix gyptix = {
@@ -410,7 +412,6 @@ struct gyptix gyptix = {
     .poll = poll,
     .is_answering = is_answering,
     .is_running = is_running,
-    .interrupt = interrupt,
     .erase = erase,
     .stop = stop,
     .inactive = inactive,

@@ -3,25 +3,30 @@ import SwiftData
 #if os(macOS)
 import AppKit
 #endif
+#if os(iOS)
+import UIKit
+#endif
 
 @main
 struct Gyptix: App {
-
     @Environment(\.scenePhase) private var scenePhase
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #endif
     
-    
-    init() { // Ensure default language is set
+    init() {
         UserDefaults.standard.set(["en-US"], forKey: "AppleLanguages")
         UserDefaults.standard.synchronize()
-        // Debug: Print current locale to verify
         print("Current Locale: \(Locale.current.identifier)")
     }
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let modelConfiguration = ModelConfiguration(schema: schema,
+                                                    isStoredInMemoryOnly: false)
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            return try ModelContainer(for: schema,
+                                      configurations: [modelConfiguration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
@@ -42,17 +47,17 @@ struct Gyptix: App {
                         withExtension: nil) else {
                             fatalError("Could not get bundle url")
                     }
-                    gyptix.load(f.absoluteString); // load model
+                    gyptix.load(f.absoluteString)
                     setupTerminationObserver()
                     AppRating.trackAppLaunch()
                 }
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     if newPhase == .background || newPhase == .inactive {
-                        gyptix.inactive();
+                        gyptix.inactive()
                     }
                 }
         }
-        .commands { // Disable "New Window" (Cmd+N):
+        .commands {
             CommandGroup(replacing: .newItem) { }
             CommandGroup(replacing: .toolbar) { }
             #if os(macOS)
@@ -84,7 +89,9 @@ struct Gyptix: App {
             window.tabbingMode = .disallowed
         }
         if let window = NSApplication.shared.windows.first {
-            window.performSelector(onMainThread: #selector(NSWindow.toggleTabBar(_:)), with: nil, waitUntilDone: false)
+            window.performSelector(onMainThread:
+                #selector(NSWindow.toggleTabBar(_:)),
+                with: nil, waitUntilDone: false)
         }
         if let window = NSApplication.shared.windows.first {
             window.collectionBehavior = [.fullScreenPrimary]
@@ -93,17 +100,14 @@ struct Gyptix: App {
         #endif
     }
     
-
     private func removeTabRelatedMenuItems() {
         #if os(macOS)
         if let mainMenu = NSApplication.shared.mainMenu {
             for item in mainMenu.items {
-//              print(item);
                 if item.title == "Window" || item.title == "View" {
                     if let submenu = item.submenu {
                         for menuItem in submenu.items {
                             let title = menuItem.title.lowercased()
-//                          print(menuItem);
                             if title.contains("tab") {
                                 submenu.removeItem(menuItem)
                             }
@@ -115,9 +119,6 @@ struct Gyptix: App {
         #endif
     }
     
-    // xCode Edit Scheme: Release|Debug
-    // macOS debug allows to test overlaping navigation in narow window
-    
     #if DEBUG || os(iOS)
     static var w: CGFloat = 240.0
     static var h: CGFloat = 320.0
@@ -125,5 +126,33 @@ struct Gyptix: App {
     static var w: CGFloat = 480.0
     static var h: CGFloat = 640.0
     #endif
-
 }
+
+
+#if os(iOS)
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     configurationForConnecting connectingSceneSession:
+                     UISceneSession, options: UIScene.ConnectionOptions)
+    -> UISceneConfiguration {
+        if application.connectedScenes.count > 1 {
+            application.requestSceneSessionDestruction(
+                connectingSceneSession,
+                options: nil
+            ) { error in
+                print("Failed to discard scene: \(error)")
+            }
+            return UISceneConfiguration(
+                name: "Default Configuration",
+                sessionRole: connectingSceneSession.role
+            )
+        }
+        let config = UISceneConfiguration(
+            name: "Default Configuration",
+            sessionRole: connectingSceneSession.role
+        )
+        config.sceneClass = UIWindowScene.self
+        return config
+    }
+}
+#endif
