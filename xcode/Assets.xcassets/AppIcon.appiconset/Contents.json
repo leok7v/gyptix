@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "AppIcon.jpg",
+      "filename" : "iOS-1024x1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,6 @@
           "value" : "dark"
         }
       ],
-      "filename" : "AppIcon 1.jpg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,67 +24,66 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "AppIcon 2.jpg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
-      "filename" : "AppIcon16x16.jpg",
+      "filename" : "macOS-16x16.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "AppIcon32x32.jpg",
+      "filename" : "macOS-32x32 1.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "AppIcon32x32 1.jpg",
+      "filename" : "macOS-32x32.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "AppIcon64x64.jpg",
+      "filename" : "macOS-64x64.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "AppIcon128x128.jpg",
+      "filename" : "macOS-128x128.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "AppIcon256x256.jpg",
+      "filename" : "macOS-256x256.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "AppIcon256x256 1.jpg",
+      "filename" : "macOS-256x256 1.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "AppIcon512x512.jpg",
+      "filename" : "macOS-512x512 1.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "AppIcon512x512 1.jpg",
+      "filename" : "macOS-512x512.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "AppIcon 3.jpg",
+      "filename" : "macOS-1024x1024.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"
