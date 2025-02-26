@@ -42,6 +42,17 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
     }
 
+    func log(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        if let body = urlSchemeTask.request.httpBody {
+            guard let request = String(data: body, encoding: .utf8) else {
+                print("Failed to decode body as UTF-8 string.")
+                return
+            }
+            print(request)
+        }
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
+    }
+
     func poll(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
         var text: String = ""
         if let body = urlSchemeTask.request.httpBody {
@@ -97,6 +108,9 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         } else if resourcePath == "erase" {
             erase(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "log" {
+            log(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "poll" {
             poll(webView, urlSchemeTask: urlSchemeTask, url: u)
