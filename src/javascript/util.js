@@ -1,6 +1,6 @@
 "use strict"
 
-import * as detect      from "./detect.js"
+import * as detect from "./detect.js"
 
 const http = (url, method, req = "", done = null) => {
     let error = null
@@ -31,6 +31,16 @@ export const load = (url) => http(url, "GET")
 
 export const post = (url, req = "", done = null) => http(url, "POST", req, done)
 
+export const log = (...args) => {
+    return post("./log", args.join(''), null)
+}
+
+export const console_log = console.log
+
+console.log = (...args) => {
+    log(...args)
+    console_log(...args)
+}
 
 export const init_theme = () => {
     let theme = localStorage.getItem("settings.theme")
