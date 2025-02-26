@@ -250,7 +250,7 @@ export const run = () => { // called DOMContentLoaded
             title: util.timestamp_label(id),
             messages: []
         }
-        input.innerText = ""
+        title.innerHTML = ""
         send.classList.add('hidden')
         save_chat(chat)
         collapsed()
@@ -451,7 +451,10 @@ export const run = () => { // called DOMContentLoaded
     clear.onclick = e => {
         input.innerText = ""
         clear.style.display = "none"
-        requestAnimationFrame(() => input.focus())
+        requestAnimationFrame(() => {
+            input.focus()
+            if (chat.messages.length == 0) suggestions.show()
+        })
     }
 
     carry.onclick = e => {

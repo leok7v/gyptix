@@ -19,7 +19,7 @@ public func inactive() {
             print("Error calling javascript inactive(): \(error)")
         } else {
             if let r = result {
-//              print("javascript inactive() result: \(r)") // "done"
+                print("javascript inactive() result: \(r)") // "done"
             } else {
                 print("javascript inactive(): no result")
             }
