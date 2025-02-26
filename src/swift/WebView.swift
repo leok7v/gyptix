@@ -48,15 +48,16 @@ struct WebView: ViewRepresentable {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
         config.preferences.setValue(true, forKey: "developerExtrasEnabled")
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.configuration.preferences.setValue(true,
+        let wv = WKWebView(frame: .zero, configuration: config)
+        wv.configuration.preferences.setValue(true,
                 forKey: "allowFileAccessFromFileURLs")
-        webView.setValue(false, forKey: "drawsBackground")
-        webView.navigationDelegate = context.coordinator
+        wv.setValue(false, forKey: "drawsBackground")
+        wv.navigationDelegate = context.coordinator
+        webView = wv
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
-            webView.load(URLRequest(url: url))
+            wv.load(URLRequest(url: url))
         }
-        return webView
+        return wv
     }
     
     func updateNSView(_ nsView: WKWebView, context: Context) {
@@ -66,20 +67,21 @@ struct WebView: ViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.configuration.preferences.setValue(true,
+        let wv = WKWebView(frame: .zero, configuration: config)
+        wv.configuration.preferences.setValue(true,
                 forKey: "allowFileAccessFromFileURLs")
-        webView.isOpaque = false
-        webView.backgroundColor = .clear
-        webView.scrollView.backgroundColor = .clear
-        webView.allowsBackForwardNavigationGestures = false
-        webView.translatesAutoresizingMaskIntoConstraints = false
-        webView.scrollView.isScrollEnabled = false // prevents input scroll up
-        webView.navigationDelegate = context.coordinator
+        wv.isOpaque = false
+        wv.backgroundColor = .clear
+        wv.scrollView.backgroundColor = .clear
+        wv.allowsBackForwardNavigationGestures = false
+        wv.translatesAutoresizingMaskIntoConstraints = false
+        wv.scrollView.isScrollEnabled = false // prevents input scroll up
+        wv.navigationDelegate = context.coordinator
+        webView = wv
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
-            webView.load(URLRequest(url: url))
+            wv.load(URLRequest(url: url))
         }
-        return webView
+        return wv
     }
     
     func updateUIView(_ uiView: WKWebView, context: Context) {

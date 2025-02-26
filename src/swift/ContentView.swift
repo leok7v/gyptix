@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
-
+@preconcurrency
+import WebKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -8,15 +9,16 @@ struct ContentView: View {
     
     var body: some View {
         #if os(macOS)
-        WebView(htmlFileName: "app", schemeHandler: schemeHandler)
-            .edgesIgnoringSafeArea(.bottom)
+        WebView(htmlFileName: "app",
+                schemeHandler: schemeHandler).edgesIgnoringSafeArea(.bottom)
         #else
         FullScreenView {
-            WebView(htmlFileName: "app", schemeHandler: schemeHandler)
-                .statusBar(hidden: true)
+            WebView(htmlFileName: "app",
+                    schemeHandler: schemeHandler).statusBar(hidden: true)
         }.toolbar(.hidden, for: .navigationBar)
         #endif
     }
+    
 }
 
 #if os(iOS)

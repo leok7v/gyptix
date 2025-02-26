@@ -77,7 +77,8 @@ export const decrease_font_size = () => {
 
 export const increase_font_size = () => {
     let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-    font_size = Math.min(160, font_size + 10);
+    const max_font = detect.iPad ? 200 : 160
+    font_size = Math.min(max_font, font_size + 10);
     document.body.style.fontSize = font_size + "%";
     localStorage.setItem("settings.font-size", font_size);
 }

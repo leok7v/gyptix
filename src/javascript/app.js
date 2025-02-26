@@ -42,6 +42,7 @@ const load_chat = id => {
 }
 
 const save_chat = (c) => {
+    if (c.messages.length == 0) return // never save empty chats
     const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
     try {
         localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
@@ -52,6 +53,13 @@ const save_chat = (c) => {
         localStorage.removeItem("chat.id." + c.id)
         localStorage.removeItem("chat." + c.id)
     }
+}
+
+export const inactive = () => {
+//  console.log(">>>app.js inactive()")
+    if (chat) save_chat(chat)
+//  console.log("<<<app.js inactive()")
+    return "done"
 }
 
 export const run = () => { // called DOMContentLoaded
@@ -128,7 +136,7 @@ export const run = () => { // called DOMContentLoaded
     const render_messages = () => {
         if (!chat || !chat.messages) { return }
         if (chat.messages.length == 0) {
-            suggestions.show()
+            if (input !== document.activeElement) suggestions.show()
             return
         }
         if (chat.messages.length > 0) {
@@ -456,10 +464,12 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const erase = () => {
+        collapsed()
         const keys = Object.keys(localStorage).filter(k => k.startsWith("chat."))
         keys.forEach(k => localStorage.removeItem(k))
         model.erase()
         current = null
+        rebuild_list()
         new_session()
     }
 
@@ -685,7 +695,7 @@ export const run = () => { // called DOMContentLoaded
     let version_data = "25.02.22" // data scheme version
 
     const showEULA = () => {
-        localStorage.removeItem("app.eula") // DEBUG
+//      localStorage.removeItem("app.eula") // DEBUG
         const nbsp4 = "    " // 4 non-breakable spaces
         if (!localStorage.getItem("app.eula")) {
             localStorage.clear() // no one promissed to keep data forever
@@ -711,6 +721,7 @@ export const run = () => { // called DOMContentLoaded
     util.init_theme()
     util.init_font_size()
     recent()
+    if (chat.messages.length > 0) { new_session() }
     placeholder()
     send.title = "Click to Submit"
     setTimeout(() => {
@@ -722,3 +733,5 @@ export const run = () => { // called DOMContentLoaded
 
     showEULA()
 }
+
+window.app = { inactive, run }

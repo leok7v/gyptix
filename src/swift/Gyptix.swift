@@ -6,6 +6,35 @@ import AppKit
 #if os(iOS)
 import UIKit
 #endif
+import WebKit
+
+public var webView: WKWebView?
+
+public func inactive() {
+    guard let view = webView else { return }
+    var wait = true
+//  let start = DispatchTime.now().uptimeNanoseconds
+    view.evaluateJavaScript("app.inactive()") { result, error in
+        if let error = error {
+            print("Error calling javascript inactive(): \(error)")
+        } else {
+            if let r = result {
+//              print("javascript inactive() result: \(r)") // "done"
+            } else {
+                print("javascript inactive(): no result")
+            }
+        }
+        wait = false
+    }
+    // Wait for up to 5 seconds while processing the run loop
+    let timeout = Date().addingTimeInterval(5)
+    while wait && Date() < timeout {
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.1))
+    }
+//  let end = DispatchTime.now().uptimeNanoseconds
+//  print("elapsed: \((end - start) / 1_000) microseconds") // 2.5ms
+    gyptix.inactive()
+}
 
 @main
 struct Gyptix: App {
@@ -31,7 +60,7 @@ struct Gyptix: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-    
+        
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -53,7 +82,7 @@ struct Gyptix: App {
                 }
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     if newPhase == .background || newPhase == .inactive {
-                        gyptix.inactive()
+                        inactive()
                     }
                 }
         }
@@ -73,13 +102,19 @@ struct Gyptix: App {
             forName: NSApplication.willTerminateNotification,
             object: nil,
             queue: .main
-        ) { _ in gyptix.stop() }
+        ) { _ in
+            inactive()
+            gyptix.stop()
+        }
         #elseif os(iOS)
         NotificationCenter.default.addObserver(
             forName: UIApplication.willTerminateNotification,
             object: nil,
             queue: .main
-        ) { _ in gyptix.stop() }
+        ) { _ in
+            inactive()
+            gyptix.stop()
+        }
         #endif
     }
     

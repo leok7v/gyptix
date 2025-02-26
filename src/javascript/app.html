@@ -21,8 +21,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="./app.css" />
     <script type="module">
-        import { run } from "./app.js"
-        document.addEventListener("DOMContentLoaded", () => { run() })
+        import * as app from "./app.js"
+        document.addEventListener("DOMContentLoaded", () => { app.run() })
     </script>
 </head>
 <body>
