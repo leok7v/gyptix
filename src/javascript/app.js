@@ -31,6 +31,11 @@ const load_chat = id => {
     const header = localStorage.getItem("chat.id." + id)
     const content = localStorage.getItem("chat." + id)
     const h = JSON.parse(header)
+    // if chat was corrupted fix it and report it:
+    if (!h || !h.id) {
+        console.log("missing header.id replacing with: " + id)
+        h.id = id
+    }
     const m = JSON.parse(content) // [] messages
     const c  = { id: h.id, title: h.title, timestamp: h.timestamp, messages: m }
     return c
@@ -112,14 +117,23 @@ export const run = () => { // called DOMContentLoaded
     const render_message = msg => {
         const d = document.createElement("div")
         d.className = msg.sender === "user" ? "user" : "bot"
-        // For non-bot messages, double the newlines.
-        let text = msg.sender === "bot" ? msg.text : msg.text.replace(/\n/g, "\n\n")
-        d.innerHTML = render_markdown(text)
+        if (msg.sender === "bot") {
+            d.innerHTML = render_markdown(msg.text)
+        } else {
+            d.textContent = msg.text // makes sure use text does not do html injection
+        }
         return d
     }
-
+    
     const render_messages = () => {
-        if (!chat || !chat.messages) return
+        if (!chat || !chat.messages) { return }
+        if (chat.messages.length == 0) {
+            suggestions.show()
+            return
+        }
+        if (chat.messages.length > 0) {
+            suggestions.hide()
+        }
         scrolled_to_bottom()
         // this is optimization because markdown rendering is slow
         var i = 0
@@ -183,15 +197,17 @@ export const run = () => { // called DOMContentLoaded
             if (c.id === current) div.classList.add("selected")
             div.onclick = () => {
                 selected = null
-                current = c.id
-                model.run(c.id)
-                chat = load_chat(current)
-                rebuild_list()
-                messages.innerHTML = ""
-                render_messages()
+                collapsed()
+                if (current != c.id) {
+                    current = c.id
+                    model.run(c.id)
+                    chat = load_chat(current)
+                    rebuild_list()
+                    messages.innerHTML = ""
+                    render_messages()
+                }
                 hide_menu()
                 hide_scroll_to_bottom()
-                collapsed()
             }
             const span = document.createElement("span")
             span.textContent = c.title
@@ -234,7 +250,6 @@ export const run = () => { // called DOMContentLoaded
         messages.innerText = ""
         render_messages()
         suggestions.show()
-        suggestions.start()
         model.run(id)
     }
     
@@ -304,9 +319,7 @@ export const run = () => { // called DOMContentLoaded
     const done = () => {
         send.classList.remove('hidden')
         stop.style.display = "none"
-        console.log("interrupted: " + interrupted)
         carry.style.display = interrupted ? "inline" : "none"
-        console.log("carry.style.display: " + carry.style.display)
         clear.style.display = "none"
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
@@ -399,14 +412,6 @@ export const run = () => { // called DOMContentLoaded
         menu.style.display = "none"
     }
 
-/*  // May be helpful on Android with softKeyboard
-    window.addEventListener("resize", () => {
-//      const px = window.innerHeight * 0.01; // ???
-        console.log("resize() window " +
-                    window.innerWidth + "x" + window.innerHeight)
-//      document.documentElement.style.setProperty("--vh", px + "px")
-    })
-*/
     toggle_theme.onclick = () => util.toggle_theme()
     
     send.onclick = e => {
@@ -432,7 +437,6 @@ export const run = () => { // called DOMContentLoaded
             placeholder()
             stop.style.display = "none"
             carry.style.display = "inline"
-            console.log("carry.style.display: " + carry.style.display)
         }
     }
 
@@ -533,14 +537,13 @@ export const run = () => { // called DOMContentLoaded
         characterData: true });
     
     input.onblur = () => { // focus lost
-        scroll_to_bottom()
+        if (at_the_bottom) scroll_to_bottom()
         show_hide_scroll_to_bottom()
         document.body.style.overflow = ""
     }
     
     input.onfocus = () => {
         suggestions.hide()
-        setTimeout(() => scroll_to_bottom(), 50)
         scroll.style.display = "none"
         document.body.style.overflow = "hidden"
         collapsed()
@@ -552,7 +555,6 @@ export const run = () => { // called DOMContentLoaded
             send.classList.remove('hidden')
             stop.style.display = "none"
             carry.style.display = "none"
-            console.log("carry.style.display: " + carry.style.display)
             clear.style.display = "inline"
         }
         const lines = input.innerText.split("\n").length
@@ -683,7 +685,7 @@ export const run = () => { // called DOMContentLoaded
     let version_data = "25.02.22" // data scheme version
 
     const showEULA = () => {
-//      localStorage.removeItem("app.eula") // DEBUG
+        localStorage.removeItem("app.eula") // DEBUG
         const nbsp4 = "    " // 4 non-breakable spaces
         if (!localStorage.getItem("app.eula")) {
             localStorage.clear() // no one promissed to keep data forever
@@ -715,15 +717,8 @@ export const run = () => { // called DOMContentLoaded
         if (chat.messages.length == 0 &&
             input !== document.activeElement) {
             suggestions.show()
-            suggestions.start()
         }
     }, 3000)
 
     showEULA()
-    
-    if (false) { // DEBUG
-        modal.mbx("Two lines<br>Are you sure?", (action) => {
-            modal.show(util.load("./eula.md"), null, "<green>  Agree  </green>", "<red>Disagree</red>")
-        }, "Yes", "No")
-    }
 }

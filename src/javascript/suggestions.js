@@ -76,13 +76,6 @@ const build = () => {
     }
 }
 
-export const show = () => {
-    if (disp.length === 0) build()
-    cycle()
-    cycle()
-    get("suggest").style.display = "block"
-}
-
 export const cycle = () => {
     if (!disp.length) return
     const idx = Math.floor(Math.random() * disp.length)
@@ -110,9 +103,17 @@ export const cycle = () => {
     }, 300)
 }
 
-export const start = (ms = 5000) => {
+const start = (ms = 5000) => {
     if (interval) clearInterval(interval)
     interval = setInterval(() => { cycle() }, ms)
+}
+
+export const show = () => {
+    if (disp.length === 0) build()
+    cycle()
+    cycle()
+    get("suggest").style.display = "block"
+    start()
 }
 
 export const hide = () => {
