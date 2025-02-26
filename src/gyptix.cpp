@@ -178,10 +178,10 @@ static std::string today() {
 static std::string system_prompt() {
     // <|start_of_role|>system<|end_of_role|>
     // IBM Granite 3.1 specific
-    return std::string("Knowledge Cutoff Date: April 2024.") +
-    std::string("Today's Date: ") + today() + "."
-    "[curent_date] is " + today() + "."
-    "You are GyPTix. You are a helpful and polite AI assistant."
+    return std::string("Knowledge Cutoff Date: April 2024. ") +
+    std::string("Today's Date: ") + today() + ". "
+    "[curent_date] is " + today() + ". "
+    "You are GyPTix. You are a helpful and polite AI assistant. "
     "Answer the questions accurately. "
     "If you do not know the answer, simply say you do not know.";
 }
