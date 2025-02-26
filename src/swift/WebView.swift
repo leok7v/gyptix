@@ -1,5 +1,9 @@
 import SwiftUI
+@preconcurrency
 import WebKit
+#if os(macOS)
+import AppKit
+#endif
 
 #if os(macOS)
 public typealias ViewRepresentable = NSViewRepresentable
@@ -10,13 +14,36 @@ public typealias ViewRepresentable = UIViewRepresentable
 struct WebView: ViewRepresentable {
     let htmlFileName: String
     let schemeHandler: WKURLSchemeHandler
-
+    
     init(htmlFileName: String, schemeHandler: WKURLSchemeHandler) {
         self.htmlFileName = htmlFileName
         self.schemeHandler = schemeHandler
     }
-
-#if os(macOS)
+    
+    class Coordinator: NSObject, WKNavigationDelegate {
+        let parent: WebView
+        init(_ parent: WebView) {
+            self.parent = parent
+        }
+        func webView(_ webView: WKWebView,
+                     decidePolicyFor navigationAction: WKNavigationAction,
+                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            if navigationAction.navigationType == .linkActivated,
+               let url = navigationAction.request.url {
+                #if os(iOS)
+                UIApplication.shared.open(url, options: [:],
+                                          completionHandler: nil)
+                #elseif os(macOS)
+                NSWorkspace.shared.open(url)
+                #endif
+                decisionHandler(.cancel)
+                return
+            }
+            decisionHandler(.allow)
+        }
+    }
+    
+    #if os(macOS)
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
@@ -25,16 +52,17 @@ struct WebView: ViewRepresentable {
         webView.configuration.preferences.setValue(true,
                 forKey: "allowFileAccessFromFileURLs")
         webView.setValue(false, forKey: "drawsBackground")
+        webView.navigationDelegate = context.coordinator
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
             webView.load(URLRequest(url: url))
         }
         return webView
     }
-
+    
     func updateNSView(_ nsView: WKWebView, context: Context) {
         // Handle updates if needed
     }
-#elseif os(iOS)
+    #elseif os(iOS)
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
@@ -47,14 +75,25 @@ struct WebView: ViewRepresentable {
         webView.allowsBackForwardNavigationGestures = false
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.isScrollEnabled = false // prevents input scroll up
+        webView.navigationDelegate = context.coordinator
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {
             webView.load(URLRequest(url: url))
         }
         return webView
     }
-
+    
     func updateUIView(_ uiView: WKWebView, context: Context) {
         // Handle updates if needed
     }
-#endif
+    #endif
+    
+    #if os(iOS)
+    typealias Context = UIViewRepresentableContext<WebView>
+    #else
+    typealias Context = NSViewRepresentableContext<WebView>
+    #endif
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
 }
