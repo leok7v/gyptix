@@ -10,15 +10,18 @@ struct ContentView: View {
     var body: some View {
         #if os(macOS)
         WebView(htmlFileName: "app",
-                schemeHandler: schemeHandler).edgesIgnoringSafeArea(.bottom)
+                schemeHandler: schemeHandler)
+            .edgesIgnoringSafeArea(.all)
         #else
         FullScreenView {
-            WebView(htmlFileName: "app",
-                    schemeHandler: schemeHandler).statusBar(hidden: true)
-        }.toolbar(.hidden, for: .navigationBar)
+            WebView(htmlFileName: "app", schemeHandler: schemeHandler)
+//              .statusBar(hidden: true)
+//              .edgesIgnoringSafeArea(.all)
+//              .ignoresSafeArea(.keyboard, edges: .bottom)
+        }
+//      .toolbar(.hidden, for: .navigationBar)
         #endif
     }
-    
 }
 
 #if os(iOS)
@@ -26,24 +29,38 @@ struct ContentView: View {
 struct FullScreenView<Content: View>: UIViewControllerRepresentable {
     let content: Content
     
-    // Provide a custom initializer with a view builder.
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    
+    func makeUIViewController(context: Context) -> UIHostingController<AnyView> {
+        FullScreenHostingController(rootView: AnyView(content.ignoresSafeArea(edges: .vertical)))
     }
     
-    func makeUIViewController(context: Context) -> UIHostingController<Content> {
-        FullScreenHostingController(rootView: content)
-    }
-    
-    func updateUIViewController(_ uiViewController: UIHostingController<Content>,
+    func updateUIViewController(_ uiViewController: UIHostingController<AnyView>,
                                 context: Context) {
-        uiViewController.rootView = content
+        uiViewController.rootView = AnyView(content.ignoresSafeArea(edges: .vertical))
     }
+
 }
 
 class FullScreenHostingController<Content: View>: UIHostingController<Content> {
+
     override var prefersHomeIndicatorAutoHidden: Bool { true }
+
+/*
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        if #available(iOS 11.0, *) {
+            view.insetsLayoutMarginsFromSafeArea = false
+            additionalSafeAreaInsets = .zero
+        }
+    }
+       
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        additionalSafeAreaInsets = .zero
+    }
+*/
+
 }
 
 #endif
-

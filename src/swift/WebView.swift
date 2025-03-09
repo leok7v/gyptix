@@ -49,8 +49,17 @@ struct WebView: ViewRepresentable {
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
         config.preferences.setValue(true, forKey: "developerExtrasEnabled")
         let wv = WKWebView(frame: .zero, configuration: config)
-        wv.configuration.preferences.setValue(true,
-                forKey: "allowFileAccessFromFileURLs")
+//      if #available(iOS 14.5, macOS 11.3, *) {
+//          wv.configuration.preferences.setValue(true,
+//              forKey: "WebKitSharedArrayBufferEnabled")
+//      }
+//      wv.configuration.preferences.setValue(true,
+//              forKey: "allowFileAccessFromFileURLs")
+//      wv.configuration.setValue(true,
+//              forKey: "_allowCrossOriginResourcePolicy")
+//      wv.configuration.setValue(true,
+//              forKey: "allowUniversalAccessFromFileURLs")
+        wv.isInspectable = true // TODO disable in Release
         wv.setValue(false, forKey: "drawsBackground")
         wv.navigationDelegate = context.coordinator
         webView = wv
@@ -68,14 +77,20 @@ struct WebView: ViewRepresentable {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
         let wv = WKWebView(frame: .zero, configuration: config)
-        wv.configuration.preferences.setValue(true,
-                forKey: "allowFileAccessFromFileURLs")
+//      wv.configuration.preferences.setValue(true,
+//              forKey: "allowFileAccessFromFileURLs")
+//      wv.configuration.setValue(true,
+//              forKey: "_allowCrossOriginResourcePolicy")
+//      wv.configuration.setValue(true,
+//              forKey: "allowUniversalAccessFromFileURLs")
+        wv.isInspectable = true // TODO disable in Release
         wv.isOpaque = false
         wv.backgroundColor = .clear
-        wv.scrollView.backgroundColor = .clear
         wv.allowsBackForwardNavigationGestures = false
-        wv.translatesAutoresizingMaskIntoConstraints = false
+        wv.scrollView.backgroundColor = .clear
         wv.scrollView.isScrollEnabled = false // prevents input scroll up
+        wv.scrollView.contentInsetAdjustmentBehavior = .automatic
+        wv.translatesAutoresizingMaskIntoConstraints = false
         wv.navigationDelegate = context.coordinator
         webView = wv
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {

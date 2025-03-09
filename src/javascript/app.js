@@ -152,7 +152,6 @@ export const run = () => { // called DOMContentLoaded
             i++;
         })
         if (at_the_bottom) scroll_to_bottom()
-        title.textContent = chat.title
     }
     
     const render_last = () => {
@@ -290,14 +289,14 @@ export const run = () => { // called DOMContentLoaded
         // double quotes improtant for css variable inside value
         if (model.is_answering()) {
             input.style.setProperty("--placeholder",
-                                    '"click ▣ to stop"');
+                                    '"click ▣ to stop"')
             send.title = "Click to Stop"
         } else if (!detect.macOS) { // double quotes improtant for css variable:
             input.style.setProperty("--placeholder",
-                                    '"Ask anything... and click ⇧"');
+                                    '"Ask anything... and click ⇧"')
         } else {
             input.style.setProperty("--placeholder",
-                                    '"Ask anything... Use ⇧⏎ for line break"');
+                                    '"Ask anything... Use ⇧⏎ for line break"')
         }
     }
     
@@ -367,13 +366,6 @@ export const run = () => { // called DOMContentLoaded
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
         }, 50)
-        if (!detect.macOS) {
-            title.innerHTML =
-                "<div class='logo-container shimmering'>" +
-                    "<span class='logo'></span>" +
-                    "<span class='logo-content'>GyPTix</span>" +
-                "</div>"
-        }
     }
 
     const oops = () => {
@@ -391,13 +383,14 @@ export const run = () => { // called DOMContentLoaded
         save_chat(chat)
         render_messages()
         scroll_to_bottom()
-        let error = model.ask(t)
-        if (!error) {
-            placeholder()
-            polling()
-        } else {
-            modal.toast(error, 5000)
-        }
+        requestAnimationFrame(() => { // render before asking
+            let error = model.ask(t)
+            if (!error) {
+                polling()
+            } else {
+                modal.toast(error, 5000)
+            }
+        })
     }
     
     const show_menu = (x, y) => {
@@ -431,8 +424,19 @@ export const run = () => { // called DOMContentLoaded
             interrupted = false
             input.innerText = ""
             send.classList.add('hidden')
-            requestAnimationFrame(() => input.blur())
-            ask(s)
+            input.style.setProperty("--placeholder", '""')
+            if (!detect.macOS) {
+                title.innerHTML =
+                    "<div class='logo-container shimmering'>" +
+                        "<span class='logo'></span>" +
+                        "<span class='logo-content'>GyPTix</span>" +
+                    "</div>"
+            }
+            setTimeout(() => { // let frame to re-render first
+                ask(s)
+                placeholder()
+                requestAnimationFrame(() => input.blur())
+            }, 10)
         }
     }
 
@@ -735,6 +739,15 @@ export const run = () => { // called DOMContentLoaded
     }, 3000)
 
     showEULA()
+    
+    try {
+        let buffer = new SharedArrayBuffer(4)
+        console.log("✅ SharedArrayBuffer is available:", buffer)
+    } catch (e) {
+        console.log("🚫 SharedArrayBuffer is blocked:", e.message)
+    }
+    console.log("self.crossOriginIsolated: " + self.crossOriginIsolated)
+    
 }
 
 window.app = { inactive, run }

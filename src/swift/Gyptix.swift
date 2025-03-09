@@ -64,8 +64,14 @@ struct Gyptix: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: Gyptix.w, minHeight: Gyptix.h)
                 .environment(\.locale, Locale(identifier: "en_US"))
+                #if os(macOS)
+                .frame(minWidth: Gyptix.w, minHeight: Gyptix.h)
+                #else
+//              .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+                .statusBar(hidden: true)
+                .ignoresSafeArea(edges: .vertical)
+                #endif
                 .onAppear {
                     applyWindowRestrictions()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {

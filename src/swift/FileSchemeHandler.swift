@@ -181,7 +181,17 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
                 "default-src 'self' gyptix://;" +
                 "img-src 'self' gyptix:// data:;" +
                 "style-src 'self' gyptix:// 'unsafe-inline';" +
-                "script-src 'self' gyptix:// 'unsafe-inline';"
+                "script-src 'self' gyptix:// 'unsafe-inline';",
+/*
+            // https://web.dev/articles/coop-coep
+            "Access-Control-Allow-Headers": "Accept, Accept-Encoding, " +
+                "Accept-Language, Authorization, Cache-Control, Pragma, " +
+                "Content-Type, Origin, Referer, Sec-Fetch-Dest, " +
+                "Sec-Fetch-Mode, Sec-Fetch-Site, User-Agent, X-Requested-With",
+            "Cross-Origin-Opener-Policy": "same-origin",    // for workers
+            "Cross-Origin-Embedder-Policy": "credentialless", // for workers
+            "Cross-Origin-Resource-Policy": "same-origin",
+*/
         ]
         return HTTPURLResponse(url: u,
                                statusCode: 200,

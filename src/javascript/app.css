@@ -63,9 +63,7 @@ body { font-size: var(--font-size); }
     html { font-size: 140%; } /* Increase for accessibility settings */
 }
 
-sup {
-    font-size: 75%;
-}
+sup { font-size: 75%; }
 
 html, body {
     margin: 0;
@@ -81,22 +79,30 @@ html, body {
     user-select: none;
 }
 
-code, pre {
-    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+html, body, #viewport, #layout, .content, #chat-container, #chat, #modal {
+    display: flex;
+    flex: auto;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0;
+    min-height: 0;
 }
 
-[data-bro="safari"] {
-    html, body {
-        padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
-                 env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
-    }
+html, body, .viewport, .content, #chat-container, #chat {
+    padding: 0; /* because navigation and content do have padding */
 }
 
-.user, .bot, #input, input {
-    -webkit-user-select: text !important;
-    -moz-user-select: text !important;
-    -ms-user-select: text !important;
-    user-select: text !important;
+#viewport, #layout, .content, #chat-container, #chat, #modal {
+    width:  -webkit-fill-available;
+    height: -webkit-fill-available;
+}
+
+html {
+    background-color: orange;
+}
+
+body {
+    background-color: magenta;
 }
 
 body {
@@ -106,6 +112,47 @@ body {
     max-width: 100%;
     min-height: 100%;
     max-height: 100%;
+}
+
+
+.viewport {
+    flex: auto;
+    flex-direction: column;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    top: 0;
+    left: 0;
+    padding: 0;
+    margin: 0;
+    background-color: green;
+}
+
+#layout, #navigation {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+/*  padding-bottom: env(keyboard-inset-height, 0px); */
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+#layout {
+    position: relative;
+    overscroll-behavior: contain;
+    transition: all 0.3s;
+}
+
+#navigation {
+    z-index: 30;
+    display: block;
+    position: absolute;
+    top: env(safe-area-inset-top);
+    padding-top: 0;
+    max-width: 60%;
+    height: 100%;
+    overflow-y: auto;
+    background-color: var(--background-navigation);
+    background-color: blue;
+    transition: all 0.3s ease;
 }
 
 .navigation_header, .header {
@@ -119,10 +166,14 @@ body {
     gap: 0.5em;
     position: sticky;
     top: 0;
-    z-index: 10;
+    left: 2.5em;
     justify-content: space-between;
     background-color: var(--background-header);
 }
+
+.header { z-index: 20; }
+
+.navigation_header { z-index: 40; }
 
 .left, .right {
     display: flex;
@@ -155,53 +206,23 @@ body {
     font-size: small;
 }
 
-.viewport {
-    display: flex;
-    position: fixed;
-    overflow: hidden;
-    overscroll-behavior: contain;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 0;
-    margin: 0;
-}
-
-.layout {
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
-    overscroll-behavior: contain;
-    width: 100%;
-    min-width: 0;
-    transition: all 0.3s;
-}
-
-.navigation {
-    max-width: 45%;
-    overflow: hidden;
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    transition: max-width 0.3s ease;
-    background-color: var(--background-navigation)
-}
-
 .collapsed {
-    max-width: 0;
+    display: none;
+    transform: translateX(-100%);
     overflow: hidden;
     transition: max-width 0.3s ease;
 }
 
-.content {
-    position: relative;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    border: none;
-    transition: all 0.3s;
+
+code, pre {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.user, .bot, #input, input {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
 }
 
 .item {
@@ -234,9 +255,10 @@ body {
 }
 
 #chats {
-    flex: 1; /* Takes up remaining space */
     display: flex;
+    flex: 1; /* Takes up remaining space */
     flex-direction: column;
+    height: -webkit-fill-available;
     overflow: hidden;
 }
 
@@ -248,44 +270,30 @@ body {
 }
 
 #chat-container {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    min-width: 0;
     margin: 0.25em;
     border: none;
 }
 
-#chat {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0; /* Prevents expansion beyond parent width */
-    overflow: hidden;
-}
-
 #messages {
-    flex-grow: 1; /* Takes full height inside #chat */
-    overflow-x: hidden;
-    overflow-y: auto; /* Enables vertical scrolling */
-    min-width: 0;     /* Prevents expansion beyond parent width */
-    max-width: 100%;  /* Ensures it does not exceed parent's width */
-    padding: 0;
-    margin: 0;
+    min-height: 0;
     gap: 0.5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
     background-color: var(--background-color);
+    background-color: red;
+    overscroll-behavior: contain;
     scroll-behavior: smooth;
 }
 
 .input_container {
-    flex: 0 0 auto; /* Prevents expansion */
+    display: flex;
+    flex: 0 0 auto;
     flex-direction: column;
     border: 1px solid #888;
     border-radius: 0.5rem;
     padding: 0.5rem;
-    margin: 0.3rem;
-    display: flex;
+    margin: 0.25rem;
+    margin-bottom: 0;
     gap: 0.5rem;
     background-color: var(--background-input);
 }
@@ -296,10 +304,9 @@ body {
     outline: none;
     resize: none;
     overflow: auto;
-    /* Word-breaking properties */
-    word-wrap: break-word;  /* For older browsers */
-    overflow-wrap: break-word; /* Standard property */
-    word-break: break-word; /* Fallback for very long words */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 #input:empty::before {
@@ -426,7 +433,7 @@ body {
     bottom: 1.0rem;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 99999;
+    z-index: 50;
     display: none;
     cursor: pointer;
 }
@@ -487,7 +494,7 @@ body {
     display: none;
     border: 1px solid #888;
     background-color: var(--background-color);
-    z-index: 99999;
+    z-index: 60;
     padding: 0.25em;
     min-width: 5em;
     border: 1px solid #888;
@@ -612,7 +619,7 @@ body {
 
 #modal {
     display: none;
-    z-index: 10000;
+    z-index: 70;
     position: absolute;
     color: var(--color);
     background-color: var(--background-color);
