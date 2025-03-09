@@ -176,13 +176,13 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
     func response(_ u: URL, mt: String) -> HTTPURLResponse? {
         let responseHeaders = [
             "Access-Control-Allow-Origin": allowedOrigin,
-            "Content-Type": mt,
+            "Content-Type": mt,            
+/*
             "Content-Security-Policy":
                 "default-src 'self' gyptix://;" +
                 "img-src 'self' gyptix:// data:;" +
                 "style-src 'self' gyptix:// 'unsafe-inline';" +
                 "script-src 'self' gyptix:// 'unsafe-inline';",
-/*
             // https://web.dev/articles/coop-coep
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "Accept, Accept-Encoding, " +

@@ -1,6 +1,7 @@
 "use strict"
 
 import * as detect      from "./detect.js"
+import * as markdown    from "./markdown.js"
 import * as marked      from "./marked.js"
 import * as modal       from "./modal.js"
 import * as model       from "./model.js"
@@ -18,8 +19,6 @@ let chat     = null // chat
 let selected_item = null // item in chats list
 
 let interrupted = false // output was interrupted
-
-const render_markdown = md => marked.parse(md)
 
 document.addEventListener("copy", e => {
     e.preventDefault()
@@ -126,7 +125,7 @@ export const run = () => { // called DOMContentLoaded
         const d = document.createElement("div")
         d.className = msg.sender === "user" ? "user" : "bot"
         if (msg.sender === "bot") {
-            d.innerHTML = render_markdown(msg.text)
+            d.innerHTML = marked.parse(msg.text)
         } else {
             d.textContent = msg.text // makes sure use text does not do html injection
         }
@@ -154,20 +153,31 @@ export const run = () => { // called DOMContentLoaded
         if (at_the_bottom) scroll_to_bottom()
     }
     
-    const render_last = () => {
+    const render_last = (chunk, done) => {
         if (!chat || !chat.messages || chat.messages.length === 0) return
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         // Get last child element (assumed to be the last message).
         const last_child = messages.lastElementChild
         if (last_child) {
+            last_msg.text += chunk
             let text = last_msg.sender === "bot" ?
-            last_msg.text : last_msg.text.replace(/\n/g, "\n\n")
-            last_child.innerHTML = render_markdown(text)
+                chunk : chunk.replace(/\n/g, "\n\n")
+            markdown.post(text, (html, error) => {
+                if (error) {
+                    console.error(error)
+                } else {
+                    last_child.innerHTML = html
+                    if (at_the_bottom) scroll_to_bottom()
+                    show_hide_scroll_to_bottom()
+                }
+                done?.()
+            })
         } else {
             messages.appendChild(render_message(last_msg))
         }
         if (at_the_bottom) scroll_to_bottom()
+        show_hide_scroll_to_bottom()
     }
     
     messages.onscroll = () => {
@@ -338,23 +348,19 @@ export const run = () => { // called DOMContentLoaded
         send.title = "Click to Submit"
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
-        last_msg.text = substitutions(last_msg.text)
-        render_last() // because of substitutions
+        render_last(substitutions(last_msg.text))
     }
     
     const poll = interval => {
-        const polledText = model.poll()
-        if (polledText === "<--done-->") {
-            clearInterval(interval)
-            done()
-        } else if (polledText !== "") {
-            if (chat.messages.length > 0) {
-                chat.messages[chat.messages.length - 1].text += polledText
-                requestAnimationFrame(() => {
-                    render_last()
-                    if (at_the_bottom) scroll_to_bottom()
-                    show_hide_scroll_to_bottom()
-                })
+        if (!markdown.processing) {
+            const chunk = model.poll()
+            if (chunk === "<--done-->") {
+                clearInterval(interval)
+                done()
+            } else if (chunk !== "") {
+                if (chat.messages.length > 0) {
+                    render_last(chunk, () => poll(interval))
+                }
             }
         }
     }
@@ -363,9 +369,10 @@ export const run = () => { // called DOMContentLoaded
         stop.style.display = "inline" // ? ▣ ◾ ◼ ■ ▣ ◻
         send.classList.add('hidden')
         stop.classList.add("pulsing")
+        markdown.start()
         const interval = setInterval(() => {
             requestAnimationFrame(() => poll(interval))
-        }, 50)
+        }, 50) // 20 times per second
     }
 
     const oops = () => {
@@ -425,13 +432,12 @@ export const run = () => { // called DOMContentLoaded
             input.innerText = ""
             send.classList.add('hidden')
             input.style.setProperty("--placeholder", '""')
-            if (!detect.macOS) {
-                title.innerHTML =
-                    "<div class='logo-container shimmering'>" +
-                        "<span class='logo'></span>" +
-                        "<span class='logo-content'>GyPTix</span>" +
-                    "</div>"
-            }
+            title.innerHTML =
+                "<div class='logo-container shimmering'>" +
+                    "<span class='logo'></span>" +
+                    (detect.macOS ? "" :
+                     "<span class='logo-content'>GyPTix</span>") +
+                "</div>"
             setTimeout(() => { // let frame to re-render first
                 ask(s)
                 placeholder()
@@ -731,12 +737,10 @@ export const run = () => { // called DOMContentLoaded
     if (chat.messages.length > 0) { new_session() }
     placeholder()
     send.title = "Click to Submit"
-    setTimeout(() => {
-        if (chat.messages.length == 0 &&
-            input !== document.activeElement) {
-            suggestions.show()
-        }
-    }, 3000)
+    if (chat.messages.length == 0 &&
+        input !== document.activeElement) {
+        suggestions.show()
+    }
 
     showEULA()
 

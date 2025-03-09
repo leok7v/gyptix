@@ -30,7 +30,7 @@ html::-webkit-scrollbar, ul::-webkit-scrollbar {
     --font-size: 100%;
     --placeholder: "Ask anything... Use ⇧⏎ for line break";
     --background-header:       color-mix(in srgb, var(--background-color) 93%, var(--color)  7%);
-    --background-navigation:   color-mix(in srgb, var(--background-color) 96%, var(--color)  4%);
+    --background-navigation:   color-mix(in srgb, var(--background-color) 89%, var(--color) 11%);
     --background-user:         color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
     --background-button:       color-mix(in srgb, var(--background-color) 70%, var(--color) 30%);
     --background-button-hover: color-mix(in srgb, var(--background-color) 65%, var(--color) 35%);

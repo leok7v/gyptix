@@ -63,6 +63,8 @@
 		B34A04712D458A880010D066 /* ggml-cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02992D458A880010D066 /* ggml-cpu.cpp */; };
 		B34A04732D458A880010D066 /* gguf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A04382D458A880010D066 /* gguf.cpp */; };
 		B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02972D458A880010D066 /* cpu-feats-x86.cpp */; };
+		B363D0A42D7DD32600993F90 /* markdown.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A22D7DD32600993F90 /* markdown.js */; };
+		B363D0A52D7DD32600993F90 /* mdw.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A32D7DD32600993F90 /* mdw.js */; };
 		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
 		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
@@ -204,6 +206,8 @@
 		B34A04362D458A880010D066 /* ggml-threading.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-threading.h"; sourceTree = "<group>"; };
 		B34A04372D458A880010D066 /* ggml-threading.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "ggml-threading.cpp"; sourceTree = "<group>"; };
 		B34A04382D458A880010D066 /* gguf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gguf.cpp; sourceTree = "<group>"; };
+		B363D0A22D7DD32600993F90 /* markdown.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = markdown.js; sourceTree = "<group>"; };
+		B363D0A32D7DD32600993F90 /* mdw.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = mdw.js; sourceTree = "<group>"; };
 		B36EBB442D275258005972FF /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 		B3756DE82D41D43100BCF111 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -496,6 +500,8 @@
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
+				B363D0A22D7DD32600993F90 /* markdown.js */,
+				B363D0A32D7DD32600993F90 /* mdw.js */,
 				B3F590592D6A848C008B5B7D /* modal.js */,
 				B3E2499A2D6162110048A24F /* model.js */,
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
@@ -575,6 +581,8 @@
 			files = (
 				B3E249A12D617E300048A24F /* marked.js in Resources */,
 				B3E2499D2D61621C0048A24F /* util.js in Resources */,
+				B363D0A42D7DD32600993F90 /* markdown.js in Resources */,
+				B363D0A52D7DD32600993F90 /* mdw.js in Resources */,
 				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
 				B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */,
 				B3E2499B2D6162110048A24F /* model.js in Resources */,
