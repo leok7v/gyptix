@@ -563,6 +563,7 @@ export const run = () => { // called DOMContentLoaded
         if (at_the_bottom) scroll_to_bottom()
         show_hide_scroll_to_bottom()
         document.body.style.overflow = ""
+        if (chat.messages.length == 0) suggestions.show()
     }
     
     input.onfocus = () => {

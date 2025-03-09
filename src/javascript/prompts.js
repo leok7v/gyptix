@@ -63,7 +63,24 @@ const biology = [
     "What triggers metamorphosis in insects?",
     "How do plants communicate chemically?",
     "Why do mitochondria have their own DNA?"
-];
+]
+
+const books = [
+    "Catcher in the Rye?",
+    "Must read book list?",
+    "Best children's books?",
+    "What's Harry Potter about?",
+    "Why is '1984' still relevant today?",
+    "What makes 'To Kill a Mockingbird' timeless?",
+    "Why is '1984' still influential today?",
+    "Best fantasy novels of all time?",
+    "What defines classic literature?",
+    "Why do dystopian novels appeal to readers?",
+    "What made 'Lord of the Rings' iconic?",
+    "Why is Shakespeare still popular today?",
+    "What drives the enduring success of mystery novels?",
+    "How have e-books changed reading habits?"
+]
 
 const business = [
     "What makes a startup succeed vs. fail?",
@@ -190,7 +207,36 @@ const engineering = [
     "What's the future of self-healing materials?",
     "Why do dams require spillways?",
     "Why do some alloys have shape memory?",
-    "Why do suspension bridges use cables instead of beams?"
+    "Why do suspension bridges use cables instead of beams?",
+    "How do engineers combat urban heat islands?",
+    "How do engineers earthquake-proof skyscrapers?",
+    "How do microchips handle quantum tunneling effects?",
+    "How to prevent corrosion in underwater structures?",
+    "What caused the Tacoma Narrows Bridge collapse?",
+    "What makes the Mars rover designs durable?",
+    "What safety margins exist in airplane design?",
+    "How can nanotechnology enhance solar panels?",
+    "Why are superconductors important for electrical grids?",
+    "How does hydraulic fracturing (fracking) affect geological stability?",
+    "What engineering challenges exist for fusion reactors?",
+    "Why are carbon nanotubes so strong?",
+    "How do engineers design efficient wind turbines?"
+]
+
+const entertainment = [
+    "Best TV shows of the 21st century?",
+    "Best movies of the 21st century?",
+    "Most popular Rock'n'Roll bands?",
+    "Why did 'Game of Thrones' gain such popularity?",
+    "How has Netflix changed entertainment?",
+    "Why is 'The Godfather' so influential?",
+    "What defines the Golden Age of Television?",
+    "Why are superhero movies so successful?",
+    "How did reality TV change entertainment?",
+    "What makes a film a 'cult classic'?",
+    "Why do documentaries resonate with audiences?",
+    "How has streaming impacted music sales?",
+    "What’s behind the popularity of anime?"
 ]
 
 const ethics = [
@@ -487,13 +533,21 @@ const mysteries = [
     "How did the Mary Celeste become abandoned?",
     "What caused the Dyatlov Pass incident?",
     "What happened to Amelia Earhart?",
-    "What sank the USS Scorpion submarine?",
-    "What secrets does Oak Island hold?",
     "Why are Bermuda Triangle myths persistent?",
     "Why do Nazca Lines exist?",
-    "Why does the Zodiac Killer's cipher remain unsolved?",
     "Why do the Voynich Manuscript's symbols defy decoding?",
-    "Who was Jack the Ripper?",
+    "Why was Gobekli Tepe deliberately buried after construction?",
+    "How was the Baghdad Battery used, and for what purpose?",
+    "What caused the sudden collapse of the Bronze Age civilizations?",
+    "Who built the ancient city of Teotihuacán, and why was it abandoned?",
+    "Why did the Indus Valley civilization vanish without clear records?",
+    "What exactly happened to the lost colony of Roanoke?",
+    "How did ancient Egyptians drill perfectly precise holes in granite?",
+    "What is the true origin and purpose of the underwater Yonaguni Monument?",
+    "Why were the Longyou Caves carved out, with no historical records?",
+    "Who created the giant stone spheres of Costa Rica, and why?",
+    "What triggered the sudden disappearance of the Cahokia civilization?",
+    "How did the ancient Egyptians produce Damascus steel, centuries ahead of Europe?",
     "Why did the Tunguska Event occur without a crater?"
 ]
 
@@ -803,6 +857,7 @@ export const data = [
     { category: "Art",              prompts: art              },
     { category: "Astronomy",        prompts: astronomy        },
     { category: "Biology",          prompts: biology          },
+    { category: "Books",            prompts: books            },
     { category: "Business",         prompts: business         },
     { category: "Chemistry",        prompts: chemistry        },
     { category: "Cooking",          prompts: cooking          },
@@ -811,6 +866,7 @@ export const data = [
     { category: "Economics",        prompts: economics        },
     { category: "Education",        prompts: education        },
     { category: "Engineering",      prompts: engineering      },
+    { category: "Entertainment",    prompts: entertainment    },
     { category: "Ethics",           prompts: ethics           },
     { category: "Fiction",          prompts: fiction          },
     { category: "Finance",          prompts: finance          },
