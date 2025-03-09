@@ -739,7 +739,11 @@ export const run = () => { // called DOMContentLoaded
     }, 3000)
 
     showEULA()
-    
+
+/*  Workers and shared memory
+    https://web.dev/articles/coop-coep
+    failed to make it work w/o https://
+ 
     try {
         let buffer = new SharedArrayBuffer(4)
         console.log("✅ SharedArrayBuffer is available:", buffer)
@@ -747,6 +751,12 @@ export const run = () => { // called DOMContentLoaded
         console.log("🚫 SharedArrayBuffer is blocked:", e.message)
     }
     console.log("self.crossOriginIsolated: " + self.crossOriginIsolated)
+ 
+    Not a big issue we can postMessage to workers with short tokens polled from
+    backend and get back only tail difference of html generated from accumulated
+    and concatenated markdown. Not idea but UI will be much more responsive
+ 
+*/
     
 }
 

@@ -70,7 +70,7 @@ struct Gyptix: App {
                 #else
 //              .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
                 .statusBar(hidden: true)
-                .ignoresSafeArea(edges: .vertical)
+                .ignoresSafeArea(edges: .all)
                 #endif
                 .onAppear {
                     applyWindowRestrictions()

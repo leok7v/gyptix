@@ -32,12 +32,12 @@ struct FullScreenView<Content: View>: UIViewControllerRepresentable {
     init(@ViewBuilder content: () -> Content) { self.content = content() }
     
     func makeUIViewController(context: Context) -> UIHostingController<AnyView> {
-        FullScreenHostingController(rootView: AnyView(content.ignoresSafeArea(edges: .vertical)))
+        FullScreenHostingController(rootView: AnyView(content.ignoresSafeArea(edges: .all)))
     }
     
     func updateUIViewController(_ uiViewController: UIHostingController<AnyView>,
                                 context: Context) {
-        uiViewController.rootView = AnyView(content.ignoresSafeArea(edges: .vertical))
+        uiViewController.rootView = AnyView(content.ignoresSafeArea(edges: .all))
     }
 
 }

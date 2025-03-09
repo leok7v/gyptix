@@ -184,6 +184,7 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
                 "script-src 'self' gyptix:// 'unsafe-inline';",
 /*
             // https://web.dev/articles/coop-coep
+            "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "Accept, Accept-Encoding, " +
                 "Accept-Language, Authorization, Cache-Control, Pragma, " +
                 "Content-Type, Origin, Referer, Sec-Fetch-Dest, " +

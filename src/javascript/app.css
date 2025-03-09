@@ -97,14 +97,7 @@ html, body, .viewport, .content, #chat-container, #chat {
     height: -webkit-fill-available;
 }
 
-html {
-    background-color: orange;
-}
-
-body {
-    background-color: magenta;
-}
-
+/*
 body {
     width: 100dvw;
     height: 100dvh;
@@ -113,7 +106,7 @@ body {
     min-height: 100%;
     max-height: 100%;
 }
-
+*/
 
 .viewport {
     flex: auto;
@@ -124,7 +117,7 @@ body {
     left: 0;
     padding: 0;
     margin: 0;
-    background-color: green;
+/*  background-color: green; */
 }
 
 #layout, #navigation {
@@ -151,7 +144,7 @@ body {
     height: 100%;
     overflow-y: auto;
     background-color: var(--background-navigation);
-    background-color: blue;
+/*  background-color: blue; */
     transition: all 0.3s ease;
 }
 
@@ -280,7 +273,7 @@ code, pre {
     overflow-x: hidden;
     overflow-y: auto;
     background-color: var(--background-color);
-    background-color: red;
+/*  background-color: red; */
     overscroll-behavior: contain;
     scroll-behavior: smooth;
 }
