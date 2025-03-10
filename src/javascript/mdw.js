@@ -10,7 +10,7 @@ self.onmessage = function(e) {
     if (type === "append") {
         try {
             md += chunk
-            console.log("md: " + md)
+//          console.log("md: " + md)
             const html = marked.parse(md)
             self.postMessage({ html: html, error: null })
         } catch (err) {

@@ -29,7 +29,6 @@ const art = [
     "Why did abstract art emerge as a dominant form?",
     "Why do certain artworks become iconic (e.g., Mona Lisa)?",
     "Why do some artists gain fame posthumously (e.g., Van Gogh)?",
-    "Why do the Voynich Manuscript's symbols defy decoding?"
 ]
 
 const astronomy = [
@@ -72,14 +71,22 @@ const books = [
     "What's Harry Potter about?",
     "Why is '1984' still relevant today?",
     "What makes 'To Kill a Mockingbird' timeless?",
-    "Why is '1984' still influential today?",
     "Best fantasy novels of all time?",
     "What defines classic literature?",
     "Why do dystopian novels appeal to readers?",
     "What made 'Lord of the Rings' iconic?",
     "Why is Shakespeare still popular today?",
-    "What drives the enduring success of mystery novels?",
-    "How have e-books changed reading habits?"
+    "What drives the success of mystery novels?",
+    "How have e-books changed reading habits?",
+    "What’s 'Alice in Wonderland' about?",
+    "Why is 'Hitchhiker’s Guide to the Galaxy' so loved?",
+    "Best Terry Pratchett books to start with?",
+    "What makes 'Good Omens' by Terry Pratchett special?",
+    "Why is 'Discworld' by Terry Pratchett iconic?",
+    "My child loves 'Lord of the Rings', what to read next?",
+    "My child loves 'Harry Potter', what to read next?",
+    "Best Stephen King books without violence?",
+    "What are some books like Stephen King but lighter?"
 ]
 
 const business = [
@@ -96,7 +103,7 @@ const business = [
     "What are the risks of rapid scaling?",
     "How can small businesses compete with giants?",
     "What role does data analytics play in decision-making?"
-];
+]
 
 const crafting = [
     "What defines a 'handmade' item in the machine age?",
@@ -112,7 +119,7 @@ const crafting = [
     "How does candle-making balance art and science?",
     "What defines a 'maker' culture?",
     "Why are crafting communities thriving online?"
-];
+]
 
 const chemistry = [
     "Why is water a universal solvent?",
@@ -128,7 +135,7 @@ const chemistry = [
     "How do batteries degrade over time?",
     "Why are noble gases inert?",
     "What defines aromaticity in molecules?"
-];
+]
 
 const cooking = [
     "What makes Maillard reactions crucial for flavor?",
@@ -144,7 +151,7 @@ const cooking = [
     "What causes oil to smoke at high temps?",
     "How does cooking affect vitamin content?",
     "Why do chefs rest meat after cooking?"
-];
+]
 
 const culture = [
     "How do clothing styles signal cultural status?",
@@ -268,7 +275,6 @@ const fiction = [
     "What role does an unreliable narrator serve?",
     "Why do dystopian novels resonate with modern readers?",
     "Why do retellings of myths remain relevant?",
-    "Why do the Voynich Manuscript's symbols defy decoding?"
 ]
 
 const finance = [
@@ -328,7 +334,7 @@ const gaming = [
     "How will VR/AR transform gaming?",
     "What defines a healthy gaming habit?",
     "What ethical issues surround loot boxes?",
-    "What makes a video game addictive?",
+    "What makes a video game addictive?", /* *** */
     "What makes open-world games immersive?",
     "What separates casual and hardcore gamers?",
     "Why do modding communities thrive?",
@@ -578,7 +584,7 @@ const parenting = [
     "What makes Montessori education unique?",
     "What role do grandparents play in modern parenting?",
     "Why are teenage brains prone to risk-taking?",
-    "Why do children develop imaginary friends?",
+    "Why do children develop imaginary friends?", /* *** */
     "Why do parenting styles vary culturally?",
     "Why do siblings develop rivalries?"
 ]
@@ -612,7 +618,19 @@ const philosophy = [
     "What is the nature of consciousness?",
     "What is the relationship between mind and body?",
     "What is the ultimate purpose of human existence?",
-    "Will religion ever die?"
+    "Will religion ever die?",
+    "What is Occam's Razor?",
+    "What is Hanlon's Razor?",
+    "Can complex systems be understood by breaking them into parts?",
+    "Does the universe exist independently of our perception?",
+    "Is knowledge justified true belief?",
+    "Can something come from nothing?",
+    "Do the ends justify the means?",
+    "Is beauty in the eye of the beholder?",
+    "Are we obligated to obey unjust laws?",
+    "Can machines truly think?",
+    "Is there a limit to human knowledge?",
+    "Does every event have a cause?"
 ]
 
 const physics = [
@@ -720,7 +738,7 @@ const self_improvement = [
     "What defines a growth mindset?",
     "What defines toxic positivity?",
     "What makes SMART goals effective?",
-    "What role does meditation play in focus?",
+    "What role does meditation play in focus?", /* *** */
     "Why do accountability partners work?",
     "Why do morning routines boost productivity?",
     "Why do people resist change despite wanting improvement?",
@@ -747,7 +765,7 @@ const space = [
     "Can we ethically mine asteroids for resources?",
     "Does space colonization ensure humanity's survival?",
     "How can we protect astronauts from cosmic radiation?",
-    "How does space research improve daily life on Earth?",
+    "How does space research improve daily life on Earth?", /* *** */
     "How likely is extraterrestrial life in our solar system?",
     "How to address the growing problem of space debris?",
     "Should humans prioritize Mars colonization over Earth's issues?",
@@ -761,7 +779,7 @@ const space = [
 
 const sports = [
     "How do sports injuries shorten careers?",
-    "How do sports unite divided communities?",
+    "How do sports unite divided communities?", /* *** */
     "What defines a coach legendary?",
     "What defines a fair judging system?",
     "What genetic traits favor specific sports?",
@@ -771,7 +789,6 @@ const sports = [
     "Why are e-sports gaining legitimacy?",
     "Why do female athletes face pay disparities?",
     "Why do soccer/football dominate globally?",
-    "Why do the Voynich Manuscript's symbols defy decoding?"
 ]
 
 const survival = [

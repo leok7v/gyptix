@@ -11,6 +11,8 @@ import * as util        from "./util.js"
 
 const get = id => document.getElementById(id)
 
+export let is_debugger_attached = false
+
 let at_the_bottom = true
 let user_scrolling = false
 let current  = null // current chat key
@@ -59,6 +61,15 @@ export const inactive = () => {
     if (chat) save_chat(chat)
 //  console.log("<<<app.js inactive()")
     return "done"
+}
+
+export const debugger_attached = (attached) => {
+//  console.log(">>>app.js debugger_attached(" + attached + ")")
+    is_debugger_attached = attached
+    if (!attached) {
+        document.body.oncontextmenu = (e) => event.preventDefault()
+    }
+//  console.log("<<<app.js debugger_attached()")
 }
 
 export const run = () => { // called DOMContentLoaded
@@ -168,6 +179,9 @@ export const run = () => { // called DOMContentLoaded
                     console.error(error)
                 } else {
                     last_child.innerHTML = html
+                    const msgRect = messages.getBoundingClientRect();
+                    const lastRect = last_child.getBoundingClientRect();
+                    if (lastRect.top <= msgRect.top) at_the_bottom = false
                     if (at_the_bottom) scroll_to_bottom()
                     show_hide_scroll_to_bottom()
                 }
@@ -351,15 +365,32 @@ export const run = () => { // called DOMContentLoaded
         render_last(substitutions(last_msg.text))
     }
     
-    const poll = interval => {
+    const thinking = detect.macOS ?
+        ["Pondering", "Reasoning", "Discussing"] :
+        ["GyPTix", "Pondering", "Reasoning", "Discussing"]
+
+    const cycle_titles = (count) => {
+        title.innerHTML =
+            "<div class='logo-container shimmering'>" +
+                "<span class='logo'></span>" +
+                "<span class='logo-content'>" + thinking[count] + "</span>" +
+            "</div>"
+        return (count + 1) % thinking.length
+    }
+    
+    const poll = (context) => {
         if (!markdown.processing) {
             const chunk = model.poll()
             if (chunk === "<--done-->") {
-                clearInterval(interval)
+                clearInterval(context.interval)
                 done()
             } else if (chunk !== "") {
                 if (chat.messages.length > 0) {
-                    render_last(chunk, () => poll(interval))
+                    render_last(chunk, () => poll(context))
+                }
+                if (util.timestamp() - context.last > 1500) {
+                    context.count = cycle_titles(context.count)
+                    context.last = util.timestamp()
                 }
             }
         }
@@ -370,9 +401,14 @@ export const run = () => { // called DOMContentLoaded
         send.classList.add('hidden')
         stop.classList.add("pulsing")
         markdown.start()
+        cycle_titles(0)
+        let context = { interval: null, last: util.timestamp(), count: 1 }
         const interval = setInterval(() => {
-            requestAnimationFrame(() => poll(interval))
-        }, 50) // 20 times per second
+            requestAnimationFrame(() => {
+                context.interval = interval
+                poll(context)
+            })
+        }, 20) // 50 times per second
     }
 
     const oops = () => {
@@ -742,27 +778,8 @@ export const run = () => { // called DOMContentLoaded
         input !== document.activeElement) {
         suggestions.show()
     }
-
-    showEULA()
-
-/*  Workers and shared memory
-    https://web.dev/articles/coop-coep
-    failed to make it work w/o https://
- 
-    try {
-        let buffer = new SharedArrayBuffer(4)
-        console.log("✅ SharedArrayBuffer is available:", buffer)
-    } catch (e) {
-        console.log("🚫 SharedArrayBuffer is blocked:", e.message)
-    }
-    console.log("self.crossOriginIsolated: " + self.crossOriginIsolated)
- 
-    Not a big issue we can postMessage to workers with short tokens polled from
-    backend and get back only tail difference of html generated from accumulated
-    and concatenated markdown. Not idea but UI will be much more responsive
- 
-*/
     
+    showEULA()
 }
 
-window.app = { inactive, run }
+window.app = { inactive, run, debugger_attached }

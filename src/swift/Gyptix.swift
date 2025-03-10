@@ -7,34 +7,9 @@ import AppKit
 import UIKit
 #endif
 import WebKit
+import Darwin
 
 public var webView: WKWebView?
-
-public func inactive() {
-    guard let view = webView else { return }
-    var wait = true
-//  let start = DispatchTime.now().uptimeNanoseconds
-    view.evaluateJavaScript("app.inactive()") { result, error in
-        if let error = error {
-            print("Error calling javascript inactive(): \(error)")
-        } else {
-            if let r = result {
-                print("javascript inactive() result: \(r)") // "done"
-            } else {
-                print("javascript inactive(): no result")
-            }
-        }
-        wait = false
-    }
-    // Wait for up to 5 seconds while processing the run loop
-    let timeout = Date().addingTimeInterval(5)
-    while wait && Date() < timeout {
-        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.1))
-    }
-//  let end = DispatchTime.now().uptimeNanoseconds
-//  print("elapsed: \((end - start) / 1_000) microseconds") // 2.5ms
-    gyptix.inactive()
-}
 
 @main
 struct Gyptix: App {
@@ -68,7 +43,6 @@ struct Gyptix: App {
                 #if os(macOS)
                 .frame(minWidth: Gyptix.w, minHeight: Gyptix.h)
                 #else
-//              .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
                 .statusBar(hidden: true)
                 .ignoresSafeArea(edges: .all)
                 #endif
@@ -76,6 +50,7 @@ struct Gyptix: App {
                     applyWindowRestrictions()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         removeTabRelatedMenuItems()
+                        debugger_attached()
                     }
                     guard let f = Bundle.main.url(
                         forResource: "granite-3.1-1b-a400m-instruct-Q8_0.gguf",
@@ -197,3 +172,50 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 #endif
+
+func is_debugger_attached() -> Bool {
+    var info = kinfo_proc()
+    var size = MemoryLayout<kinfo_proc>.stride
+    var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
+    let result = sysctl(&mib, UInt32(mib.count), &info, &size, nil, 0)
+    guard result == 0 else { return false }
+    return (info.kp_proc.p_flag & P_TRACED) != 0
+}
+
+public func inactive() {
+    guard let view = webView else { return }
+    var wait = true
+    view.evaluateJavaScript("app.inactive()") { result, error in
+        if let error = error {
+            print("Error calling javascript inactive(): \(error)")
+        } else {
+            if let r = result {
+                if (is_debugger_attached()) {
+                    print("javascript inactive() result: \(r)") // "done"
+                }
+            } else {
+                print("javascript inactive(): no result")
+            }
+        }
+        wait = false
+    }
+    // Wait for up to 5 seconds while processing the run loop
+    let timeout = Date().addingTimeInterval(5)
+    while wait && Date() < timeout {
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.1))
+    }
+//  let end = DispatchTime.now().uptimeNanoseconds
+//  print("elapsed: \((end - start) / 1_000) microseconds") // 2.5ms
+    gyptix.inactive()
+}
+
+public func debugger_attached() {
+    guard let view = webView else { return }
+    let attached = is_debugger_attached() ? "true" : "false"
+    view.evaluateJavaScript("app.debugger_attached(" + attached + ")") {
+        result, error in
+        if let error = error {
+            print("Error calling javascript debugger_attached(): \(error)")
+        }
+    }
+}

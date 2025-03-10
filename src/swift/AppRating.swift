@@ -15,8 +15,8 @@ struct AppRating {
         let oneWeek: TimeInterval = 7 * oneDay
         let oneMonth: TimeInterval = 4 * oneWeek
         var appLaunchCount   = UserDefaults.standard.integer(forKey: "appLaunchCount")
-        var lastPromptDate   = UserDefaults.standard.double(forKey: "lastPromptDate")
-        var firstLaunchDate  = UserDefaults.standard.double(forKey: "firstLaunchDate")
+        var lastPromptDate   = UserDefaults.standard.double(forKey:  "lastPromptDate")
+        var firstLaunchDate  = UserDefaults.standard.double(forKey:  "firstLaunchDate")
         var ratingShownCount = UserDefaults.standard.integer(forKey: "ratingShownCount")
         if firstLaunchDate == 0 {
             UserDefaults.standard.set(now, forKey: "firstLaunchDate")
@@ -29,17 +29,20 @@ struct AppRating {
         // Determine rating frequency based on how many times it's been shown
         let ratingInterval: TimeInterval
         switch ratingShownCount {
-            case 0...6:  ratingInterval = oneDay   // Daily for first 7 times
-            case 7...10: ratingInterval = oneWeek  // Weekly for next 4 times
+            case 0...6:  ratingInterval = oneWeek  // Daily for first 7 times
             default:     ratingInterval = oneMonth // Monthly afterward
         }
         appLaunchCount += 1
         UserDefaults.standard.set(appLaunchCount, forKey: "appLaunchCount")
         if debugRating || (now - lastPromptDate > ratingInterval) {
             #if os(iOS)
-            if let windowScene = UIApplication.shared.connectedScenes.first
-                as? UIWindowScene {
-                SKStoreReviewController.requestReview(in: windowScene)
+            if (ratingShownCount > 2) {
+                rateManually(appID: appID)
+            } else {
+                if let windowScene = UIApplication.shared.connectedScenes.first
+                    as? UIWindowScene {
+                    SKStoreReviewController.requestReview(in: windowScene)
+                }
             }
             #elseif os(macOS)
             rateManually(appID: appID)

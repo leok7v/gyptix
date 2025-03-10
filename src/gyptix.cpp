@@ -392,7 +392,7 @@ static void inactive(void) {
 }
 
 static void stop(void) {
-    printf("%s\n", __func__);
+//  printf("%s\n", __func__);
     quit = true;
     if (thread != nullptr) {
         interrupted = true;

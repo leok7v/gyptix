@@ -28,3 +28,4 @@ export function post(chunk, cb) {
     callback = (html, error) => { processing = false; cb(html, error) }
     worker.postMessage({ type: "append", chunk: chunk })
 }
+

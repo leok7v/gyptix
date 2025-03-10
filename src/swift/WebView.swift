@@ -47,19 +47,9 @@ struct WebView: ViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
-        config.preferences.setValue(true, forKey: "developerExtrasEnabled")
+        config.preferences.setValue(is_debugger_attached(), forKey: "developerExtrasEnabled")
         let wv = WKWebView(frame: .zero, configuration: config)
-//      if #available(iOS 14.5, macOS 11.3, *) {
-//          wv.configuration.preferences.setValue(true,
-//              forKey: "WebKitSharedArrayBufferEnabled")
-//      }
-//      wv.configuration.preferences.setValue(true,
-//              forKey: "allowFileAccessFromFileURLs")
-//      wv.configuration.setValue(true,
-//              forKey: "_allowCrossOriginResourcePolicy")
-//      wv.configuration.setValue(true,
-//              forKey: "allowUniversalAccessFromFileURLs")
-        wv.isInspectable = true // TODO disable in Release
+        wv.isInspectable = is_debugger_attached()
         wv.setValue(false, forKey: "drawsBackground")
         wv.navigationDelegate = context.coordinator
         webView = wv
@@ -72,6 +62,7 @@ struct WebView: ViewRepresentable {
     func updateNSView(_ nsView: WKWebView, context: Context) {
         // Handle updates if needed
     }
+    
     #elseif os(iOS)
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -83,7 +74,7 @@ struct WebView: ViewRepresentable {
 //              forKey: "_allowCrossOriginResourcePolicy")
 //      wv.configuration.setValue(true,
 //              forKey: "allowUniversalAccessFromFileURLs")
-        wv.isInspectable = true // TODO disable in Release
+        wv.isInspectable = is_debugger_attached()
         wv.isOpaque = false
         wv.backgroundColor = .clear
         wv.allowsBackForwardNavigationGestures = false
@@ -114,3 +105,4 @@ struct WebView: ViewRepresentable {
         Coordinator(self)
     }
 }
+
