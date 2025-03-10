@@ -308,7 +308,7 @@ export const run = () => { // called DOMContentLoaded
         if (model.is_answering()) {
             ph = "click ▣ to stop"
         } else if (chat.messages.length > 0) {
-            ph = "Anything else I can help you with?"
+            ph = "Anything else can I help you with?"
         } else if (!detect.macOS) { // double quotes improtant for css variable:
             ph = "Ask anything... and click ⇧"
         } else {
