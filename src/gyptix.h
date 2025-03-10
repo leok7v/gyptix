@@ -13,6 +13,7 @@ struct gyptix {
     int  (*is_answering)(void);
     const char* (*poll)(const char* interrupt);
     void (*erase)(void); // erase all chats
+    void (*remove)(const char* id); // remove chat by `id`
     void (*stop)(void);
     void (*inactive)(void);
 };

@@ -263,11 +263,28 @@ static void load_model(const char* model) {
     }
 }
 
-static void erase(void) {
+static const char* prompts_dir() {
     static const char *cwd = get_cwd();
-    char prompts[4 * 1024];
+    static char prompts[4 * 1024];
     strcpy(prompts, cwd);
     strcat(prompts, "/prompts");
+    return prompts;
+}
+
+static void remove_chat(const char* id) {
+//  printf("remove: %s\n", id);
+    static char filename[4 * 1024];
+    snprintf(filename, sizeof(filename) - 1, "%s/%s", prompts_dir(), id);
+//  printf("remove: %s\n", filename);
+    if (remove(filename) != 0) {
+        perror(filename);
+    } else {
+//      printf("remove: %s REMOVED\n", filename);
+    }
+}
+
+static void erase(void) {
+    const char* prompts = prompts_dir();
     DIR *dir = opendir(prompts);
     if (!dir) {
         perror("opendir");
@@ -412,6 +429,7 @@ struct gyptix gyptix = {
     .poll = poll,
     .is_answering = is_answering,
     .is_running = is_running,
+    .remove = remove_chat,
     .erase = erase,
     .stop = stop,
     .inactive = inactive,

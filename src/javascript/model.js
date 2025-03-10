@@ -17,8 +17,12 @@ export const ask = (value) => { // returns error message or null on OK
     }
 }
 
-export const run = (id) => {
+export const run = id => {
     util.post("./run", id)
+}
+
+export const remove = id => {
+    util.post("./remove", id)
 }
 
 export const poll = () => {

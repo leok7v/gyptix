@@ -11,23 +11,6 @@ import * as util        from "./util.js"
 
 const get = id => document.getElementById(id)
 
-export let is_debugger_attached = false
-
-let at_the_bottom = true
-let user_scrolling = false
-let current  = null // current chat key
-let selected = null // selected chat
-let chat     = null // chat
-let selected_item = null // item in chats list
-
-let interrupted = false // output was interrupted
-
-document.addEventListener("copy", e => {
-    e.preventDefault()
-    const s = window.getSelection().toString()
-    e.clipboardData.setData("text/plain", s)
-})
-
 const load_chat = id => {
     const header = localStorage.getItem("chat.id." + id)
     const content = localStorage.getItem("chat." + id)
@@ -54,22 +37,6 @@ const save_chat = (c) => {
         localStorage.removeItem("chat.id." + c.id)
         localStorage.removeItem("chat." + c.id)
     }
-}
-
-export const inactive = () => {
-//  console.log(">>>app.js inactive()")
-    if (chat) save_chat(chat)
-//  console.log("<<<app.js inactive()")
-    return "done"
-}
-
-export const debugger_attached = (attached) => {
-//  console.log(">>>app.js debugger_attached(" + attached + ")")
-    is_debugger_attached = attached
-    if (!attached) {
-        document.body.oncontextmenu = (e) => event.preventDefault()
-    }
-//  console.log("<<<app.js debugger_attached()")
 }
 
 export const run = () => { // called DOMContentLoaded
@@ -103,10 +70,26 @@ export const run = () => { // called DOMContentLoaded
     // changes and update all visibility in one place.
     // Maybe also need "disabled" style with <glyp> 50% oppacity
 
+    let at_the_bottom = true
+    let at_the_bottom_stopped = false // false at start of polling
+    let user_scrolling = false
+    let current  = null // current chat key
+    let selected = null // selected chat
+    let chat     = null // chat
+    let selected_item = null // item in chats list
+
+    let interrupted = false // output was interrupted
+
+    document.addEventListener("copy", e => {
+        e.preventDefault()
+        const s = window.getSelection().toString()
+        e.clipboardData.setData("text/plain", s)
+    })
+
     const hide_scroll_to_bottom = () => {
         scroll.style.display = "none"
     }
-
+    
     const scroll_gap = 20
     
     const show_hide_scroll_to_bottom = () => {
@@ -186,12 +169,15 @@ export const run = () => { // called DOMContentLoaded
                     console.error(error)
                 } else {
                     last_child.innerHTML = html
-                    const msgRect = messages.getBoundingClientRect();
-                    const lastRect = last_child.getBoundingClientRect();
-                    if (lastRect.top <= msgRect.top) at_the_bottom = false
-                        if (at_the_bottom) scroll_to_bottom()
-                            show_hide_scroll_to_bottom()
-                            }
+                    if (!at_the_bottom_stopped) {
+                        const mrc = messages.getBoundingClientRect();
+                        const lrc = last_child.getBoundingClientRect();
+                        at_the_bottom_stopped = lrc.top - 30 <= mrc.top
+                        if (at_the_bottom_stopped) at_the_bottom = false
+                    }
+                    if (at_the_bottom) scroll_to_bottom()
+                    show_hide_scroll_to_bottom()
+                }
                 done?.()
             })
         } else {
@@ -317,18 +303,18 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const placeholder = () => {
-        // double quotes improtant for css variable inside value
+        let ph = ""
         if (model.is_answering()) {
-            input.style.setProperty("--placeholder",
-                                    '"click ▣ to stop"')
-            send.title = "Click to Stop"
+            ph = "click ▣ to stop"
+        } else if (chat.messages.length > 0) {
+            ph = "Anything else I can help you with?"
         } else if (!detect.macOS) { // double quotes improtant for css variable:
-            input.style.setProperty("--placeholder",
-                                    '"Ask anything... and click ⇧"')
+            ph = "Ask anything... and click ⇧"
         } else {
-            input.style.setProperty("--placeholder",
-                                    '"Ask anything... Use ⇧⏎ for line break"')
+            ph = "Ask anything... Use ⇧⏎ for line break"
         }
+        // double quotes improtant for css variable inside value
+        input.style.setProperty("--placeholder", `"${ph}"`)
     }
     
     const summarize_to_title = () => {
@@ -365,11 +351,10 @@ export const run = () => { // called DOMContentLoaded
         save_chat(chat)
         rebuild_list()
         stop.classList.remove("pulsing")
-        placeholder()
-        send.title = "Click to Submit"
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         render_last(substitutions(last_msg.text))
+        placeholder()
     }
     
     const thinking = detect.macOS ?
@@ -404,6 +389,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const polling = () => {
+        at_the_bottom_stopped = false
         stop.style.display = "inline" // ? ▣ ◾ ◼ ■ ▣ ◻
         send.classList.add('hidden')
         stop.classList.add("pulsing")
@@ -416,6 +402,7 @@ export const run = () => { // called DOMContentLoaded
                 poll(context)
             })
         }, 20) // 50 times per second
+        placeholder()
     }
 
     const oops = () => {
@@ -637,8 +624,10 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const delete_chat = () => {
+        if (!selected) return
         localStorage.removeItem("chat.id." + selected)
         localStorage.removeItem("chat." + selected)
+        model.remove(selected)
         if (current === selected) {
             current = null
             recent()
@@ -780,13 +769,29 @@ export const run = () => { // called DOMContentLoaded
     recent()
     if (chat.messages.length > 0) { new_session() }
     placeholder()
-    send.title = "Click to Submit"
     if (chat.messages.length == 0 &&
         input !== document.activeElement) {
         suggestions.show()
     }
-    
+
+    send.title = "Submit"
+    stop.title = "Stop"
+    clear.title = "Clear"
+    scroll.title = "Scroll to the Bottom"
+
     showEULA()
+}
+
+export const inactive = () => {
+    if (chat) save_chat(chat)
+    return "done"
+}
+
+export const debugger_attached = (attached) => {
+    util.set_debugger_attached(attached)
+    if (!attached) {
+        document.body.oncontextmenu = (e) => event.preventDefault()
+    }
 }
 
 window.app = { inactive, run, debugger_attached }

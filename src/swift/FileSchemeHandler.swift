@@ -37,6 +37,17 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
     }
 
+    func remove(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
+        if let body = urlSchemeTask.request.httpBody {
+            guard let request = String(data: body, encoding: .utf8) else {
+                print("Failed to decode body as UTF-8 string.")
+                return
+            }
+            request.withCString { s in gyptix.remove(s) }
+        }
+        send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
+    }
+
     func erase(_ webView: WKWebView, urlSchemeTask: WKURLSchemeTask, url: URL) {
         gyptix.erase();
         send_response(url: url, urlSchemeTask: urlSchemeTask, message: "")
@@ -102,6 +113,9 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         }
         if resourcePath == "ask" {
             ask(webView, urlSchemeTask: urlSchemeTask, url: u)
+            return
+        } else if resourcePath == "remove" {
+            remove(webView, urlSchemeTask: urlSchemeTask, url: u)
             return
         } else if resourcePath == "run" {
             run(webView, urlSchemeTask: urlSchemeTask, url: u)

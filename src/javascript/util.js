@@ -2,6 +2,12 @@
 
 import * as detect from "./detect.js"
 
+export let is_debugger_attached = false
+
+export function set_debugger_attached(attached) {
+    is_debugger_attached = attached
+}
+
 const http = (url, method, req = "", done = null) => {
     let error = null
     let text = `Failed to load ${url}`
