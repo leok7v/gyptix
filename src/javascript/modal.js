@@ -47,7 +47,6 @@ const buttons = (actions, done) => {
 const page = (pts) => {
     const panel = document.createElement("div")
     panel.style.fontSize = pts
-    panel.style.padding = "0"
     panel.style.border = "none"
     panel.style.minWidth  = "100%"
     panel.style.minHeight = "100%"
@@ -55,6 +54,7 @@ const page = (pts) => {
     panel.style.maxHeight = "100%"
     panel.style.display = "flex"
     panel.style.flexDirection = "column"
+    panel.classList.add("modal_page")
     return panel
 }
 

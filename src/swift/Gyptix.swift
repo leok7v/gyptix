@@ -50,6 +50,8 @@ struct Gyptix: App {
                     applyWindowRestrictions()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         removeTabRelatedMenuItems()
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         debugger_attached()
                     }
                     guard let f = Bundle.main.url(

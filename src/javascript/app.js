@@ -11,6 +11,8 @@ import * as util        from "./util.js"
 
 const get = id => document.getElementById(id)
 
+let chat = null // **the** chat
+
 const load_chat = id => {
     const header = localStorage.getItem("chat.id." + id)
     const content = localStorage.getItem("chat." + id)
@@ -73,9 +75,8 @@ export const run = () => { // called DOMContentLoaded
     let at_the_bottom = true
     let at_the_bottom_stopped = false // false at start of polling
     let user_scrolling = false
-    let current  = null // current chat key
-    let selected = null // selected chat
-    let chat     = null // chat
+    let current  = null // current  chat id
+    let selected = null // selected chat id
     let selected_item = null // item in chats list
 
     let interrupted = false // output was interrupted
@@ -794,4 +795,4 @@ export const debugger_attached = (attached) => {
     }
 }
 
-window.app = { inactive, run, debugger_attached }
+window.app = { run: run, inactive: inactive, debugger_attached: debugger_attached }
