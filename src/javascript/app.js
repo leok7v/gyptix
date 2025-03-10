@@ -132,14 +132,20 @@ export const run = () => { // called DOMContentLoaded
         setTimeout(() => { scroll.style.display = "none" }, 50)
     }
     
+    function normalize_line_breaks_to_spaces(text) {
+        const paragraphs = text.split(/(\r\n\r\n|\r\r|\n\n)/)
+        return paragraphs.map(segment => {
+            if (/^(\r\n\r\n|\r\r|\n\n)$/.test(segment)) { return "\n\n" }
+            return segment.replace(/\r\n|\r|\n/g, "\x20\x20\n");
+        }).join('')
+    }
+    
     const render_message = msg => {
         const d = document.createElement("div")
         d.className = msg.sender === "user" ? "user" : "bot"
-        if (msg.sender === "bot") {
-            d.innerHTML = marked.parse(msg.text)
-        } else {
-            d.textContent = msg.text // makes sure use text does not do html injection
-        }
+        let text = msg.sender === "bot" ? msg.text :
+            normalize_line_breaks_to_spaces(msg.text)
+        d.innerHTML = marked.parse(text)
         return d
     }
     
@@ -170,10 +176,11 @@ export const run = () => { // called DOMContentLoaded
         const last_msg = chat.messages[last_index]
         // Get last child element (assumed to be the last message).
         const last_child = messages.lastElementChild
-        if (last_child) {
-            last_msg.text += chunk
-            let text = last_msg.sender === "bot" ?
-                chunk : chunk.replace(/\n/g, "\n\n")
+        last_msg.text += chunk
+        if (last_child && last_msg.sender === "user") {
+            messages.appendChild(render_message(last_msg))
+        } else if (last_child && last_msg.sender === "bot") {
+            let text = chunk
             markdown.post(text, (html, error) => {
                 if (error) {
                     console.error(error)
@@ -182,9 +189,9 @@ export const run = () => { // called DOMContentLoaded
                     const msgRect = messages.getBoundingClientRect();
                     const lastRect = last_child.getBoundingClientRect();
                     if (lastRect.top <= msgRect.top) at_the_bottom = false
-                    if (at_the_bottom) scroll_to_bottom()
-                    show_hide_scroll_to_bottom()
-                }
+                        if (at_the_bottom) scroll_to_bottom()
+                            show_hide_scroll_to_bottom()
+                            }
                 done?.()
             })
         } else {
@@ -766,7 +773,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     detect.init()
-    marked.use({pedantic: false, gfm: true, breaks: false})
+    marked.use({pedantic: false, gfm: true, breaks: true})
     
     util.init_theme()
     util.init_font_size()
