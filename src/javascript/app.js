@@ -297,7 +297,7 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
         suggestions.show()
         model.run(id)
-        console.log("model.run(" + id + ")")
+//      console.log("model.run(" + id + ")")
     }
     
     const recent = () => { // most recent chat -> current
@@ -316,7 +316,7 @@ export const run = () => { // called DOMContentLoaded
             current = most_recent.id
             chat = load_chat(most_recent.id)
             model.run(most_recent.id)
-            console.log("model.run(" + most_recent.id + ")")
+//          console.log("model.run(" + most_recent.id + ")")
             messages.innerHTML = ""
             render_messages()
             scroll_to_bottom()
@@ -741,6 +741,21 @@ export const run = () => { // called DOMContentLoaded
         }
     })
 
+    // lost battle for landscape artifacts.
+    // iPhone keyboard simply takes almost whole screen and
+    // edit control does NOT have enough space.
+    /*
+    window.addEventListener("resize", () => {
+        if (!detect.iPhone) return // only on iPhones:
+        let input_container = get("input_container")
+        let fs = parseFloat(getComputedStyle(document.body).fontSize)
+        let line1 = 5.0
+        let lines = line1 * 4
+        input_container.style.maxHeight =
+            (window.innerWidth > window.innerHeight ? line1 : lines) + "em"
+    })
+    */
+    
     const licenses = () => {
         modal.show(util.load("./licenses.md"), (action) => {
         }, "OK")
@@ -797,12 +812,12 @@ export const inactive = () => {
 }
 
 export const debugger_attached = (attached) => {
-    console.log(`debugger_attached() - value: ${attached}, typeof: ${typeof attached}`)
+//  console.log(`debugger_attached(): ${attached}, typeof: ${typeof attached}`)
     if (typeof attached === "string") attached = (attached === "true")
     util.set_debugger_attached(attached);
     if (!attached) {
         document.body.oncontextmenu = (e) => e.preventDefault()
-        console.log("debugger_attached: disabling context menu")
+//      console.log("debugger_attached: disabling context menu")
     }
     return attached ? "conext menu enabled" : "conext menu disabled"
 }

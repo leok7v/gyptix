@@ -193,12 +193,13 @@ func is_debugger_attached() -> Bool {
 }
 
 public func inactive() {
+    let timing = false
     // if webView is not yet initialized it does not need app.inactive() call
     if (!js_ready) { return }
     let start = DispatchTime.now().uptimeNanoseconds
     let r = call_js("app.inactive()", sync: true)
     let end = DispatchTime.now().uptimeNanoseconds
-    if (is_debugger_attached()) {
+    if (is_debugger_attached() && timing) {
         print("elapsed: \((end - start) / 1_000) microseconds") // 2.5ms
         print("app.inactive() -> \(r)")
     }
@@ -208,14 +209,17 @@ public func inactive() {
 public func debugger_attached() {
     let attached = is_debugger_attached() ? "true" : "false"
     let r = call_js("app.debugger_attached(\(attached))", sync: true)
-    print("app.debugger_attached(\(attached)) -> \(r)")
+    if (r == "") {
+        print("app.debugger_attached(\(attached)) -> \(r)")
+    }
 }
 
 public func gyptix_stop() { // stop backend unload model from GPU:
+    let timing = false
     let start = DispatchTime.now().uptimeNanoseconds
     gyptix.stop()
     let end = DispatchTime.now().uptimeNanoseconds
-    if (is_debugger_attached()) {
+    if (is_debugger_attached() && timing) {
         print("gyptix.stop(): \((end - start) / 1_000) microseconds") // 2.5ms
     }
 }

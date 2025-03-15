@@ -20,22 +20,20 @@
 			<true/>
 		</dict>
 	</dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSApplicationSupportsMultipleWindows</key>
+	<false/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
-	<key>UIRequiresFullScreen</key>
-	<true/>
-	<key>UISupportsMultitasking</key>
-	<false/>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
-	<key>NSApplicationSupportsMultipleWindows</key>
-	<false/>
 	<key>UIBackgroundModes</key>
 	<array/>
 	<key>UIPrerenderedIcon</key>
 	<true/>
+	<key>UISupportsMultitasking</key>
+	<false/>
 </dict>
 </plist>

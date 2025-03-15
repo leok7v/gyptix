@@ -243,10 +243,10 @@ static void load_model(const char* model) {
 #endif
     argv[argc++] = (char*)"-p";
     argv[argc++] = (char*)sp.c_str();
-    printf("%s\n", sp.c_str());
+//  printf("%s\n", sp.c_str());
     try {
         llama.load(argc, argv);
-        printf("llama.load() done\n");
+//      printf("llama.load() done\n");
         for (;;) {
             pthread_mutex_lock(&lock);
             while (!event) { pthread_cond_wait(&cond, &lock); }
@@ -393,7 +393,7 @@ static bool output_text(const char* s) {
 //      printf("%s answering = false;\n", __func__);
     } else {
         output += s;
-        printf("%s:%d answering:%d output: %s\n", __func__, __LINE__, answering, output.c_str());
+//      printf("%s:%d answering:%d output: %s\n", __func__, __LINE__, answering, output.c_str());
     }
     bool result = !interrupted;
     if (interrupted) {
@@ -427,11 +427,11 @@ static void inactive(void) {
 }
 
 static void stop(void) {
-    printf("gyptix.%s\n", __func__);
+//  printf("%s:%d\n", __func__, __LINE__);
     quit = true;
     if (thread != nullptr) {
         interrupted = true;
-        printf("%s interrupted = true;\n", __func__);
+//      printf("%s:%d interrupted = true;\n", __func__, __LINE__);
         wakeup();
         pthread_join(thread, NULL);
         pthread_mutex_destroy(&lock);

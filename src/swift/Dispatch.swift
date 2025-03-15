@@ -24,7 +24,7 @@ public func poll(_ req: String) -> String {
             text = ""
         }
     }
-    if text != "" { print("poll: \(text)") }
+//  if text != "" { print("poll: \(text)") }
     return text
 }
 
@@ -131,7 +131,7 @@ public func call_js(_ call: String, sync: Bool = false) -> String {
             if let r = result {
                 v = "\(r)"
                 if (is_debugger_attached()) {
-                    print("javascript \(call) result: \(r)")
+//                  print("javascript \(call) result: \(r)")
                 }
             } else {
                 print("javascript \(call): no result")
