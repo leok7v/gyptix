@@ -69,7 +69,6 @@
 		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
-		B3A482932D5035DC00FCE4A5 /* SingleWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */; };
 		B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */; };
 		B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */; };
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
@@ -87,6 +86,7 @@
 		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
 		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
 		B3DE41F02D6C511800FEEB02 /* c4.c in Sources */ = {isa = PBXBuildFile; fileRef = B3DE41EF2D6C511800FEEB02 /* c4.c */; };
+		B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E04BD02D84816800C6C67B /* Dispatch.swift */; };
 		B3E2499B2D6162110048A24F /* model.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499A2D6162110048A24F /* model.js */; };
 		B3E2499D2D61621C0048A24F /* util.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499C2D61621C0048A24F /* util.js */; };
 		B3E2499F2D617B780048A24F /* app.html in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499E2D617B780048A24F /* app.html */; };
@@ -217,7 +217,6 @@
 		B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = ../src/swift/ContentView.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileSchemeHandler.swift; path = ../src/swift/FileSchemeHandler.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
-		B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SingleWindow.swift; path = ../src/swift/SingleWindow.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
 		B3A482992D50384100FCE4A5 /* WindowDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WindowDelegate.swift; path = ../src/swift/WindowDelegate.swift; sourceTree = SOURCE_ROOT; };
 		B3B29CA82D4E8E57006F04CE /* logo-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-256x256.png"; sourceTree = "<group>"; };
@@ -232,6 +231,7 @@
 		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
 		B3DE41EF2D6C511800FEEB02 /* c4.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = c4.c; path = ../src/c4.c; sourceTree = SOURCE_ROOT; };
+		B3E04BD02D84816800C6C67B /* Dispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = ../src/swift/Dispatch.swift; sourceTree = SOURCE_ROOT; };
 		B3E2499A2D6162110048A24F /* model.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = model.js; sourceTree = "<group>"; };
 		B3E2499C2D61621C0048A24F /* util.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = util.js; sourceTree = "<group>"; };
 		B3E2499E2D617B780048A24F /* app.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app.html; sourceTree = "<group>"; };
@@ -481,9 +481,9 @@
 			children = (
 				B3F590572D6A77CE008B5B7D /* AppRating.swift */,
 				B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */,
+				B3E04BD02D84816800C6C67B /* Dispatch.swift */,
 				B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */,
 				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
-				B3A482912D5035DC00FCE4A5 /* SingleWindow.swift */,
 				B3A482922D5035DC00FCE4A5 /* WebView.swift */,
 				B3A482992D50384100FCE4A5 /* WindowDelegate.swift */,
 				B3DE41EF2D6C511800FEEB02 /* c4.c */,
@@ -684,8 +684,8 @@
 				B30D390A2D458CDF00B8196B /* common.cpp in Sources */,
 				B30D390B2D458CDF00B8196B /* speculative.cpp in Sources */,
 				B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */,
+				B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */,
 				B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */,
-				B3A482932D5035DC00FCE4A5 /* SingleWindow.swift in Sources */,
 				B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */,
 				B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */,
 				B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */,

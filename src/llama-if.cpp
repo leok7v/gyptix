@@ -294,7 +294,7 @@ static int chat(struct context &context, const char* session) {
                 return 1;
             }
             session_tokens.resize(n_token_count_out);
-            LOG_INF("%s: loaded a session with prompt size of %d tokens\n",
+            printf("%s: loaded a session with prompt size of %d tokens\n",
                    __func__, (int)session_tokens.size());
         }
     }
@@ -456,7 +456,7 @@ static int chat(struct context &context, const char* session) {
     LOG_INF("sampler seed: %u\n",     common_sampler_get_seed(smpl));
     LOG_INF("sampler params: \n%s\n", sparams.print().c_str());
     LOG_INF("sampler chain: %s\n",    common_sampler_print(smpl).c_str());
-    LOG_INF("generate: n_ctx = %d, n_batch = %d, n_predict = %d, n_keep = %d\n", n_ctx, params.n_batch, params.n_predict, params.n_keep);
+    printf("generate: n_ctx = %d, n_batch = %d, n_predict = %d, n_keep = %d\n", n_ctx, params.n_batch, params.n_predict, params.n_keep);
     // group-attention state
     // number of grouped KV tokens so far (used only if params.grp_attn_n > 1)
     int ga_i = 0;
@@ -500,6 +500,7 @@ static int chat(struct context &context, const char* session) {
         embd_inp.clear();
         embd_inp.push_back(decoder_start_token_id);
     }
+    printf("%s:%d context.n_remain: %d\n", __func__, __LINE__, (int)context.n_remain);
     while ((context.n_remain != 0 && !context.is_antiprompt) || params.interactive) {
         // predict
         if (!embd.empty()) {
@@ -583,18 +584,20 @@ static int chat(struct context &context, const char* session) {
                 if (n_eval > params.n_batch) {
                     n_eval = params.n_batch;
                 }
-                LOG_DBG("eval: %s\n", string_from(ctx, embd).c_str());
+//              printf("%s:%d eval: %s\n", __func__, __LINE__, string_from(ctx, embd).c_str());
                 if (llama_decode(ctx, llama_batch_get_one(&embd[i], n_eval))) {
                     LOG_ERR("%s : failed to eval\n", __func__);
                     return 1;
                 }
                 context.n_past += n_eval;
-                LOG_DBG("n_past = %d\n", context.n_past);
+//              printf("%s:%d n_past = %d\n", __func__, __LINE__, context.n_past);
                 // Display total tokens alongside total time
                 if (params.n_print > 0 && context.n_past % params.n_print == 0) {
-                    LOG_DBG("\n\033[31mTokens consumed so far = %d / %d \033[0m\n",
-                            context.n_past, n_ctx);
+                    LOG_DBG("\n%s:%d Tokens consumed so far = %d / %d\n",
+                            __func__, __LINE__, context.n_past, n_ctx);
                 }
+                printf("\n%s:%d Tokens consumed so far = %d / %d\n",
+                        __func__, __LINE__, context.n_past, n_ctx);
             }
             if (!embd.empty() && !path_session.empty()) {
                 session_tokens.insert(session_tokens.end(), embd.begin(), embd.end());
@@ -755,15 +758,16 @@ static int chat(struct context &context, const char* session) {
                 if (!line) {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-//                  LOG_INF("%s <--done-->", __func__);
+                    printf("%s <--done--> because line == null\n", __func__);
                     break;
                 }
                 buffer += line;
                 free((void*)line);
+                printf("%s buff: %s\n", __func__, buffer.c_str());
                 if (buffer == "<--end-->") {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-//                  LOG_INF("%s <--done-->", __func__);
+                    printf("%s <--done--> because line == <--end-->\n", __func__);
                     break;
                 }
                 // done taking input, reset color

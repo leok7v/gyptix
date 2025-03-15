@@ -50,6 +50,9 @@ struct WebView: ViewRepresentable {
         config.preferences.setValue(is_debugger_attached(), forKey: "developerExtrasEnabled")
         let wv = WKWebView(frame: .zero, configuration: config)
         wv.isInspectable = is_debugger_attached()
+        #if DEBUG
+        wv.isInspectable = true // always inspectable in DEBUG build
+        #endif
         wv.setValue(false, forKey: "drawsBackground")
         wv.navigationDelegate = context.coordinator
         webView = wv
@@ -75,6 +78,9 @@ struct WebView: ViewRepresentable {
 //      wv.configuration.setValue(true,
 //              forKey: "allowUniversalAccessFromFileURLs")
         wv.isInspectable = is_debugger_attached()
+        #if DEBUG
+        wv.isInspectable = true // always inspectable in DEBUG build
+        #endif
         wv.isOpaque = false
         wv.backgroundColor = .clear
         wv.allowsBackForwardNavigationGestures = false

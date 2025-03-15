@@ -22,16 +22,12 @@
     --color: #121212;
 }
 
-html::-webkit-scrollbar, ul::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, macOS */
-}
-
 :root {
     --font-size: 100%;
     --placeholder: "Ask anything... Use ⇧⏎ for line break";
     --background-header:       color-mix(in srgb, var(--background-color) 93%, var(--color)  7%);
     --background-navigation:   color-mix(in srgb, var(--background-color) 89%, var(--color) 11%);
-    --background-user:         color-mix(in srgb, var(--background-color) 90%, var(--color) 10%);
+    --background-user:         color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
     --background-button:       color-mix(in srgb, var(--background-color) 70%, var(--color) 30%);
     --background-button-hover: color-mix(in srgb, var(--background-color) 65%, var(--color) 35%);
     --background-hover:        color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
@@ -142,7 +138,7 @@ body {
     padding-top: 0;
     max-width: 60%;
     height: 100%;
-    overflow-y: auto;
+    overflow: hidden;
     background-color: var(--background-navigation);
 /*  background-color: blue; */
     transition: all 0.3s ease;
@@ -283,7 +279,7 @@ code, pre {
     flex: 0 0 auto;
     flex-direction: column;
     border: 1px solid #888;
-    border-radius: 0.5rem;
+    border-radius: 0.5em;
     padding: 0.5rem;
     margin: 0.25rem;
     margin-bottom: 0;
@@ -319,8 +315,8 @@ code, pre {
     margin-left: 1em;
     margin-right: 1em;
     padding: 0.125em;
-    padding-left: 0.5em;
-    padding-right: 0.5em;
+    padding-left: 1em;
+    padding-right: 1em;
     border-radius: 0.25em;
     max-width: 100%;
     /* Word-breaking properties */
@@ -329,53 +325,76 @@ code, pre {
     word-break: break-word; /* Fallback for very long words */
 }
 
-.user p { margin: 0.25em }
+.user p {
+    margin: 0.25em
+    padding-left:  0.75em;
+    padding-right: 0.75em;
+}
 
 .bot {
     background: var(--background-color);
-    margin: 0.25em;
-    margin-top: 1em;
-    padding: 0.25em;
-    border-radius: 4px;
+    margin-block-start: 0 !important;
+    margin-block-end:   0 !important;
+    border-radius: 0.25em;
     overflow-y: auto;
     overflow-x: auto;
-    max-width: 100%;
+    max-width: 98%;
     white-space: pre-wrap;   /* Ensures long text wraps */
     word-wrap:   break-word; /* Allows breaking long words */
     word-break:  break-word; /* Extra safeguard for stubborn long words */
+}
+
+.bot ol {
+    margin-block-start: 0 !important;
+    margin-block-end:   0 !important;
 }
 
 .bot p {
-    margin: 0;
-    padding: 0;
+    margin-block-start: 0 !important;
+    margin-block-end:   0 !important;
+    margin:         0;
+    margin-left:    0.75em;
+    margin-right:   0.75em;
+    padding-top:    0;
+    padding-bottom: 0;
 }
 
 .bot ol, .bot ul {
-    margin: 0.75em 0;
+    list-style-type: none;
+    margin-block-start: 0; /* controls vertical space */
+    margin-left:   0.75em;
+    margin-right:  0.75em;
+    margin-top:    0;
     margin-bottom: 0;
+    padding:       0;
 }
 
 .bot li {
-    margin-bottom: 0.125em;
-    padding: 0;
+    margin-top:    0;
+    margin-bottom: 0;
+    padding:       0;
+    margin-left:   1em;
+    margin-right:  1em;
 }
 
 .bot li p {
-    margin: 0;
-    padding: 0;
     display: inline;
+    margin:        0;
+    padding:       0;
 }
 
-.bot pre,
-.bot pre code {
-    font-size: 90%;
-    overflow-x: auto;
-    display: block;
-    white-space: pre-wrap;   /* Ensures long text wraps */
-    word-wrap:   break-word; /* Allows breaking long words */
-    word-break:  break-word; /* Extra safeguard for stubborn long words */
-    max-width: 100%;
-    background: var(--background-code);
+.bot pre, .user pre,
+.bot pre code, .user pre code {
+    display:      block;
+    font-size:    90%;
+    overflow-x:   auto;
+    max-width:    97%;
+    background:   var(--background-code);
+    margin-left:  1em;
+    margin-right: 1em;
+    white-space:  pre-wrap;   /* Ensures long text wraps */
+    word-wrap:    break-word; /* Allows breaking long words */
+    word-break:   break-word; /* Extra safeguard for stubborn long words */
 }
 
 .button_row {
@@ -472,7 +491,7 @@ code, pre {
     display: flex;
     align-items: center; /* Centers items vertically */
     justify-content: center; /* Optional: Centers horizontally */
-    gap: 8px; /* Adjust spacing between logo and text */
+    gap: 0.5em; /* Adjust spacing between logo and text */
     height: 100%; /* Ensure the container takes the full height */
 }
 
@@ -566,10 +585,10 @@ code, pre {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 0.75em;
     padding: 0.25em;
     background-color: var(--background);
-    border-radius: 8px;
+    border-radius: 0.5em;
     overflow: auto;
 }
 
@@ -616,11 +635,10 @@ code, pre {
     position: absolute;
     color: var(--color);
     background-color: var(--background-color);
-    padding: 1em;
-    padding-top: 0;
-    margin: 0;
     overscroll-behavior: contain;
     overflow: hidden;
 }
+
+.modal_page { padding: 1em; }
 
 #share { display: none; } /* TODO: not implemented yet */

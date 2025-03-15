@@ -10,6 +10,7 @@ import WebKit
 import Darwin
 
 public var webView: WKWebView?
+public var js_ready: Bool = false // JavaScript app is initialized
 
 @main
 struct Gyptix: App {
@@ -51,9 +52,6 @@ struct Gyptix: App {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         removeTabRelatedMenuItems()
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                        debugger_attached()
-                    }
                     guard let f = Bundle.main.url(
                         forResource: "granite-3.1-1b-a400m-instruct-Q8_0.gguf",
                         withExtension: nil) else {
@@ -87,7 +85,8 @@ struct Gyptix: App {
             queue: .main
         ) { _ in
             inactive()
-            gyptix.stop()
+            close_all_windows()
+            gyptix_stop()
         }
         #elseif os(iOS)
         NotificationCenter.default.addObserver(
@@ -96,7 +95,7 @@ struct Gyptix: App {
             queue: .main
         ) { _ in
             inactive()
-            gyptix.stop()
+            gyptix_stop()
         }
         #endif
     }
@@ -105,6 +104,7 @@ struct Gyptix: App {
         #if os(macOS)
         for window in NSApplication.shared.windows {
             window.tabbingMode = .disallowed
+            window_border(window)
         }
         if let window = NSApplication.shared.windows.first {
             window.performSelector(onMainThread:
@@ -117,6 +117,15 @@ struct Gyptix: App {
         }
         #endif
     }
+    
+    #if os(macOS)
+    func window_border(_ window: NSWindow) {
+        guard let view = window.contentView else { return }
+        view.wantsLayer = true
+        view.layer?.borderWidth = 1.0
+        view.layer?.borderColor = NSColor(red: 0.51, green: 0.51, blue: 0.49, alpha: 0.125).cgColor
+    }
+    #endif
     
     private func removeTabRelatedMenuItems() {
         #if os(macOS)
@@ -145,7 +154,6 @@ struct Gyptix: App {
     static var h: CGFloat = 640.0
     #endif
 }
-
 
 #if os(iOS)
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -185,39 +193,37 @@ func is_debugger_attached() -> Bool {
 }
 
 public func inactive() {
-    guard let view = webView else { return }
-    var wait = true
-    view.evaluateJavaScript("app.inactive()") { result, error in
-        if let error = error {
-            print("Error calling javascript inactive(): \(error)")
-        } else {
-            if let r = result {
-                if (is_debugger_attached()) {
-                    print("javascript inactive() result: \(r)") // "done"
-                }
-            } else {
-                print("javascript inactive(): no result")
-            }
-        }
-        wait = false
+    // if webView is not yet initialized it does not need app.inactive() call
+    if (!js_ready) { return }
+    let start = DispatchTime.now().uptimeNanoseconds
+    let r = call_js("app.inactive()", sync: true)
+    let end = DispatchTime.now().uptimeNanoseconds
+    if (is_debugger_attached()) {
+        print("elapsed: \((end - start) / 1_000) microseconds") // 2.5ms
+        print("app.inactive() -> \(r)")
     }
-    // Wait for up to 5 seconds while processing the run loop
-    let timeout = Date().addingTimeInterval(5)
-    while wait && Date() < timeout {
-        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.1))
-    }
-//  let end = DispatchTime.now().uptimeNanoseconds
-//  print("elapsed: \((end - start) / 1_000) microseconds") // 2.5ms
     gyptix.inactive()
 }
 
 public func debugger_attached() {
-    guard let view = webView else { return }
     let attached = is_debugger_attached() ? "true" : "false"
-    view.evaluateJavaScript("app.debugger_attached(" + attached + ")") {
-        result, error in
-        if let error = error {
-            print("Error calling javascript debugger_attached(): \(error)")
-        }
+    let r = call_js("app.debugger_attached(\(attached))", sync: true)
+    print("app.debugger_attached(\(attached)) -> \(r)")
+}
+
+public func gyptix_stop() { // stop backend unload model from GPU:
+    let start = DispatchTime.now().uptimeNanoseconds
+    gyptix.stop()
+    let end = DispatchTime.now().uptimeNanoseconds
+    if (is_debugger_attached()) {
+        print("gyptix.stop(): \((end - start) / 1_000) microseconds") // 2.5ms
     }
+}
+
+public func close_all_windows() {
+    #if os(macOS)
+    DispatchQueue.main.async {
+        NSApplication.shared.windows.forEach { $0.close() }
+    }
+    #endif
 }

@@ -144,3 +144,14 @@ export const summarize = (str) => {
     return s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s
 }
 
+export const substitutions = (s) => {
+    const now = new Date()
+    const replacements = {
+        "[insert current date]": now.toLocaleDateString(),
+        "[insert day of the week]": now.toLocaleDateString(undefined, { weekday: "long" }),
+        "[insert current time]": now.toLocaleTimeString()
+    };
+    return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
+        return replacements[match.toLowerCase()] || match;
+    })
+}

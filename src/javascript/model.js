@@ -21,9 +21,7 @@ export const run = id => {
     util.post("./run", id)
 }
 
-export const remove = id => {
-    util.post("./remove", id)
-}
+export const remove = id => util.post("./remove", id)
 
 export const poll = () => {
     return util.post("./poll", "", null)
@@ -33,7 +31,7 @@ export const interrupt = () => {
     return util.post("./poll", "<--interrupt-->", null)
 }
 
-export const is_running = () => {
+export const is_running = () =>  { 
     return util.post("./is_running") === "true"
 }
 
@@ -41,10 +39,12 @@ export const is_answering = () => {
     return util.post("./is_answering") === "true"
 }
 
-export const quit = () => {
-    util.post("./quit")
-}
+export const erase = () => util.post("./erase")
 
-export const erase = () => {
-    util.post("./erase")
-}
+// DOM loaded
+export const loaded = () => util.post("./loaded")
+
+// app.* methods can be called from native code
+export const initialized = () => util.post("./initialized")
+
+export const quit = () => util.post("./quit") // fatal no return

@@ -11,6 +11,17 @@ import * as util        from "./util.js"
 
 const get = id => document.getElementById(id)
 
+/* “double rAF,” is the usual way to ensure the browser
+   has actually laid out (and often painted) before the
+   second callback runs
+*/
+
+const layout_and_render = () => {
+    return new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve))
+    })
+}
+
 let chat = null // **the** chat
 
 const load_chat = id => {
@@ -78,8 +89,7 @@ export const run = () => { // called DOMContentLoaded
     let current  = null // current  chat id
     let selected = null // selected chat id
     let selected_item = null // item in chats list
-
-    let interrupted = false // output was interrupted
+    let interrupted = false  // output was interrupted
 
     document.addEventListener("copy", e => {
         e.preventDefault()
@@ -154,13 +164,14 @@ export const run = () => { // called DOMContentLoaded
         if (at_the_bottom) scroll_to_bottom()
     }
     
-    const render_last = (chunk, done) => {
+    const render_last = (chunk) => {
         if (!chat || !chat.messages || chat.messages.length === 0) return
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         // Get last child element (assumed to be the last message).
         const last_child = messages.lastElementChild
         last_msg.text += chunk
+        last_msg.text = util.substitutions(last_msg.text)
         if (last_child && last_msg.sender === "user") {
             messages.appendChild(render_message(last_msg))
         } else if (last_child && last_msg.sender === "bot") {
@@ -179,7 +190,6 @@ export const run = () => { // called DOMContentLoaded
                     if (at_the_bottom) scroll_to_bottom()
                     show_hide_scroll_to_bottom()
                 }
-                done?.()
             })
         } else {
             messages.appendChild(render_message(last_msg))
@@ -192,7 +202,7 @@ export const run = () => { // called DOMContentLoaded
         if (user_scrolling) {
             input.blur()
             collapsed()
-            requestAnimationFrame(() => {
+            layout_and_render().then(() => {
                 scrolled_to_bottom()
                 show_hide_scroll_to_bottom()
             })
@@ -223,16 +233,26 @@ export const run = () => { // called DOMContentLoaded
             div.onclick = () => {
                 selected = null
                 collapsed()
-                if (current != c.id) {
-                    current = c.id
-                    model.run(c.id)
-                    chat = load_chat(current)
-                    rebuild_list()
-                    messages.innerHTML = ""
-                    render_messages()
-                }
                 hide_menu()
                 hide_scroll_to_bottom()
+                if (current !== c.id) {
+                    carry.style.display = "none"
+                    suggestions.hide()
+                    messages.innerHTML = ""
+                    current = c.id
+                    layout_and_render().then(() => {
+                        chat = load_chat(current)
+                        placeholder()
+                        render_messages()
+                        rebuild_list()
+                        layout_and_render().then(() => {
+                            scroll_to_bottom()
+                            layout_and_render().then(() => {
+                                model.run(c.id) // slowest
+                            })
+                        })
+                    })
+                }
             }
             const span = document.createElement("span")
             span.textContent = c.title
@@ -267,6 +287,7 @@ export const run = () => { // called DOMContentLoaded
             title: util.timestamp_label(id),
             messages: []
         }
+        carry.style.display = "none"
         title.innerHTML = ""
         send.classList.add('hidden')
         save_chat(chat)
@@ -276,6 +297,7 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
         suggestions.show()
         model.run(id)
+        console.log("model.run(" + id + ")")
     }
     
     const recent = () => { // most recent chat -> current
@@ -294,6 +316,7 @@ export const run = () => { // called DOMContentLoaded
             current = most_recent.id
             chat = load_chat(most_recent.id)
             model.run(most_recent.id)
+            console.log("model.run(" + most_recent.id + ")")
             messages.innerHTML = ""
             render_messages()
             scroll_to_bottom()
@@ -328,18 +351,6 @@ export const run = () => { // called DOMContentLoaded
             setTimeout(() => title.classList.remove("shimmering"), 2000)
         }
     }
-
-    const substitutions = (s) => {
-        const now = new Date()
-        const replacements = {
-            "[insert current date]": now.toLocaleDateString(),
-            "[insert day of the week]": now.toLocaleDateString(undefined, { weekday: "long" }),
-            "[insert current time]": now.toLocaleTimeString()
-        };
-        return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
-            return replacements[match.toLowerCase()] || match;
-        })
-    }
     
     const done = () => {
         send.classList.remove('hidden')
@@ -354,13 +365,12 @@ export const run = () => { // called DOMContentLoaded
         stop.classList.remove("pulsing")
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
-        render_last(substitutions(last_msg.text))
         placeholder()
     }
     
     const thinking = detect.macOS ?
-        ["Pondering", "Reasoning", "Discussing"] :
-        ["GyPTix", "Pondering", "Reasoning", "Discussing"]
+        [          "Reasoning", "Thinking", "Answering"] :
+        ["GyPTix", "Reasoning", "Thinking", "Answering"]
 
     const cycle_titles = (count) => {
         title.innerHTML =
@@ -378,14 +388,12 @@ export const run = () => { // called DOMContentLoaded
                 clearInterval(context.interval)
                 done()
             } else if (chunk !== "") {
-                if (chat.messages.length > 0) {
-                    render_last(chunk, () => poll(context))
-                }
-                if (util.timestamp() - context.last > 1500) {
-                    context.count = cycle_titles(context.count)
-                    context.last = util.timestamp()
-                }
+                render_last(chunk)
             }
+        }
+        if (util.timestamp() - context.last > 1500) {
+            context.count = cycle_titles(context.count)
+            context.last = util.timestamp()
         }
     }
     
@@ -398,7 +406,7 @@ export const run = () => { // called DOMContentLoaded
         cycle_titles(0)
         let context = { interval: null, last: util.timestamp(), count: 1 }
         const interval = setInterval(() => {
-            requestAnimationFrame(() => {
+            layout_and_render().then(() => {
                 context.interval = interval
                 poll(context)
             })
@@ -408,8 +416,8 @@ export const run = () => { // called DOMContentLoaded
 
     const oops = () => {
         modal.toast("<p>Oops.<br>🤕🧠🤢<br>" +
-                   "Maybe AppStore update?<br>⚙️🔧<br>" +
-                   "Or try again later?</p>", 5000)
+                   "Close and try again later<br><br>" +
+                   "or update ⚙️ in AppStore?</p>", 5000)
         setTimeout(() => { model.quit() }, 5100)
     }
     
@@ -421,8 +429,9 @@ export const run = () => { // called DOMContentLoaded
         save_chat(chat)
         render_messages()
         scroll_to_bottom()
-        requestAnimationFrame(() => { // render before asking
+        layout_and_render().then(() => { // render before asking
             let error = model.ask(t)
+            clear.style.display = "none"
             if (!error) {
                 polling()
             } else {
@@ -472,7 +481,7 @@ export const run = () => { // called DOMContentLoaded
             setTimeout(() => { // let frame to re-render first
                 ask(s)
                 placeholder()
-                requestAnimationFrame(() => input.blur())
+                layout_and_render().then(() => input.blur())
             }, 10)
         }
     }
@@ -492,7 +501,7 @@ export const run = () => { // called DOMContentLoaded
     clear.onclick = e => {
         input.innerText = ""
         clear.style.display = "none"
-        requestAnimationFrame(() => {
+        layout_and_render().then(() => {
             input.focus()
             if (chat.messages.length == 0) suggestions.show()
         })
@@ -565,7 +574,7 @@ export const run = () => { // called DOMContentLoaded
         if (detect.macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             input.innerText = ""
             send.classList.add('hidden')
-            requestAnimationFrame(() => {
+            layout_and_render().then(() => {
                 const sel = window.getSelection()
                 if (sel) sel.removeAllRanges()
                 ask(s)
@@ -767,14 +776,13 @@ export const run = () => { // called DOMContentLoaded
     
     util.init_theme()
     util.init_font_size()
-    recent()
-    if (chat.messages.length > 0) { new_session() }
+    
+    new_session() // alternatively recent() can load and continue
     placeholder()
     if (chat.messages.length == 0 &&
         input !== document.activeElement) {
         suggestions.show()
     }
-
     send.title = "Submit"
     stop.title = "Stop"
     clear.title = "Clear"
@@ -789,10 +797,16 @@ export const inactive = () => {
 }
 
 export const debugger_attached = (attached) => {
-    util.set_debugger_attached(attached)
+    console.log(`debugger_attached() - value: ${attached}, typeof: ${typeof attached}`)
+    if (typeof attached === "string") attached = (attached === "true")
+    util.set_debugger_attached(attached);
     if (!attached) {
-        document.body.oncontextmenu = (e) => event.preventDefault()
+        document.body.oncontextmenu = (e) => e.preventDefault()
+        console.log("debugger_attached: disabling context menu")
     }
+    return attached ? "conext menu enabled" : "conext menu disabled"
 }
 
 window.app = { run: run, inactive: inactive, debugger_attached: debugger_attached }
+
+model.initialized()
