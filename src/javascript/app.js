@@ -550,6 +550,7 @@ export const run = () => { // called DOMContentLoaded
         if (!model.is_answering()){
             navigation.classList.remove("collapsed")
             layout.classList.remove("is_collapsed")
+            scroll.style.display = "none"
         }
     }
     
@@ -780,6 +781,8 @@ export const run = () => { // called DOMContentLoaded
         }
     }
 
+    get("info").onclick = () => { collapsed(); licenses() }
+    
     let v = localStorage.getItem("version.data")
     if (v !== version_data) {
         localStorage.clear() // no one promissed to keep data forever
