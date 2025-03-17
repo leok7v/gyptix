@@ -18,11 +18,8 @@ struct Gyptix: App {
     #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #endif
-    
+
     init() {
-        UserDefaults.standard.set(["en-US"], forKey: "AppleLanguages")
-        UserDefaults.standard.synchronize()
-        print("Current Locale: \(Locale.current.identifier)")
     }
 
     var sharedModelContainer: ModelContainer = {
