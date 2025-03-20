@@ -573,6 +573,7 @@ export const run = () => { // called DOMContentLoaded
     input.onkeydown = e => {
         let s = input.innerText.trim()
         if (detect.macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault()
             input.innerText = ""
             send.classList.add('hidden')
             layout_and_render().then(() => {
