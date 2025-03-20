@@ -104,11 +104,18 @@ html, body, .viewport, .content, #chat-container, #chat {
     margin: 0;
 }
 
-#layout, #navigation, .modal_page {
+#layout, #navigation {
     padding-top: env(safe-area-inset-top);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
+}
+
+.modal_page {
+    padding-top: max(env(safe-area-inset-top), 1em);
+    padding-left: max(env(safe-area-inset-left), 1em);
+    padding-right: max(env(safe-area-inset-right), 1em);
+    padding-bottom: max(env(safe-area-inset-bottom), 1em);
 }
 
 #layout {
@@ -644,7 +651,5 @@ button {
     overscroll-behavior: contain;
     overflow: hidden;
 }
-
-.modal_page { padding: 1em; }
 
 #share { display: none; } /* TODO: not implemented yet */
