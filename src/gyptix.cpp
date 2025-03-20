@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>
+#include <mach-o/dyld.h> // For _NSGetExecutablePath
 
 #include <string>
 #include <ctime>
@@ -66,12 +67,6 @@ static bool validUTF8(const std::string& s) {
         i += seq_len;
     }
     return true;
-}
-
-static void init_random_seed() {
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    srandom((unsigned)ts.tv_nsec ^ (unsigned)ts.tv_sec);
 }
 
 #if defined(__aarch64__) || defined(__arm64__)
@@ -205,26 +200,16 @@ static std::string system_prompt() {
 
 static void load_model(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
-    init_random_seed();
-    long seed = random();
-    char seed_str[64] = {0};
-    snprintf(seed_str, countof(seed_str) - 1, "%ld", seed);
-    const char* cwd = get_cwd();
-    char prompts[4 * 1024];
-    strcpy(prompts, cwd);
-    strcat(prompts, "/prompts");
-    mkdir(prompts, S_IRWXU);
-    static char prompt_cache[4 * 1024];
-    strcpy(prompt_cache, prompts);
-    strcat(prompt_cache, "/last");
-//  printf("%s\n", prompt_cache);
+    static char arg0[1024];
+    uint32_t size = sizeof(arg0);
+    if (_NSGetExecutablePath(arg0, &size) != 0) {
+        const char* cwd = get_cwd();
+        snprintf(arg0, countof(arg0) - 1, "%s/gyptix", cwd);
+    }
     static std::string sp = system_prompt();
     int argc = 0;
-    argv[argc++] = (char*)cwd;
-    argv[argc++] = (char*)"--seed";
-    argv[argc++] = seed_str;
+    argv[argc++] = (char*)arg0;
     argv[argc++] = (char*)"-cnv";
-//  argv[argc++] = (char*)"--list-devices";
     argv[argc++] = (char*)"-i";
     argv[argc++] = (char*)"--chat-template";
     argv[argc++] = (char*)"granite";
@@ -234,8 +219,6 @@ static void load_model(const char* model) {
     argv[argc++] = (char*)"--no-warmup";
     argv[argc++] = (char*)"--no-perf";
     argv[argc++] = (char*)"--log-disable";
-    argv[argc++] = (char*)"--prompt_cache";
-    argv[argc++] = (char*)prompt_cache;
 #if !defined(__aarch64__) && !defined(__arm64__)
     // do not use Metal/GPU on x64 platforms
     argv[argc++] = (char*)"--device";

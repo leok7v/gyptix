@@ -3,7 +3,7 @@
 #include "console.h"
 #include "log.h"
 #include "sampling.h"
-#include "llama.h"
+#include "llama-cpp.h"
 #include "llama-if.h"
 #include "getcwd.h"
 #include <sys/stat.h>

@@ -213,6 +213,8 @@
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
+		B37AB35B2D8C2FC300199E85 /* llama.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = llama.h; path = ../llama.cpp/include/llama.h; sourceTree = SOURCE_ROOT; };
+		B37AB35C2D8C2FC300199E85 /* llama-cpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-cpp.h"; path = "../llama.cpp/include/llama-cpp.h"; sourceTree = SOURCE_ROOT; };
 		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
 		B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = ../src/swift/ContentView.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileSchemeHandler.swift; path = ../src/swift/FileSchemeHandler.swift; sourceTree = SOURCE_ROOT; };
@@ -272,6 +274,8 @@
 		B30D38DA2D458C4E00B8196B /* src */ = {
 			isa = PBXGroup;
 			children = (
+				B37AB35B2D8C2FC300199E85 /* llama.h */,
+				B37AB35C2D8C2FC300199E85 /* llama-cpp.h */,
 				B3BEE9D72D4EE035009A4168 /* llama.cpp */,
 				B30D38B62D458C4E00B8196B /* llama-adapter.h */,
 				B30D38B72D458C4E00B8196B /* llama-adapter.cpp */,
