@@ -71,12 +71,6 @@ struct WebView: ViewRepresentable {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
         let wv = WKWebView(frame: .zero, configuration: config)
-//      wv.configuration.preferences.setValue(true,
-//              forKey: "allowFileAccessFromFileURLs")
-//      wv.configuration.setValue(true,
-//              forKey: "_allowCrossOriginResourcePolicy")
-//      wv.configuration.setValue(true,
-//              forKey: "allowUniversalAccessFromFileURLs")
         wv.isInspectable = is_debugger_attached()
         #if DEBUG
         wv.isInspectable = true // always inspectable in DEBUG build
@@ -88,6 +82,7 @@ struct WebView: ViewRepresentable {
         wv.scrollView.isScrollEnabled = false // prevents input scroll up
         wv.scrollView.contentInsetAdjustmentBehavior = .automatic
         wv.translatesAutoresizingMaskIntoConstraints = false
+        wv.scrollView.delaysContentTouches = false
         wv.navigationDelegate = context.coordinator
         webView = wv
         if let url = URL(string: "gyptix://./" + self.htmlFileName + ".html") {

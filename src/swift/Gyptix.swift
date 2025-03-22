@@ -20,6 +20,8 @@ struct Gyptix: App {
     #endif
 
     init() {
+        UserDefaults.standard.set(is_debugger_attached(),
+                                  forKey: "WebKitDeveloperExtras")
     }
 
     var sharedModelContainer: ModelContainer = {
