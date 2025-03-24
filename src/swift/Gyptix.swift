@@ -9,6 +9,7 @@ import UIKit
 import WebKit
 import Darwin
 
+public var keyboardHeight: CGFloat = 0
 public var webView: WKWebView?
 public var js_ready: Bool = false // JavaScript app is initialized
 
@@ -42,11 +43,14 @@ struct Gyptix: App {
                 .environment(\.locale, Locale(identifier: "en_US"))
                 #if os(macOS)
                 .frame(minWidth: Gyptix.w, minHeight: Gyptix.h)
-                #else
+                #else // iOS
                 .statusBar(hidden: true)
                 .ignoresSafeArea(edges: .all)
                 #endif
                 .onAppear {
+                    #if os(iOS)
+                    setupKeyboardHandlers()
+                    #endif
                     applyWindowRestrictions()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         removeTabRelatedMenuItems()
@@ -155,6 +159,7 @@ struct Gyptix: App {
 }
 
 #if os(iOS)
+
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      configurationForConnecting connectingSceneSession:
@@ -180,6 +185,25 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return config
     }
 }
+
+func setupKeyboardHandlers() {
+    NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification,
+                                           object: nil,
+                                           queue: .main) { notification in
+        if let info = notification.userInfo,
+           let frame = info[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            keyboardHeight = frame.height
+            print("keyboardHeight \(keyboardHeight)")
+        }
+    }
+    NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification,
+                                           object: nil,
+                                           queue: .main) { _ in
+        keyboardHeight = 0
+        print("keyboardHeight \(keyboardHeight)")
+    }
+}
+
 #endif
 
 func is_debugger_attached() -> Bool {

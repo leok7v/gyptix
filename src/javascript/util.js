@@ -6,6 +6,7 @@ export let is_debugger_attached = false
 
 export function set_debugger_attached(attached) {
     is_debugger_attached = attached
+    console.log("set_debugger_attached(" + attached + ")")
 }
 
 const http = (url, method, req = "", done = null) => {
@@ -150,8 +151,78 @@ export const substitutions = (s) => {
         "[insert current date]": now.toLocaleDateString(),
         "[insert day of the week]": now.toLocaleDateString(undefined, { weekday: "long" }),
         "[insert current time]": now.toLocaleTimeString()
-    };
+    }
     return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
-        return replacements[match.toLowerCase()] || match;
+        return replacements[match.toLowerCase()] || match
+    })
+}
+
+export const keyboard_viewport_handler = () => {
+
+    const wvvp = window.visualViewport
+    const viewport = document.getElementById("viewport")
+
+    const report = () => {
+        const doc = document.documentElement
+        const body = document.body
+        const content = document.getElementById("content")
+        console.log("🔹 visualViewport: " +
+            wvvp.offsetLeft + "," + wvvp.offsetTop + " " +
+            wvvp.width + "x" + wvvp.height +
+            "   window: " +
+            window.innerWidth + "x" + window.innerHeight +
+            "   document: " +
+            doc.clientWidth + "x" + doc.clientHeight +
+            "   body: " +
+            doc.clientWidth + "x" + doc.clientHeight +
+            "   viewport: " +
+            viewport.clientWidth + "x" + viewport.clientHeight +
+            "   content: " +
+            content.offsetWidth + "x" + content.offsetHeight
+        )
+    }
+
+    const set_viewport_height = () => {
+        const height = `${window.innerHeight}px`
+        document.documentElement.style.setProperty('--height', height)
+        document.documentElement.style.height = height
+        document.body.style.height = height
+        console.log(`document.documentElement.style.height := ${document.documentElement.style.height}`)
+        console.log(`document.body.style.height := ${document.body.style.height}`)
+        report()
+    }
+
+    set_viewport_height()
+    window.addEventListener('resize', set_viewport_height)
+    // Mobile browsers—especially on iOS—often don’t fire the window "resize"
+    // event when the soft keyboard appears. Instead, the visual viewport may
+    // change without triggering a resize on window. To address this, listen
+    // to the visualViewport’s "resize" event instead:
+    wvvp.addEventListener('resize', set_viewport_height)
+
+    if (detect.macOS) return /* TODO: iOS with attached keyboard? */
+
+    // iOS mobile specific:
+        
+    const input = document.getElementById("input")
+
+    input.addEventListener("focus", () => {
+        console.log("Input focused")
+        set_viewport_height()
+    })
+    
+    wvvp.addEventListener("scroll", () => {
+        console.log("Viewport scroll detected")
+        set_viewport_height()
+        const y = wvvp.offsetTop
+        const h = wvvp.height
+        console.log("wvvp y: " + y + " h: " + h)
+        document.body.style.transform = `translateY(${y}px)`
+        console.log(`body \{ transform : translateY(${y}px); \}`)
+    })
+
+    input.addEventListener("blur", () => {
+        console.log("Input lost focus")
+        set_viewport_height()
     })
 }

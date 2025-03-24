@@ -75,7 +75,7 @@ html, body {
     user-select: none;
 }
 
-html, body, #viewport, #layout, .content, #chat-container, #chat, #modal {
+html, body, #viewport, #navigation, .content, #chat-container, #chat, #modal {
     display: flex;
     flex: auto;
     flex-direction: column;
@@ -88,7 +88,7 @@ html, body, .viewport, .content, #chat-container, #chat {
     padding: 0; /* because navigation and content do have padding */
 }
 
-#viewport, #layout, .content, #chat-container, #chat, #modal {
+#viewport, #navigation, .content, #chat-container, #chat, #modal {
     width:  -webkit-fill-available;
     height: -webkit-fill-available;
 }
@@ -104,7 +104,7 @@ html, body, .viewport, .content, #chat-container, #chat {
     margin: 0;
 }
 
-#layout, #navigation {
+#navigation {
     padding-top: env(safe-area-inset-top);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
@@ -125,9 +125,9 @@ html, body, .viewport, .content, #chat-container, #chat {
 }
 
 #navigation {
+    z-index: 30;
     display: flex;
     flex-direction: column;
-    z-index: 30;
     position: absolute;
     top: env(safe-area-inset-top);
     padding-top: 0;
@@ -139,25 +139,23 @@ html, body, .viewport, .content, #chat-container, #chat {
     transition: all 0.3s ease;
 }
 
-.navigation_header, .header {
+.header {
     display: flex;
     flex: 0 0 auto; /* Prevents stretching */
+    position: sticky;
+    top: 0;
+    left: 2.5em;
     height: 3em; /* Ensure uniform height */
     min-height: 3em; /* Prevents collapsing */
     padding: 0.5em; /* Ensure consistent padding */
     overflow: hidden;
     align-items: center;
     gap: 0.5em;
-    position: sticky;
-    top: 0;
-    left: 2.5em;
     justify-content: space-between;
     background-color: var(--background-header);
 }
 
 .header { z-index: 20; }
-
-.navigation_header { z-index: 40; }
 
 #footer {
     margin: 0;
@@ -236,14 +234,6 @@ code, pre {
 
 .item:hover {
     background-color: var(--background-hover);
-}
-
-:not(.is_collapsed) #expand {
-    display: none;
-}
-
-.is_collapsed #expand {
-    display: block;
 }
 
 #chats {

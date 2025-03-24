@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; 
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
           script-src 'self' 'unsafe-inline' 'unsafe-eval';">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -11,90 +10,59 @@
     <title>GyPTix</title>
     <!-- Viewport Configuration -->
     <meta name="viewport"
-          content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, 
-                   user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
+          content="width=device-width, height=device-height, 
+                   initial-scale=1.0, maximum-scale=1.0, 
+                   user-scalable=no, shrink-to-fit=yes, viewport-fit=cover">
     <!-- iOS Safari Status Bar Styling -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- Android Chrome Status Bar Color -->
     <meta name="theme-color" content="#000000">
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" href="./app.css" />
+    <link rel="stylesheet" href="./app1.css" />
     <script type="module">
         import * as app from "./app.js"
         document.addEventListener("DOMContentLoaded", () => { app.run() })
     </script>
 </head>
 <body>
-    <div id="modal" class="viewport"></div>
     <div id="viewport" class="viewport">
-      <div id="layout" class="is_collapsed">
-        <div id="navigation" class="collapsed">
-          <div id="navigation_header" class="navigation_header">
-            <button id="collapse" class="button"><span class="glyph">☰</span></button>
-          </div>
-          <div id="chats"><div id="list"></div></div>
-          <div id="footer">
-              <button id="info" title="Info">ⓘ Info</button>
-              <button id="shred" title="Erase All Chats History"
-              ><span class="glyph">♽</span></button>
-          </div>
+        <div id="backdrop"></div>
+        <div id="modal" class="viewport"></div>
+        <button id="expand" title="History">☰</button>
+        <button id="restart" class="mirror" title="New Conversation">✎</button>
+        <div id="title"></div>
+        <div id="tools">
+            <button id="font-decrease" class="button" title="Smaller Font">a</button>
+            <button id="font-increase" class="button" title="Bigger Font">A</button>
+            <button id="toggle_theme"  class="button" title="Dark/Light">◐</button>
         </div>
-        <div id="content" class="content">
-            <span id="header" class="header">
-                <span class="left">
-                    <button id="expand"  class="button"
-                        title="Expand/Collapse Navigation Pane"
-                        ><span class="glyph">☰</span></button>
-                    <button id="restart" class="button"
-                        title="Start New Conversation"
-                        ><span class="glyph mirror">✎</span></button>
-                </span>
-                <span class="center"><span id="title" class="title"></span></span>
-                <span class="right">
-                    <button id="font-decrease" class="button"
-                        title="Decrease Font Size"
-                        ><span class="glyph">a</span></button>
-                    <button id="font-increase" class="button"
-                        title="Increase Font Size"
-                        ><span class="glyph">A</span></button>
-                    <button id="toggle_theme"  class="button"
-                        title="Toggle Dark/Light Theme"
-                        ><span class="glyph">◐</span></button>
-                </span>
-            </span>
-            <div id="chat-container">
-              <div id="suggest"></div>
-              <div id="chat">
-                  <div id="messages"></div>
-              </div>
-              <button id="scroll" class="circled"
-                  title="Scroll To the Bottom"
-                  ><span class="glyph upsidedown">⇧</span>
-              </button>
-              <div id="input_container">
-                <div id="input" contenteditable="plaintext-only"
-                    placeholder="⇧⏎">
-                </div>
+        <div id="navigation" class="collapsed">
+            <div id="chats">
+                <div id="list"></div>
+            </div>
+            <div id="footer">
+                <button id="info" title="Info">ⓘ Info</button>
+                <button id="shred" title="Erase Chats History">♽</button>
+            </div>
+        </div>
+        <div id="content">
+            <div id="suggest"></div>
+            <div id="chat">
+                <div id="messages"></div>
+            </div>
+            <button id="scroll" class="circled upsidedown" title="Scroll Down">⇧</button>
+            <div id="box">
+                <div id="input" contenteditable="plaintext-only"></div>
                 <div class="button_row">
                     <span class="left-buttons hidden">
-                        <button id="stop" class="circled">
-                            <span class="glyph">▣</span>
-                        </button>
-                        <button id="clear" class="button">
-                            <span class="glyph">⌫</span>
-                        </button>
-                        <button id="carry" class="circled">
-                            <span class="glyph">→</span>
-                        </button>
+                        <button id="stop" class="circled">▣</button>
+                        <button id="clear" class="button">⌫</button>
+                        <button id="carry" class="circled">→</button>
                     </span>
-                    <button id="send" class="circled"
-                        title="Submit the Question"
-                        ><span class="glyph">⇧</span>
-                    </button>
+                    <button id="send" class="circled" title="Ask">⇧</button>
                 </div>
-              </div>
-          </div>
+            </div>
         </div>
       </div>
   </div>
@@ -114,3 +82,4 @@
   </div>
 </body>
 </html>
+

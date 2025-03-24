@@ -45,14 +45,16 @@ struct WebView: ViewRepresentable {
     
     #if os(macOS)
     func makeNSView(context: Context) -> WKWebView {
+        let debugger = is_debugger_attached();
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
-        config.preferences.setValue(is_debugger_attached(), forKey: "developerExtrasEnabled")
+        config.preferences.setValue(debugger, forKey: "developerExtrasEnabled")
         let wv = WKWebView(frame: .zero, configuration: config)
-        wv.isInspectable = is_debugger_attached()
+        wv.isInspectable = debugger
         #if DEBUG
         wv.isInspectable = true // always inspectable in DEBUG build
         #endif
+        print("isInspectable: ", wv.isInspectable)
         wv.setValue(false, forKey: "drawsBackground")
         wv.navigationDelegate = context.coordinator
         webView = wv
@@ -68,13 +70,16 @@ struct WebView: ViewRepresentable {
     
     #elseif os(iOS)
     func makeUIView(context: Context) -> WKWebView {
+        let debugger = is_debugger_attached();
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "gyptix")
+        config.preferences.setValue(debugger, forKey: "developerExtrasEnabled")
         let wv = WKWebView(frame: .zero, configuration: config)
-        wv.isInspectable = is_debugger_attached()
+        wv.isInspectable = debugger
         #if DEBUG
         wv.isInspectable = true // always inspectable in DEBUG build
         #endif
+        print("isInspectable: ", wv.isInspectable)
         wv.isOpaque = false
         wv.backgroundColor = .clear
         wv.allowsBackForwardNavigationGestures = false

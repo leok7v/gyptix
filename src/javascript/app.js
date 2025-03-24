@@ -8,6 +8,7 @@ import * as model       from "./model.js"
 import * as prompts     from "./prompts.js"
 import * as suggestions from "./suggestions.js"
 import * as util        from "./util.js"
+import * as ui          from "./ui.js"
 
 const get = id => document.getElementById(id)
 
@@ -55,9 +56,9 @@ const save_chat = (c) => {
 export const run = () => { // called DOMContentLoaded
     const
         shred        = get("shred"), // shred & recycle 
-        collapse     = get("collapse"),
         content      = get("content"),
         expand       = get("expand"),
+        tools        = get("tools"),
         input        = get("input"),
         layout       = get("layout"),
         list         = get("list"),
@@ -90,7 +91,8 @@ export const run = () => { // called DOMContentLoaded
     let selected = null // selected chat id
     let selected_item = null // item in chats list
     let interrupted = false  // output was interrupted
-
+    let is_expanded = false  // navigation pane expanded
+    
     document.addEventListener("copy", e => {
         e.preventDefault()
         const s = window.getSelection().toString()
@@ -98,7 +100,7 @@ export const run = () => { // called DOMContentLoaded
     })
 
     const hide_scroll_to_bottom = () => {
-        scroll.style.display = "none"
+        ui.hide(scroll)
     }
     
     const scroll_gap = 20
@@ -123,7 +125,7 @@ export const run = () => { // called DOMContentLoaded
     const scroll_to_bottom = () => {
         messages.scrollTop = messages.scrollHeight
         at_the_bottom = true
-        setTimeout(() => { scroll.style.display = "none" }, 50)
+        setTimeout(() => ui.hide(scroll), 50)
     }
     
     function normalize_line_breaks_to_spaces(text) {
@@ -236,7 +238,7 @@ export const run = () => { // called DOMContentLoaded
                 hide_menu()
                 hide_scroll_to_bottom()
                 if (current !== c.id) {
-                    carry.style.display = "none"
+                    ui.hide(carry)
                     suggestions.hide()
                     messages.innerHTML = ""
                     current = c.id
@@ -287,7 +289,7 @@ export const run = () => { // called DOMContentLoaded
             title: util.timestamp_label(id),
             messages: []
         }
-        carry.style.display = "none"
+        ui.hide(carry)
         title.innerHTML = ""
         send.classList.add('hidden')
         save_chat(chat)
@@ -354,9 +356,9 @@ export const run = () => { // called DOMContentLoaded
     
     const done = () => {
         send.classList.remove('hidden')
-        stop.style.display = "none"
+        ui.hide(stop)
+        ui.hide(clear)
         carry.style.display = interrupted ? "inline" : "none"
-        clear.style.display = "none"
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
         summarize_to_title()
@@ -431,7 +433,7 @@ export const run = () => { // called DOMContentLoaded
         scroll_to_bottom()
         layout_and_render().then(() => { // render before asking
             let error = model.ask(t)
-            clear.style.display = "none"
+            ui.hide(clear)
             if (!error) {
                 polling()
             } else {
@@ -456,9 +458,7 @@ export const run = () => { // called DOMContentLoaded
         menu.style.top  = y + "px"
     }
     
-    const hide_menu = () => {
-        menu.style.display = "none"
-    }
+    const hide_menu = () => ui.hide(menu)
 
     toggle_theme.onclick = () => util.toggle_theme()
     
@@ -466,8 +466,7 @@ export const run = () => { // called DOMContentLoaded
         e.preventDefault()
         let s = input.innerText.trim()
         if (!model.is_answering() && s !== "") {
-            carry.style.display = "none"
-            clear.style.display = "none"
+            ui.hide(carry, clear)
             interrupted = false
             input.innerText = ""
             send.classList.add('hidden')
@@ -493,14 +492,14 @@ export const run = () => { // called DOMContentLoaded
             interrupted = true
             model.interrupt()
             placeholder()
-            stop.style.display = "none"
+            ui.hide(stop)
             carry.style.display = "inline"
         }
     }
 
     clear.onclick = e => {
         input.innerText = ""
-        clear.style.display = "none"
+        ui.hide(clear)
         layout_and_render().then(() => {
             input.focus()
             if (chat.messages.length == 0) suggestions.show()
@@ -508,7 +507,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     carry.onclick = e => {
-        carry.style.display = "none"
+        ui.hide(carry)
         ask("carry on")
     }
 
@@ -541,21 +540,22 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const collapsed = () => {
+        is_expanded = false
         navigation.classList.add("collapsed")
-        layout.classList.add("is_collapsed")
+        ui.hide(tools)
         hide_menu()
     }
     
     const expanded = () => {
         if (!model.is_answering()){
+            is_expanded = true
             navigation.classList.remove("collapsed")
-            layout.classList.remove("is_collapsed")
-            scroll.style.display = "none"
+            ui.hide(scroll)
+            tools.style.display = "block"
         }
     }
     
-    collapse.onclick = () => collapsed()
-    expand.onclick = () => expanded()
+    expand.onclick = () => (is_expanded ? collapsed() : expanded())
     
     scroll.onclick = () => {
         user_scrolling = false
@@ -594,9 +594,7 @@ export const run = () => { // called DOMContentLoaded
         last_key_down_time = Date.now()
     }
     
-    const observer = new MutationObserver(() => {
-        scroll.style.display = "none"
-    })
+    const observer = new MutationObserver(() => ui.hide(scroll))
     
     observer.observe(input, { childList: true, subtree: true,
         characterData: true });
@@ -610,7 +608,7 @@ export const run = () => { // called DOMContentLoaded
     
     input.onfocus = () => {
         suggestions.hide()
-        scroll.style.display = "none"
+        ui.hide(scroll)
         document.body.style.overflow = "hidden"
         collapsed()
     }
@@ -619,8 +617,7 @@ export const run = () => { // called DOMContentLoaded
         let s = input.innerText
         if (s !== "" && !model.is_answering()) {
             send.classList.remove('hidden')
-            stop.style.display = "none"
-            carry.style.display = "none"
+            ui.hide(stop, carry)
             clear.style.display = "inline"
         }
         const lines = input.innerText.split("\n").length
@@ -629,7 +626,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     content.onclick = e => {
-        if (e.target.closest("#chat-container") || e.target.closest("#input")) {
+        if (e.target.closest("#content") || e.target.closest("#input")) {
             collapsed()
         }
         if (!e.target.closest("#menu")) hide_menu()
@@ -735,28 +732,12 @@ export const run = () => { // called DOMContentLoaded
         callback: s => {
             interrupted = false;
             input.innerText = s.prompt
-            stop.style.display  = "none"
-            carry.style.display = "none"
+            ui.hide(stop, carry)
             clear.style.display = "inline"
             send.classList.remove('hidden')
             suggestions.hide()
         }
     })
-
-    // lost battle for landscape artifacts.
-    // iPhone keyboard simply takes almost whole screen and
-    // edit control does NOT have enough space.
-    /*
-    window.addEventListener("resize", () => {
-        if (!detect.iPhone) return // only on iPhones:
-        let input_container = get("input_container")
-        let fs = parseFloat(getComputedStyle(document.body).fontSize)
-        let line1 = 5.0
-        let lines = line1 * 4
-        input_container.style.maxHeight =
-            (window.innerWidth > window.innerHeight ? line1 : lines) + "em"
-    })
-    */
     
     const licenses = () => {
         modal.show(util.load("./licenses.md"), (action) => {
@@ -807,6 +788,8 @@ export const run = () => { // called DOMContentLoaded
     clear.title = "Clear"
     scroll.title = "Scroll to the Bottom"
 
+    if (!detect.macOS) util.keyboard_viewport_handler()
+        
     showEULA()
 }
 

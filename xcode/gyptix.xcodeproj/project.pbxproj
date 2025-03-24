@@ -63,6 +63,8 @@
 		B34A04712D458A880010D066 /* ggml-cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02992D458A880010D066 /* ggml-cpu.cpp */; };
 		B34A04732D458A880010D066 /* gguf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A04382D458A880010D066 /* gguf.cpp */; };
 		B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02972D458A880010D066 /* cpu-feats-x86.cpp */; };
+		B361EBE02D8FD06500B45B70 /* app1.css in Resources */ = {isa = PBXBuildFile; fileRef = B361EBDF2D8FD06500B45B70 /* app1.css */; };
+		B361EBE22D92101100B45B70 /* ui.js in Resources */ = {isa = PBXBuildFile; fileRef = B361EBE12D92101100B45B70 /* ui.js */; };
 		B363D0A42D7DD32600993F90 /* markdown.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A22D7DD32600993F90 /* markdown.js */; };
 		B363D0A52D7DD32600993F90 /* mdw.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A32D7DD32600993F90 /* mdw.js */; };
 		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
@@ -204,6 +206,8 @@
 		B34A04362D458A880010D066 /* ggml-threading.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-threading.h"; sourceTree = "<group>"; };
 		B34A04372D458A880010D066 /* ggml-threading.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "ggml-threading.cpp"; sourceTree = "<group>"; };
 		B34A04382D458A880010D066 /* gguf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gguf.cpp; sourceTree = "<group>"; };
+		B361EBDF2D8FD06500B45B70 /* app1.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app1.css; sourceTree = "<group>"; };
+		B361EBE12D92101100B45B70 /* ui.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ui.js; sourceTree = "<group>"; };
 		B363D0A22D7DD32600993F90 /* markdown.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = markdown.js; sourceTree = "<group>"; };
 		B363D0A32D7DD32600993F90 /* mdw.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = mdw.js; sourceTree = "<group>"; };
 		B36EBB442D275258005972FF /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
@@ -496,6 +500,7 @@
 				B3B3F3F62D4AB3C300A2D406 /* about.md */,
 				B3E2499E2D617B780048A24F /* app.html */,
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
+				B361EBDF2D8FD06500B45B70 /* app1.css */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
@@ -505,6 +510,7 @@
 				B3E2499A2D6162110048A24F /* model.js */,
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
 				B3A3D8382D67E455000A5839 /* suggestions.js */,
+				B361EBE12D92101100B45B70 /* ui.js */,
 				B3E2499C2D61621C0048A24F /* util.js */,
 				B3B3F3F92D4AB3C300A2D406 /* eula.md */,
 				B3B3F3FB2D4AB3C300A2D406 /* licenses.md */,
@@ -577,6 +583,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B361EBE02D8FD06500B45B70 /* app1.css in Resources */,
 				B3E249A12D617E300048A24F /* marked.js in Resources */,
 				B3E2499D2D61621C0048A24F /* util.js in Resources */,
 				B363D0A42D7DD32600993F90 /* markdown.js in Resources */,
@@ -600,6 +607,7 @@
 				B3B3F4092D4AB3C300A2D406 /* about.md in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,
 				B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */,
+				B361EBE22D92101100B45B70 /* ui.js in Resources */,
 				B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */,
 				B3E2499F2D617B780048A24F /* app.html in Resources */,
 				B30D392C2D458EFA00B8196B /* generation_config.json in Resources */,
