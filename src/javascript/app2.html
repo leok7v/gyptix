@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>iOS Keyboard Resize Handling</title>
+    <style>
+        * { background-color: transparent; overscroll-behavior: none; }
+        html {
+            background: linear-gradient(135deg,
+                  #7f0000  0%, #7f3f00 20%, #7f7f00  40%,
+                  #007f00 60%, #00007f 80%, #4b007f 100%);
+            filter: brightness(0.9);
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #app {
+            position: sticky;
+            bottom: 0;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: white;
+            background: none;
+        }
+        #header {
+            top: 0;
+            left: 0;
+            background-color: #888;
+            color: red;
+            width: 100%;
+            flex-shrink: 0;
+            position: fixed; /* Keep fixed to viewport */
+        }
+        #list {
+            flex-grow: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #input {
+            padding: 10px;
+            min-height: 50px;
+            flex-shrink: 0;
+            background-color: #888;
+        }
+        #list p {
+            margin: 10px 0;
+            padding: 10px;
+        }
+    </style>
+    <script type="module">
+        import * as model from "./model.js";
+        import * as app   from "./app2.js";
+        document.addEventListener("DOMContentLoaded", () => { app.run() });
+    </script>
+</head>
+<body>
+    <div id="app">
+        <div id="header">HEADER</div>
+        <div id="list"></div>
+        <div id="input" contenteditable="true"></div>
+    </div>
+    <script type="module">
+        import * as model from "./model.js";
+        const get = (s) => document.querySelector(s)
+        
+        const report = () => {
+            const wvvp = window.visualViewport;
+            const doc = document.documentElement;
+            const app = get('#app');
+            console.log("🔹 visualViewport: " +
+                wvvp.offsetLeft + "," + wvvp.offsetTop + " " +
+                wvvp.width + "x" + wvvp.height +
+                "   window: " + window.innerWidth + "x" + window.innerHeight +
+                "   document: " + doc.clientWidth + "x" + doc.clientHeight +
+                "   app: " + app.clientWidth + "x" + app.clientHeight);
+        };
+
+        function generate_paragraphs() {
+            const list = document.getElementById('list');
+            for (let i = 1; i <= 33; i++) {
+                const p = document.createElement('p');
+                p.textContent = `${i}. Hello World`;
+                list.appendChild(p);
+            }
+        }
+
+        function parse(s) {
+            const [x, y, w, h] = s.split(',').map(Number);
+            return { x, y, w, h };
+        }
+
+        var innerWidth = 0
+        
+        function loaded() {
+            innerWidth = window.innerWidth
+            generate_paragraphs();
+//          window.visualViewport.addEventListener('resize', report)
+//          report()
+        }
+        document.addEventListener("DOMContentLoaded", () => loaded());
+    </script>
+</body>
+</html>

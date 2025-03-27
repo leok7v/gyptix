@@ -174,7 +174,7 @@ export const keyboard_viewport_handler = () => {
             "   document: " +
             doc.clientWidth + "x" + doc.clientHeight +
             "   body: " +
-            doc.clientWidth + "x" + doc.clientHeight +
+            body.style.width + "x" + body.style.height +
             "   viewport: " +
             viewport.clientWidth + "x" + viewport.clientHeight +
             "   content: " +
@@ -182,7 +182,25 @@ export const keyboard_viewport_handler = () => {
         )
     }
 
+    function adjustViewport() {
+        if (window.visualViewport) {
+            document.body.style.height = `${window.visualViewport.height}px`;
+            console.log(`document.body.style.height ${document.body.style.height}`)
+        }
+        window.addEventListener('resize', () => {
+            if (window.innerHeight < window.outerHeight) {
+                console.log('adjustViewport2')
+                document.body.style.height = `${window.innerHeight}px`;
+            } else {
+                console.log('adjustViewport3')
+                document.body.style.height = '100vh';
+            }
+        });
+        report()
+    }
+    
     const set_viewport_height = () => {
+adjustViewport(); return;
         const height = `${window.innerHeight}px`
         document.documentElement.style.setProperty('--height', height)
         document.documentElement.style.height = height
@@ -217,7 +235,7 @@ export const keyboard_viewport_handler = () => {
         const y = wvvp.offsetTop
         const h = wvvp.height
         console.log("wvvp y: " + y + " h: " + h)
-        document.body.style.transform = `translateY(${y}px)`
+//      document.body.style.transform = `translateY(${y}px)`
         console.log(`body \{ transform : translateY(${y}px); \}`)
     })
 

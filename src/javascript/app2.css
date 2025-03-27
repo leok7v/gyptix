@@ -1,0 +1,18 @@
+
+"use strict"
+
+import * as detect      from "./detect.js"
+import * as markdown    from "./markdown.js"
+import * as marked      from "./marked.js"
+import * as modal       from "./modal.js"
+import * as model       from "./model.js"
+import * as prompts     from "./prompts.js"
+import * as suggestions from "./suggestions.js"
+import * as util        from "./util.js"
+import * as ui          from "./ui.js"
+
+const get = id => document.getElementById(id)
+
+console.log("initialized")
+
+model.initialized()

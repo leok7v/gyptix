@@ -56,6 +56,13 @@ public func initialized() -> String {
     return ""
 }
 
+public func keyboard_frame() -> String {
+    let s = String(format: "%f,%f,%f,%f",
+                   keyboard.origin.x, keyboard.origin.y,
+                   keyboard.size.height, keyboard.size.width)
+    return s
+}
+
 public func quit() -> String {
     #if os(macOS)
     DispatchQueue.main.async {
@@ -105,12 +112,13 @@ public func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Boo
     var s: String = ""  // response
 //  print("dispatch_post: " + path + " request: " + r)
     switch path {
-        case "log":    print(r)
-        case "run":    check(path); s = call(run(r));
-        case "ask":    check(path); s = call(ask(r));
-        case "poll":   check(path); s = call(poll(r));
-        case "remove": check(path); s = call(remove(r));
-        default:       dispatched = false
+        case "log":             print(r)
+    case "run":                 check(path); s = call(run(r));
+        case "ask":             check(path); s = call(ask(r));
+        case "poll":            check(path); s = call(poll(r));
+        case "remove":          check(path); s = call(remove(r));
+        case "keyboard_frame":  check(path); s = call(keyboard_frame())
+        default:                dispatched = false
     }
     if dispatched { send_response(u, t, s) }
     return dispatched
@@ -122,9 +130,9 @@ public func call_js(_ call: String, sync: Bool = false) -> String {
     if out_call  { fatalError("recursive: " + call) }
     var wait = sync
     out_call = true
-    guard let view = webView else { fatalError("too early: " + call) }
+    guard let wv = web_view else { fatalError("too early: " + call) }
     var v : String = ""
-    view.evaluateJavaScript(call) { result, error in
+    wv.evaluateJavaScript(call) { result, error in
         if let error = error {
             print("Error calling \(call): \(error)")
         } else {

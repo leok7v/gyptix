@@ -114,14 +114,15 @@ body { font-size: var(--font-size); }
     filter: brightness(0.9);
 }
 
-.viewport {
+.viewport { /* TODO: rename to `full-page`? */
     display: none;
     flex: 1;
     flex-direction: column;
     background-color: transparent;
+    overscroll-behavior-y: none;
 }
 
-#viewport {
+#viewport { /* TODO: rename to `app`? */
     display: flex;
 }
 

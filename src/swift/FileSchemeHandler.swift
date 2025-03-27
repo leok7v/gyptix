@@ -1,9 +1,9 @@
 import Foundation
 import WebKit
 
-class FileSchemeHandler: NSObject, WKURLSchemeHandler {
+public class FileSchemeHandler: NSObject, WKURLSchemeHandler {
 
-    func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
+    public func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
 
         func failWithError() {
             let error = NSError(domain: NSURLErrorDomain,
@@ -55,7 +55,7 @@ class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         urlSchemeTask.didFinish()
     }
 
-    func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
+    public func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
     }
 
 }

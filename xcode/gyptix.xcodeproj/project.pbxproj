@@ -69,6 +69,9 @@
 		B363D0A52D7DD32600993F90 /* mdw.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A32D7DD32600993F90 /* mdw.js */; };
 		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
 		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
+		B375A6A92D946AC8001F9286 /* app2.css in Resources */ = {isa = PBXBuildFile; fileRef = B375A6A82D946AC8001F9286 /* app2.css */; };
+		B375A6AB2D946ADB001F9286 /* app2.js in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AA2D946ADB001F9286 /* app2.js */; };
+		B375A6AD2D946B0E001F9286 /* app2.html in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AC2D946B0E001F9286 /* app2.html */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
 		B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */; };
@@ -86,6 +89,7 @@
 		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
 		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
 		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
+		B3D7EDF02D955A86003AF38F /* app3.html in Resources */ = {isa = PBXBuildFile; fileRef = B3D7EDEF2D955A86003AF38F /* app3.html */; };
 		B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E04BD02D84816800C6C67B /* Dispatch.swift */; };
 		B3E2499B2D6162110048A24F /* model.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499A2D6162110048A24F /* model.js */; };
 		B3E2499D2D61621C0048A24F /* util.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499C2D61621C0048A24F /* util.js */; };
@@ -212,6 +216,9 @@
 		B363D0A32D7DD32600993F90 /* mdw.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = mdw.js; sourceTree = "<group>"; };
 		B36EBB442D275258005972FF /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 		B3756DE82D41D43100BCF111 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B375A6A82D946AC8001F9286 /* app2.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app2.css; sourceTree = "<group>"; };
+		B375A6AA2D946ADB001F9286 /* app2.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app2.js; sourceTree = "<group>"; };
+		B375A6AC2D946B0E001F9286 /* app2.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app2.html; sourceTree = "<group>"; };
 		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
@@ -233,6 +240,7 @@
 		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
 		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		B3D7EDEF2D955A86003AF38F /* app3.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app3.html; sourceTree = "<group>"; };
 		B3E04BD02D84816800C6C67B /* Dispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = ../src/swift/Dispatch.swift; sourceTree = SOURCE_ROOT; };
 		B3E2499A2D6162110048A24F /* model.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = model.js; sourceTree = "<group>"; };
 		B3E2499C2D61621C0048A24F /* util.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = util.js; sourceTree = "<group>"; };
@@ -499,8 +507,12 @@
 			children = (
 				B3B3F3F62D4AB3C300A2D406 /* about.md */,
 				B3E2499E2D617B780048A24F /* app.html */,
+				B375A6AC2D946B0E001F9286 /* app2.html */,
+				B3D7EDEF2D955A86003AF38F /* app3.html */,
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
 				B361EBDF2D8FD06500B45B70 /* app1.css */,
+				B375A6A82D946AC8001F9286 /* app2.css */,
+				B375A6AA2D946ADB001F9286 /* app2.js */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
@@ -588,6 +600,7 @@
 				B3E2499D2D61621C0048A24F /* util.js in Resources */,
 				B363D0A42D7DD32600993F90 /* markdown.js in Resources */,
 				B363D0A52D7DD32600993F90 /* mdw.js in Resources */,
+				B375A6AB2D946ADB001F9286 /* app2.js in Resources */,
 				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
 				B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */,
 				B3E2499B2D6162110048A24F /* model.js in Resources */,
@@ -598,6 +611,7 @@
 				B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */,
 				B30D39282D458EFA00B8196B /* config.json in Resources */,
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
+				B375A6AD2D946B0E001F9286 /* app2.html in Resources */,
 				B30D392A2D458EFA00B8196B /* vocab.json in Resources */,
 				B30D392B2D458EFA00B8196B /* README.md in Resources */,
 				B3A3D8392D67E455000A5839 /* suggestions.js in Resources */,
@@ -607,12 +621,14 @@
 				B3B3F4092D4AB3C300A2D406 /* about.md in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,
 				B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */,
+				B3D7EDF02D955A86003AF38F /* app3.html in Resources */,
 				B361EBE22D92101100B45B70 /* ui.js in Resources */,
 				B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */,
 				B3E2499F2D617B780048A24F /* app.html in Resources */,
 				B30D392C2D458EFA00B8196B /* generation_config.json in Resources */,
 				B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */,
 				B3F590562D6A7294008B5B7D /* detect.js in Resources */,
+				B375A6A92D946AC8001F9286 /* app2.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

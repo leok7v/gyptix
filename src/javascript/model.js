@@ -47,4 +47,6 @@ export const loaded = () => util.post("./loaded")
 // app.* methods can be called from native code
 export const initialized = () => util.post("./initialized")
 
+export const keyboard_frame = () => util.post("./keyboard_frame")
+
 export const quit = () => util.post("./quit") // fatal no return
