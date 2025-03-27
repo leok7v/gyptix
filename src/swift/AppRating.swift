@@ -1,23 +1,25 @@
 import StoreKit
-#if os(macOS)
-import AppKit
-#elseif os(iOS)
+#if os(iOS)
 import UIKit
+#else // os(macOS)
+import AppKit
 #endif
 
+let appID = "6741091005"  // App Store ID
+
 struct AppRating {
-    
+
     static func trackAppLaunchDelayed() {
-        let appID = "6741091005"  // Replace with your App Store ID
         let debugRating = false   // Debug mode: Always request review
         let now = Date().timeIntervalSince1970
         let oneDay: TimeInterval = 24 * 60 * 60
         let oneWeek: TimeInterval = 7 * oneDay
         let oneMonth: TimeInterval = 4 * oneWeek
-        var appLaunchCount   = UserDefaults.standard.integer(forKey: "appLaunchCount")
-        var lastPromptDate   = UserDefaults.standard.double(forKey:  "lastPromptDate")
-        var firstLaunchDate  = UserDefaults.standard.double(forKey:  "firstLaunchDate")
-        var ratingShownCount = UserDefaults.standard.integer(forKey: "ratingShownCount")
+        let uds = UserDefaults.standard
+        var appLaunchCount   = uds.integer(forKey: "appLaunchCount")
+        var lastPromptDate   = uds.double(forKey:  "lastPromptDate")
+        var firstLaunchDate  = uds.double(forKey:  "firstLaunchDate")
+        var ratingShownCount = uds.integer(forKey: "ratingShownCount")
         if firstLaunchDate == 0 {
             UserDefaults.standard.set(now, forKey: "firstLaunchDate")
             firstLaunchDate = now
@@ -35,42 +37,44 @@ struct AppRating {
         appLaunchCount += 1
         UserDefaults.standard.set(appLaunchCount, forKey: "appLaunchCount")
         if debugRating || (now - lastPromptDate > ratingInterval) {
-            #if os(iOS)
-            if (ratingShownCount > 2) {
-                rateManually(appID: appID)
-            } else {
-                if let windowScene = UIApplication.shared.connectedScenes.first
-                    as? UIWindowScene {
-                    SKStoreReviewController.requestReview(in: windowScene)
-                }
-            }
-            #elseif os(macOS)
-            rateManually(appID: appID)
-            #endif
+            rate()
             UserDefaults.standard.set(now, forKey: "lastPromptDate")
             ratingShownCount += 1
-            UserDefaults.standard.set(ratingShownCount, forKey: "ratingShownCount")
+            UserDefaults.standard.set(ratingShownCount,
+                                      forKey: "ratingShownCount")
         }
     }
 
+    static func rate() {
+        #if os(iOS)
+            if let windowScene = UIApplication.shared.connectedScenes.first
+                as? UIWindowScene {
+                SKStoreReviewController.requestReview(in: windowScene)
+            }
+        #else // os(macOS)
+            rateManually(appID: appID)
+        #endif
+        var ratingShownCount =
+            UserDefaults.standard.integer(forKey: "ratingShownCount")
+        ratingShownCount += 1
+        UserDefaults.standard.set(ratingShownCount,
+                                  forKey: "ratingShownCount")
+    }
+
     static func trackAppLaunch() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             AppRating.trackAppLaunchDelayed()
         }
     }
     
     static func rateManually(appID: String) {
-        if let url = URL(string:
-            "https://apps.apple.com/us/app/gyptix/id\(appID)?action=write-review") {
+        let u = "https://apps.apple.com/us/app/gyptix/id\(appID)"
+        if let url = URL(string: "\(u)?action=write-review") {
             #if os(iOS)
-            UIApplication.shared.open(url)
-            #elseif os(macOS)
-            NSWorkspace.shared.open(url)
+                UIApplication.shared.open(url)
+            #else // os(macOS)
+                NSWorkspace.shared.open(url)
             #endif
-            var ratingShownCount =
-                UserDefaults.standard.integer(forKey: "ratingShownCount")
-            ratingShownCount += 1
-            UserDefaults.standard.set(ratingShownCount, forKey: "ratingShownCount")
         }
     }
 }

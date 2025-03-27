@@ -6,8 +6,7 @@ public let schemeHandler = FileSchemeHandler()
 struct ContentView: View {
     
     var body: some View {
-        WebView()
-            .edgesIgnoringSafeArea(.all)
+        WebView().edgesIgnoringSafeArea(.all)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     

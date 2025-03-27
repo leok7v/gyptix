@@ -3,7 +3,8 @@ import WebKit
 
 public class FileSchemeHandler: NSObject, WKURLSchemeHandler {
 
-    public func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
+    public func webView(_ webView: WKWebView,
+                        start urlSchemeTask: WKURLSchemeTask) {
 
         func failWithError() {
             let error = NSError(domain: NSURLErrorDomain,
@@ -18,18 +19,13 @@ public class FileSchemeHandler: NSObject, WKURLSchemeHandler {
                 failWithError(); return
             }
         let path = p.hasPrefix("/") ? String(p.dropFirst()) : p
-        guard let r = response(u, mt: mimeType(for: p)) else {
+        guard let r = response(u, mt: mime_type(for: p)) else {
             failWithError(); return
         }
         if dispatch_post(path, urlSchemeTask, u) { return }
         if dispatch_get(path, urlSchemeTask, u) { return }
         if path == "quit" {
-            close_all_windows()
-            #if os(iOS)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
-                fatalError("Quit")
-            }
-            #endif
+            let _ = quit()
             return
         }
         guard let f = Bundle.main.url(forResource: path,
@@ -55,12 +51,13 @@ public class FileSchemeHandler: NSObject, WKURLSchemeHandler {
         urlSchemeTask.didFinish()
     }
 
-    public func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
+    public func webView(_ webView: WKWebView,
+                        stop urlSchemeTask: WKURLSchemeTask) {
     }
 
 }
 
-func body(_ task: WKURLSchemeTask, _ url: URL) -> String {
+public func body(_ task: WKURLSchemeTask, _ url: URL) -> String {
     if let body = task.request.httpBody {
         guard let s = String(data: body, encoding: .utf8) else {
             print("Failed to decode body as UTF-8 string.")
@@ -72,9 +69,9 @@ func body(_ task: WKURLSchemeTask, _ url: URL) -> String {
     }
 }
 
-let allowedOrigin = "gyptix://"
+private let allowedOrigin = "gyptix://"
 
-func response(_ u: URL, mt: String) -> HTTPURLResponse? {
+public func response(_ u: URL, mt: String) -> HTTPURLResponse? {
     let responseHeaders = [
         "Access-Control-Allow-Origin": allowedOrigin,
         "Content-Type": mt,
@@ -85,7 +82,7 @@ func response(_ u: URL, mt: String) -> HTTPURLResponse? {
                            headerFields: responseHeaders)
 }
 
-func send_response(_ u: URL, _ t: WKURLSchemeTask, _ s: String) {
+public func send_response(_ u: URL, _ t: WKURLSchemeTask, _ s: String) {
     if let r = response(u, mt: "text/plain") {
         t.didReceive(r)
         if let data = s.data(using: .utf8) {
@@ -99,7 +96,7 @@ func send_response(_ u: URL, _ t: WKURLSchemeTask, _ s: String) {
     }
 }
 
-private func mimeType(for p: String) -> String {
+public func mime_type(for p: String) -> String {
     // determine the MIME type based on file extension
     switch URL(fileURLWithPath: p).pathExtension.lowercased() {
         case "html", "htm": return "text/html"

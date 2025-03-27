@@ -1,8 +1,8 @@
 import Foundation
 import WebKit
 
-var in_call  = false // native called from JavaScript
-var out_call = false // JavaScript called from native
+private var in_call  = false // native called from JavaScript
+private var out_call = false // JavaScript called from native
 
 public func run(_ id: String) -> String {
     id.withCString { s in gyptix.run(s) }
@@ -64,27 +64,23 @@ public func keyboard_frame() -> String {
 }
 
 public func quit() -> String {
-    #if os(macOS)
-    DispatchQueue.main.async {
-        NSApplication.shared.windows.forEach { $0.close() }
-    }
-    #elseif os(iOS)
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
-    fatalError("Quit")
-    }
+    #if os(iOS)
+        DispatchQueue.main.async{ fatalError("Quit") }
+    #else // os(macOS)
+        close_all_windows()
     #endif
     // Intentionaly do NOT send response because JavaScript
     // trets model.quit() as NO RETURN fatal
     return ""
 }
 
-func check(_ path: String) {
+private func check(_ path: String) {
     if (out_call) { fatalError("roundtrip deadlock: " + path) }
     if (in_call)  { fatalError("recursive incall: " + path) }
     in_call = true
 }
 
-func call(_ result: String) -> String {
+private func call(_ result: String) -> String {
     in_call = false
     return result
 }
