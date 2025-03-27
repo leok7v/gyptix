@@ -157,6 +157,7 @@ export const substitutions = (s) => {
     })
 }
 
+/* TODO: remove
 export const keyboard_viewport_handler = () => {
 
     const wvvp = window.visualViewport
@@ -218,7 +219,7 @@ adjustViewport(); return;
     // to the visualViewport’s "resize" event instead:
     wvvp.addEventListener('resize', set_viewport_height)
 
-    if (detect.macOS) return /* TODO: iOS with attached keyboard? */
+    if (detect.macOS) return // TODO: iOS with attached keyboard?
 
     // iOS mobile specific:
         
@@ -244,3 +245,4 @@ adjustViewport(); return;
         set_viewport_height()
     })
 }
+*/

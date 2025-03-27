@@ -133,7 +133,7 @@ struct WebView: ViewRepresentable {
     }
 
     func load(_ wv: WKWebView) {
-        if let url = URL(string: "gyptix://./app2.html") {
+        if let url = URL(string: "gyptix://./app.html") {
             wv.load(URLRequest(url: url))
         } else {
             fatalError("failed to load")

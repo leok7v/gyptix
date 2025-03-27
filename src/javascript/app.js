@@ -122,8 +122,18 @@ export const run = () => { // called DOMContentLoaded
         at_the_bottom = sh - ch <= top + scroll_gap
     }
 
+    const stop_in_flight_scroll = () => {
+        const originalOverflow = messages.style.overflow;
+        messages.style.overflow = "hidden";
+        // Force reflow (e.g., read offsetHeight).
+        const _ = messages.offsetHeight; // reading forces layout
+        messages.style.overflow = originalOverflow;
+    }
+    
     const scroll_to_bottom = () => {
-        messages.scrollTop = messages.scrollHeight
+        stop_in_flight_scroll() // must be stopped before assignment below
+//      messages.scrollTop = messages.scrollHeight
+        messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth"})
         at_the_bottom = true
         setTimeout(() => ui.hide(scroll), 50)
     }
@@ -788,8 +798,6 @@ export const run = () => { // called DOMContentLoaded
     clear.title = "Clear"
     scroll.title = "Scroll to the Bottom"
 
-    if (!detect.macOS) util.keyboard_viewport_handler()
-        
     showEULA()
 }
 
