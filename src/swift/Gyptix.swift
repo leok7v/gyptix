@@ -30,7 +30,6 @@ struct Gyptix: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.locale, Locale(identifier: "en_US"))
                 #if os(iOS)
                 .statusBar(hidden: true)
                 .ignoresSafeArea(edges: .all)
@@ -65,7 +64,50 @@ struct Gyptix: App {
 
 }
 
+// replacing max_bounds().* with .inifinity leads to
+// internal NaN exceptions in some parts of SwiftUI code...
+
+func max_bounds() -> CGRect {
+    #if os(iOS)
+        var rect = CGRect.null
+        for session in UIApplication.shared.openSessions {
+            if let ws = session.scene as? UIWindowScene {
+                rect = rect.union(ws.screen.bounds)
+            }
+        }
+        return rect
+    #else
+        return NSScreen.screens.reduce(CGRect.null) { rect, screen in
+            rect.union(screen.frame)
+        }
+    #endif
+}
+
+public let schemeHandler = FileSchemeHandler()
+
+struct ContentView: View {
+    
+    var body: some View {
+        WebView().edgesIgnoringSafeArea(.all)
+            .frame(maxWidth:  max_bounds().width,
+                   maxHeight: max_bounds().height)
+    }
+    
+}
+
 #if !os(iOS) // os(macOS)
+
+class WindowDelegate: NSObject, NSWindowDelegate {
+    static let shared = WindowDelegate()
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        return true
+    }
+    
+    func windowWillClose(_ notification: Notification) {
+        NSApplication.shared.terminate(nil)
+    }
+}
 
 private func setup_termination() {
     NotificationCenter.default.addObserver(

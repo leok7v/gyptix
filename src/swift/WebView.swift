@@ -1,11 +1,16 @@
 import SwiftUI
 @preconcurrency
 import WebKit
+#if os(iOS)
+import UIKit
+#endif
 
 #if os(iOS)
 typealias ViewRepresentable = UIViewRepresentable
+typealias Context = UIViewRepresentableContext<WebView>
 #else
 typealias ViewRepresentable = NSViewRepresentable
+typealias Context = NSViewRepresentableContext<WebView>
 #endif
 
 let app = "app" // experiments: app2, app3
@@ -13,9 +18,7 @@ let app = "app" // experiments: app2, app3
 struct WebView: ViewRepresentable {
     
     #if os(iOS)
-    typealias Context = UIViewRepresentableContext<WebView>
     #else
-    typealias Context = NSViewRepresentableContext<WebView>
     #endif
     
     init() { }
@@ -24,33 +27,16 @@ struct WebView: ViewRepresentable {
         
         let parent: WebView
         
-        init(_ parent: WebView) {
-            self.parent = parent
-            super.init()
-            #if os(iOS)
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(keyboardWillShow),
-                name: UIResponder.keyboardWillShowNotification,
-                object: nil
-            )
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(keyboardWillHide),
-                name: UIResponder.keyboardWillHideNotification,
-                object: nil
-            )
-            #endif
-        }
+        init(_ parent: WebView) { self.parent = parent; super.init() }
         
-        // Handle navigation actions (existing logic)
         func webView(_ webView: WKWebView,
-                     decidePolicyFor navigationAction: WKNavigationAction,
-                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+             decidePolicyFor navigationAction: WKNavigationAction,
+             decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             if navigationAction.navigationType == .linkActivated,
                let url = navigationAction.request.url {
                 #if os(iOS)
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                UIApplication.shared.open(url, options: [:],
+                                          completionHandler: nil)
                 #else // os(macOS)
                 NSWorkspace.shared.open(url)
                 #endif
@@ -60,47 +46,9 @@ struct WebView: ViewRepresentable {
             decisionHandler(.allow)
         }
         
-        #if os(iOS)
+        func webView(_ webView: WKWebView,
+                     didFinish navigation: WKNavigation!) { }
         
-        @objc func keyboardWillShow(_ notification: Notification) {
-            let info_key = UIResponder.keyboardFrameEndUserInfoKey
-            if let kf = notification.userInfo?[info_key] as? CGRect,
-               let wv = web_view {
-                keyboard = kf
-                let h = kf.height
-//              print("keyboard_frame: \(keyboard)")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.125) {
-                    let height = UIScreen.main.bounds.height - h
-                    wv.frame.size.height = height
-                    wv.scrollView.frame.size.height = height
-                    wv.superview?.frame.size.height = height
-                }
-                wv.scrollView.setContentOffset(.zero, animated: true)
-            }
-        }
-        
-        @objc func keyboardWillHide(_ notification: Notification) {
-            if let wv = web_view {
-                keyboard = .zero
-//              print("keyboard_frame: \(keyboard)")
-                wv.superview?.frame.origin.y = 0
-                let h = UIScreen.main.bounds.height
-                wv.frame.size.height = h
-                wv.scrollView.frame.size.height = h
-                wv.superview?.frame.size.height = h
-            }
-        }
-        
-        #endif
-        
-        deinit {
-            #if os(iOS) // Clean up observers
-            NotificationCenter.default.removeObserver(self,
-                  name: UIResponder.keyboardWillShowNotification, object: nil)
-            NotificationCenter.default.removeObserver(self,
-                  name: UIResponder.keyboardWillHideNotification, object: nil)
-            #endif
-        }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -121,8 +69,6 @@ struct WebView: ViewRepresentable {
         wv.scrollView.isScrollEnabled = false
         wv.scrollView.contentInsetAdjustmentBehavior = .never
         wv.scrollView.delaysContentTouches = false
-        wv.translatesAutoresizingMaskIntoConstraints = true
-        wv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         #else
         wv.setValue(false, forKey: "drawsBackground")
         #endif
@@ -147,25 +93,15 @@ struct WebView: ViewRepresentable {
 
     #if os(iOS)
 
-    func makeUIView(context: Context) -> UIView {
-        return make_view(context)
-    }
+    func makeUIView(context: Context) -> UIView { make_view(context) }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
-        // No frame manipulation; SwiftUI’s .frame handles height
-        print("updateUIView")
-    }
+    func updateUIView(_ uiView: UIView, context: Context) { }
 
     #else // macOS
 
-    func makeNSView(context: Context) -> WKWebView {
-        return make_view(context)
-    }
+    func makeNSView(context: Context) -> WKWebView { make_view(context) }
 
-    func updateNSView(_ nsView: WKWebView, context: Context) {
-        // No frame manipulation; SwiftUI handles it
-        print("updateNSView")
-    }
+    func updateNSView(_ nsView: WKWebView, context: Context) { }
 
     #endif
 }

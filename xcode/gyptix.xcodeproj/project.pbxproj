@@ -74,11 +74,9 @@
 		B375A6AD2D946B0E001F9286 /* app2.html in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AC2D946B0E001F9286 /* app2.html */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
-		B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */; };
 		B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */; };
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
 		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
-		B3A4829A2D50384100FCE4A5 /* WindowDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482992D50384100FCE4A5 /* WindowDelegate.swift */; };
 		B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* logo-256x256.png */; };
 		B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F92D4AB3C300A2D406 /* eula.md */; };
 		B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FB2D4AB3C300A2D406 /* licenses.md */; };
@@ -225,11 +223,9 @@
 		B37AB35B2D8C2FC300199E85 /* llama.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = llama.h; path = ../llama.cpp/include/llama.h; sourceTree = SOURCE_ROOT; };
 		B37AB35C2D8C2FC300199E85 /* llama-cpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-cpp.h"; path = "../llama.cpp/include/llama-cpp.h"; sourceTree = SOURCE_ROOT; };
 		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
-		B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = ../src/swift/ContentView.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileSchemeHandler.swift; path = ../src/swift/FileSchemeHandler.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
-		B3A482992D50384100FCE4A5 /* WindowDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WindowDelegate.swift; path = ../src/swift/WindowDelegate.swift; sourceTree = SOURCE_ROOT; };
 		B3B29CA82D4E8E57006F04CE /* logo-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-256x256.png"; sourceTree = "<group>"; };
 		B3B3F3F62D4AB3C300A2D406 /* about.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = about.md; sourceTree = "<group>"; };
 		B3B3F3F72D4AB3C300A2D406 /* app.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app.css; sourceTree = "<group>"; };
@@ -492,12 +488,10 @@
 			isa = PBXGroup;
 			children = (
 				B3F590572D6A77CE008B5B7D /* AppRating.swift */,
-				B3A4828D2D5035DC00FCE4A5 /* ContentView.swift */,
 				B3E04BD02D84816800C6C67B /* Dispatch.swift */,
 				B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */,
 				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
 				B3A482922D5035DC00FCE4A5 /* WebView.swift */,
-				B3A482992D50384100FCE4A5 /* WindowDelegate.swift */,
 			);
 			path = swift;
 			sourceTree = "<group>";
@@ -706,13 +700,11 @@
 				B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */,
 				B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */,
 				B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */,
-				B3A482952D5035DC00FCE4A5 /* ContentView.swift in Sources */,
 				B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */,
 				B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */,
 				B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */,
 				B30D390C2D458CDF00B8196B /* arg.cpp in Sources */,
 				B30D390D2D458CDF00B8196B /* json-schema-to-grammar.cpp in Sources */,
-				B3A4829A2D50384100FCE4A5 /* WindowDelegate.swift in Sources */,
 				B30D390E2D458CDF00B8196B /* ngram-cache.cpp in Sources */,
 				B30D39172D458DA600B8196B /* llama-if.cpp in Sources */,
 				B30D39182D458DA600B8196B /* llama-build.cpp in Sources */,

@@ -1,4 +1,4 @@
-import Foundation
+// import Foundation
 import WebKit
 
 public class FileSchemeHandler: NSObject, WKURLSchemeHandler {
@@ -12,12 +12,11 @@ public class FileSchemeHandler: NSObject, WKURLSchemeHandler {
                                 userInfo: nil);
             urlSchemeTask.didFailWithError(error);
         }
-
         guard
-            let u = urlSchemeTask.request.url,
-            let p = u.path.removingPercentEncoding else {
-                failWithError(); return
-            }
+        let u = urlSchemeTask.request.url,
+        let p = u.path.removingPercentEncoding else {
+            failWithError(); return
+        }
         let path = p.hasPrefix("/") ? String(p.dropFirst()) : p
         guard let r = response(u, mt: mime_type(for: p)) else {
             failWithError(); return
@@ -97,7 +96,6 @@ public func send_response(_ u: URL, _ t: WKURLSchemeTask, _ s: String) {
 }
 
 public func mime_type(for p: String) -> String {
-    // determine the MIME type based on file extension
     switch URL(fileURLWithPath: p).pathExtension.lowercased() {
         case "html", "htm": return "text/html"
         case "js": return "text/javascript"
@@ -107,4 +105,3 @@ public func mime_type(for p: String) -> String {
         default: return "application/octet-stream"
     }
 }
-

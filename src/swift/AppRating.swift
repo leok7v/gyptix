@@ -77,4 +77,5 @@ struct AppRating {
             #endif
         }
     }
+    
 }
