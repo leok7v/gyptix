@@ -74,7 +74,6 @@
 		B375A6AD2D946B0E001F9286 /* app2.html in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AC2D946B0E001F9286 /* app2.html */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
-		B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */; };
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
 		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
 		B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* logo-256x256.png */; };
@@ -95,7 +94,6 @@
 		B3E249A12D617E300048A24F /* marked.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E249A02D617E300048A24F /* marked.js */; };
 		B3F590542D69E7C5008B5B7D /* getcwd.m in Sources */ = {isa = PBXBuildFile; fileRef = B3F590532D69E7C5008B5B7D /* getcwd.m */; };
 		B3F590562D6A7294008B5B7D /* detect.js in Resources */ = {isa = PBXBuildFile; fileRef = B3F590552D6A7294008B5B7D /* detect.js */; };
-		B3F590582D6A77CE008B5B7D /* AppRating.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F590572D6A77CE008B5B7D /* AppRating.swift */; };
 		B3F5905A2D6A848C008B5B7D /* modal.js in Resources */ = {isa = PBXBuildFile; fileRef = B3F590592D6A848C008B5B7D /* modal.js */; };
 /* End PBXBuildFile section */
 
@@ -223,7 +221,6 @@
 		B37AB35B2D8C2FC300199E85 /* llama.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = llama.h; path = ../llama.cpp/include/llama.h; sourceTree = SOURCE_ROOT; };
 		B37AB35C2D8C2FC300199E85 /* llama-cpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-cpp.h"; path = "../llama.cpp/include/llama-cpp.h"; sourceTree = SOURCE_ROOT; };
 		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
-		B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileSchemeHandler.swift; path = ../src/swift/FileSchemeHandler.swift; sourceTree = SOURCE_ROOT; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
 		B3B29CA82D4E8E57006F04CE /* logo-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-256x256.png"; sourceTree = "<group>"; };
@@ -245,7 +242,6 @@
 		B3F590522D69E7C5008B5B7D /* getcwd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = getcwd.h; path = ../src/getcwd.h; sourceTree = SOURCE_ROOT; };
 		B3F590532D69E7C5008B5B7D /* getcwd.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = getcwd.m; path = ../src/getcwd.m; sourceTree = SOURCE_ROOT; };
 		B3F590552D6A7294008B5B7D /* detect.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = detect.js; sourceTree = "<group>"; };
-		B3F590572D6A77CE008B5B7D /* AppRating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppRating.swift; path = ../src/swift/AppRating.swift; sourceTree = SOURCE_ROOT; };
 		B3F590592D6A848C008B5B7D /* modal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = modal.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -487,9 +483,7 @@
 		B3756DF12D41D46B00BCF111 /* swift */ = {
 			isa = PBXGroup;
 			children = (
-				B3F590572D6A77CE008B5B7D /* AppRating.swift */,
 				B3E04BD02D84816800C6C67B /* Dispatch.swift */,
-				B3A4828E2D5035DC00FCE4A5 /* FileSchemeHandler.swift */,
 				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
 				B3A482922D5035DC00FCE4A5 /* WebView.swift */,
 			);
@@ -557,7 +551,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					B323E3622D1CDAB2007BA38C = {
 						CreatedOnToolsVersion = 16.2;
@@ -677,7 +671,6 @@
 				B30D38EA2D458C4E00B8196B /* llama-impl.cpp in Sources */,
 				B30D38EB2D458C4E00B8196B /* llama-model-loader.cpp in Sources */,
 				B30D38EC2D458C4E00B8196B /* llama-kv-cache.cpp in Sources */,
-				B3F590582D6A77CE008B5B7D /* AppRating.swift in Sources */,
 				B30D38ED2D458C4E00B8196B /* llama-chat.cpp in Sources */,
 				B34A04482D458A880010D066 /* ggml-quants.c in Sources */,
 				B34A044C2D458A880010D066 /* ggml-threading.cpp in Sources */,
@@ -700,7 +693,6 @@
 				B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */,
 				B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */,
 				B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */,
-				B3A482962D5035DC00FCE4A5 /* FileSchemeHandler.swift in Sources */,
 				B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */,
 				B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */,
 				B30D390C2D458CDF00B8196B /* arg.cpp in Sources */,
@@ -727,8 +719,8 @@
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 250316;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
-				DEVELOPMENT_TEAM = 692R843P25;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -810,8 +802,8 @@
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 250316;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
-				DEVELOPMENT_TEAM = 692R843P25;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -913,7 +905,9 @@
 				CLANG_WARN_VEXING_PARSE = NO;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 692R843P25;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -981,7 +975,9 @@
 				CLANG_WARN_VEXING_PARSE = NO;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 692R843P25;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;

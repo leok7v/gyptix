@@ -1,13 +1,14 @@
 import SwiftUI
 import SwiftData
-#if os(macOS)
-import AppKit
-#endif
 import WebKit
+#if os(iOS)
+import StoreKit
+#endif
 
 public var js_ready = false
 public var web_view: WKWebView?
 public var keyboard: CGRect = .zero // keyboard frame
+public let timing = true
 
 public let gguf = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"
 
@@ -95,6 +96,187 @@ struct ContentView: View {
     
 }
 
+public class FileSchemeHandler: NSObject, WKURLSchemeHandler {
+
+    public func webView(_ webView: WKWebView,
+                        start urlSchemeTask: WKURLSchemeTask) {
+
+        func failWithError() {
+            let error = NSError(domain: NSURLErrorDomain,
+                                code: NSURLErrorResourceUnavailable,
+                                userInfo: nil);
+            urlSchemeTask.didFailWithError(error);
+        }
+        guard
+        let u = urlSchemeTask.request.url,
+        let p = u.path.removingPercentEncoding else {
+            failWithError(); return
+        }
+        let path = p.hasPrefix("/") ? String(p.dropFirst()) : p
+        guard let r = response(u, mt: mime_type(for: p)) else {
+            failWithError(); return
+        }
+        if dispatch_post(path, urlSchemeTask, u) { return }
+        if dispatch_get(path, urlSchemeTask, u) { return }
+        if path == "quit" {
+            let _ = quit()
+            return
+        }
+        guard let f = Bundle.main.url(forResource: path,
+                                      withExtension: nil) else {
+            failWithError(); return
+        }
+        let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
+        let binary = ["png", "jpg", "jpeg", "gif", "ico", "webp"].contains(ext)
+        urlSchemeTask.didReceive(r)
+        if binary {
+            guard let data = try? Data(contentsOf: f) else {
+                failWithError(); return
+            }
+            urlSchemeTask.didReceive(data)
+        } else {
+            guard
+                let fileContent = try? String(contentsOf: f, encoding: .utf8),
+                let data = fileContent.data(using: .utf8) else {
+                    failWithError(); return
+            }
+            urlSchemeTask.didReceive(data)
+        }
+        urlSchemeTask.didFinish()
+    }
+
+    public func webView(_ webView: WKWebView,
+                        stop urlSchemeTask: WKURLSchemeTask) {
+    }
+
+}
+
+public func body(_ task: WKURLSchemeTask, _ url: URL) -> String {
+    if let body = task.request.httpBody {
+        guard let s = String(data: body, encoding: .utf8) else {
+            print("Failed to decode body as UTF-8 string.")
+            return ""
+        }
+        return s
+    } else {
+        return ""
+    }
+}
+
+private let allowedOrigin = "gyptix://"
+
+public func response(_ u: URL, mt: String) -> HTTPURLResponse? {
+    let responseHeaders = [
+        "Access-Control-Allow-Origin": allowedOrigin,
+        "Content-Type": mt,
+    ]
+    return HTTPURLResponse(url: u,
+                           statusCode: 200,
+                           httpVersion: "HTTP/1.1",
+                           headerFields: responseHeaders)
+}
+
+public func send_response(_ u: URL, _ t: WKURLSchemeTask, _ s: String) {
+    if let r = response(u, mt: "text/plain") {
+        t.didReceive(r)
+        if let data = s.data(using: .utf8) {
+            t.didReceive(data)
+            t.didFinish()
+        } else {
+            print("Failed to encode response body as UTF-8: ", s)
+            t.didReceive(Data()) // send empty string
+            t.didFinish()
+        }
+    }
+}
+
+public func mime_type(for p: String) -> String {
+    switch URL(fileURLWithPath: p).pathExtension.lowercased() {
+        case "html", "htm": return "text/html"
+        case "js": return "text/javascript"
+        case "css": return "text/css"
+        case "png": return "image/png"
+        case "jpg", "jpeg": return "image/jpeg"
+        default: return "application/octet-stream"
+    }
+}
+
+private let appID = "6741091005"  // App Store ID
+
+struct AppRating {
+
+    static func trackAppLaunchDelayed() {
+        let debugRating = false   // Debug mode: Always request review
+        let now = Date().timeIntervalSince1970
+        let oneDay: TimeInterval = 24 * 60 * 60
+        let oneWeek: TimeInterval = 7 * oneDay
+        let oneMonth: TimeInterval = 4 * oneWeek
+        let uds = UserDefaults.standard
+        var appLaunchCount   = uds.integer(forKey: "appLaunchCount")
+        var lastPromptDate   = uds.double(forKey:  "lastPromptDate")
+        var firstLaunchDate  = uds.double(forKey:  "firstLaunchDate")
+        var ratingShownCount = uds.integer(forKey: "ratingShownCount")
+        if firstLaunchDate == 0 {
+            UserDefaults.standard.set(now, forKey: "firstLaunchDate")
+            firstLaunchDate = now
+        }
+        if lastPromptDate == 0 {
+            UserDefaults.standard.set(now, forKey: "lastPromptDate")
+            lastPromptDate = now
+        }
+        // Determine rating frequency based on how many times it's been shown
+        let ratingInterval: TimeInterval
+        switch ratingShownCount {
+            case 0...6:  ratingInterval = oneWeek  // Daily for first 7 times
+            default:     ratingInterval = oneMonth // Monthly afterward
+        }
+        appLaunchCount += 1
+        UserDefaults.standard.set(appLaunchCount, forKey: "appLaunchCount")
+        if debugRating || (now - lastPromptDate > ratingInterval) {
+            rate()
+            UserDefaults.standard.set(now, forKey: "lastPromptDate")
+            ratingShownCount += 1
+            UserDefaults.standard.set(ratingShownCount,
+                                      forKey: "ratingShownCount")
+        }
+    }
+
+    static func rate() {
+        #if os(iOS)
+            if let windowScene = UIApplication.shared.connectedScenes.first
+                as? UIWindowScene {
+                SKStoreReviewController.requestReview(in: windowScene)
+            }
+        #else // os(macOS)
+            rateManually(appID: appID)
+        #endif
+        var ratingShownCount =
+            UserDefaults.standard.integer(forKey: "ratingShownCount")
+        ratingShownCount += 1
+        UserDefaults.standard.set(ratingShownCount,
+                                  forKey: "ratingShownCount")
+    }
+
+    static func trackAppLaunch() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            AppRating.trackAppLaunchDelayed()
+        }
+    }
+    
+    static func rateManually(appID: String) {
+        let u = "https://apps.apple.com/us/app/gyptix/id\(appID)"
+        if let url = URL(string: "\(u)?action=write-review") {
+            #if os(iOS)
+                UIApplication.shared.open(url)
+            #else // os(macOS)
+                NSWorkspace.shared.open(url)
+            #endif
+        }
+    }
+    
+}
+
+
 #if !os(iOS) // os(macOS)
 
 class WindowDelegate: NSObject, NSWindowDelegate {
@@ -114,7 +296,7 @@ private func setup_termination() {
         forName: NSApplication.willTerminateNotification,
         object: nil,
         queue: .main
-    ) { _ in inactive(); close_all_windows(); gyptix_stop() }
+    ) { _ in inactive(); gyptix_stop(); close_all_windows() }
 }
 
 private func restrict_windows() {
@@ -135,7 +317,8 @@ private func window_border(_ w: NSWindow) {
     guard let v = w.contentView else { return }
     v.wantsLayer = true
     v.layer?.borderWidth = 1.0
-    v.layer?.borderColor = NSColor(red: 0.51, green: 0.51, blue: 0.49, alpha: 0.125).cgColor
+    v.layer?.borderColor = NSColor(red: 0.51, green: 0.51, blue: 0.49,
+                                   alpha: 0.125).cgColor
 }
 
 private func trim_menu() {
@@ -189,16 +372,20 @@ public func is_debugger_attached() -> Bool {
 }
 
 public func inactive() {
-    let t = false
     if !js_ready { return }
-    let s = DispatchTime.now().uptimeNanoseconds
+    var s = DispatchTime.now().uptimeNanoseconds
     let r = call_js("app.inactive()", sync: true)
-    let e = DispatchTime.now().uptimeNanoseconds
-    if is_debugger_attached() && t {
-        print("elapsed: \((e - s) / 1_000) us")
-        print("app.inactive() -> \(r)")
+    var e = DispatchTime.now().uptimeNanoseconds
+    if is_debugger_attached() { print("app.inactive() -> \(r)") }
+    if timing && is_debugger_attached() {
+        print("app.inactive(): \((e - s) / 1_000_000)ms")
     }
+    s = DispatchTime.now().uptimeNanoseconds
     gyptix.inactive()
+    e = DispatchTime.now().uptimeNanoseconds
+    if timing && is_debugger_attached() {
+        print("gyptix.inactive(): \((e - s) / 1_000_000)ms")
+    }
 }
 
 public func debugger_attached() {
@@ -208,10 +395,11 @@ public func debugger_attached() {
 }
 
 public func gyptix_stop() {
-    let t = false
     let s = DispatchTime.now().uptimeNanoseconds
     gyptix.stop()
     let e = DispatchTime.now().uptimeNanoseconds
-    if is_debugger_attached() && t { print("gyptix.stop(): \((e - s) / 1_000) us") }
+    if timing && is_debugger_attached() {
+        print("gyptix.stop(): \((e - s) / 1_000_000)ms")
+    }
 }
 

@@ -1,9 +1,6 @@
 import SwiftUI
 @preconcurrency
 import WebKit
-#if os(iOS)
-import UIKit
-#endif
 
 #if os(iOS)
 typealias ViewRepresentable = UIViewRepresentable
@@ -16,10 +13,6 @@ typealias Context = NSViewRepresentableContext<WebView>
 let app = "app" // experiments: app2, app3
 
 struct WebView: ViewRepresentable {
-    
-    #if os(iOS)
-    #else
-    #endif
     
     init() { }
     
