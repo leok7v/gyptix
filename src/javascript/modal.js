@@ -45,8 +45,10 @@ const buttons = (actions, done) => {
 }
 
 const page = (pts) => {
+    console.log(`pts: ${pts}`)
     const panel = document.createElement("div")
     panel.style.fontSize = pts
+    console.log(`panel.style.fontSize: ${panel.style.fontSize}`)
     panel.style.border = "none"
     panel.style.minWidth  = "100%"
     panel.style.minHeight = "100%"
@@ -85,7 +87,8 @@ const message_box = (centered, markdown, done, actions) => {
     mbx.appendChild(b)
     panel.appendChild(mbx)
     const modal = get("modal")
-    modal.style.backgroundColor = "color-mix(in srgb, var(--background-color), transparent 10%)"
+    modal.style.backgroundColor = 
+        "color-mix(in srgb, var(--background-color), transparent 10%)"
     modal.innerHTML = ""
     modal.appendChild(panel)
     modal.style.display = "block"
@@ -113,7 +116,7 @@ export const mbx = (markdown, done, ...actions) =>
 
 export const show = (markdown, done, ...actions) => {
     const html = marked.parse(markdown)
-    const panel = page(detect.iPhone ? "8pt" : detect.iPad ? "14pt" : "10pt")
+    const panel = page(detect.iPhone ? "0.85rem" : "1rem")
     panel.style.justifyContent = "top"
     const content = document.createElement("div")
     content.style.overflow = "auto"

@@ -94,10 +94,10 @@ html, body {
     color: var(--color);
 }
 
-body {
+body, .modal_page {
+    padding-left: max(0.25rem, env(safe-area-inset-left));
     padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-right: max(0.25rem, env(safe-area-inset-right));
     padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -196,7 +196,7 @@ button:hover { background-color: var(--background-hover); }
 #navigation {
     z-index: 2;
     position: absolute;
-    top: env(safe-area-inset-top); /* TODO: 50px instead of 35px. Why? */
+    top: env(safe-area-inset-top);
     left: 0;
     display: flex;
     flex-direction: column;
@@ -262,4 +262,27 @@ background-color: blue;
     padding-top: .25em;
     justify-content: space-between;
     width: 100%;
+}
+
+#modal {
+    display: none;
+    z-index: 70;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    color: var(--color);
+    background-color: var(--background-color);
+    overscroll-behavior: contain;
+    overflow: hidden;
+}
+
+#modal h3 { padding-top: 0.25rem !important; }
+
+#modal h2, #modal h3, #modal p { padding-bottom: 0.25rem !important; }
+
+#modal button {
+    font-size: 0.75rem !important;
+    width: fit-content !important;
 }
