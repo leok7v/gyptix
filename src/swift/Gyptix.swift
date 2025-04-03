@@ -45,9 +45,7 @@ struct Gyptix: App {
                 #else // os(macOS)
                 .frame(minWidth: Gyptix.w, minHeight: Gyptix.h)
                 #endif
-                .onAppear {
-                    on_appear()
-                }
+                .onAppear { on_appear() }
                 .onChange(of: phase) { _, new in
                     if new == .background || new == .inactive { inactive() }
                 }
@@ -311,18 +309,7 @@ func window() -> Window? {
 }
 
 func on_appear() {
-    #if os(iOS)
-    if let window = window() {
-        let insets = window.safeAreaInsets
-        print("Window safe area insets (points): \(insets)")
-        let pixelInsets = UIEdgeInsets(
-            top: insets.top * UIScreen.main.scale,
-            left: insets.left * UIScreen.main.scale,
-            bottom: insets.bottom * UIScreen.main.scale,
-            right: insets.right * UIScreen.main.scale)
-        print("Window safe area insets (pixels): \(pixelInsets)")
-    }
-    #elseif os(macOS)
+    #if os(macOS)
     DispatchQueue.main.asyncAfter(deadline: .now() + 1) { trim_menu() }
     restrict_windows()
     setup_termination()
