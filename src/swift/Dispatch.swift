@@ -1,20 +1,20 @@
 import Foundation
 import WebKit
 
-private var in_call  = false // native called from JavaScript
-private var out_call = false // JavaScript called from native
+var in_call  = false // native called from JavaScript
+var out_call = false // JavaScript called from native
 
-public func run(_ id: String) -> String {
+func run(_ id: String) -> String {
     id.withCString { s in gyptix.run(s) }
     return ""
 }
 
-public func ask(_ q: String) -> String {
+func ask(_ q: String) -> String {
     q.withCString { s in gyptix.ask(s) }
     return "OK"
 }
 
-public func poll(_ req: String) -> String {
+func poll(_ req: String) -> String {
     var text: String = ""
     req.withCString { s in
         if let response = gyptix.poll(s) {
@@ -28,25 +28,25 @@ public func poll(_ req: String) -> String {
     return text
 }
 
-public func remove(_ id: String) -> String {
+func remove(_ id: String) -> String {
     id.withCString { s in gyptix.remove(s) }
     return ""
 }
 
-public func is_answering() -> String {
+func is_answering() -> String {
     return gyptix.is_answering() != 0 ? "true" : "false"
 }
 
-public func is_running() -> String {
+func is_running() -> String {
     return gyptix.is_running() != 0 ? "true" : "false"
 }
 
-public func erase() -> String {
+func erase() -> String {
     gyptix.erase()
     return ""
 }
 
-public func initialized() -> String {
+func initialized() -> String {
     js_ready = true
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
         // cannot call JS from callbacks directly - it will deadlock
@@ -56,14 +56,14 @@ public func initialized() -> String {
     return ""
 }
 
-public func keyboard_frame() -> String {
+func keyboard_frame() -> String {
     let s = String(format: "%f,%f,%f,%f",
                    keyboard.origin.x, keyboard.origin.y,
                    keyboard.size.height, keyboard.size.width)
     return s
 }
 
-public func quit() -> String {
+func quit() -> String {
     #if os(iOS)
         DispatchQueue.main.async{ fatalError("Quit") }
     #else // os(macOS)
@@ -74,18 +74,18 @@ public func quit() -> String {
     return ""
 }
 
-private func check(_ path: String) {
+func check(_ path: String) {
     if (out_call) { fatalError("roundtrip deadlock: " + path) }
     if (in_call)  { fatalError("recursive incall: " + path) }
     in_call = true
 }
 
-private func call(_ result: String) -> String {
+func call(_ result: String) -> String {
     in_call = false
     return result
 }
 
-public func dispatch_get(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
+func dispatch_get(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
 //  print("dispatch_get: " + path)
     var dispatched: Bool = true
     var s : String = "" // reply
@@ -101,8 +101,19 @@ public func dispatch_get(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool
     return dispatched
 }
 
+func body(_ task: WKURLSchemeTask, _ url: URL) -> String {
+    if let body = task.request.httpBody {
+        guard let s = String(data: body, encoding: .utf8) else {
+            print("Failed to decode body as UTF-8 string.")
+            return ""
+        }
+        return s
+    } else {
+        return ""
+    }
+}
 
-public func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
+func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
     var dispatched: Bool = true
     let r = body(t, u)  // request
     var s: String = ""  // response
@@ -120,7 +131,7 @@ public func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Boo
     return dispatched
 }
 
-public func call_js(_ call: String, sync: Bool = false) -> String {
+func call_js(_ call: String, sync: Bool = false) -> String {
     if !js_ready { fatalError("app.js is not yet initialized") }
     if in_call   { fatalError("roundtrip deadlock: " + call) }
     if out_call  { fatalError("recursive: " + call) }

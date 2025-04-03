@@ -759,7 +759,7 @@ export const run = () => { // called DOMContentLoaded
     let version_data = "25.02.22" // data scheme version
 
     const showEULA = () => {
-//      localStorage.removeItem("app.eula") // DEBUG
+        localStorage.removeItem("app.eula") // DEBUG
         const nbsp4 = "    " // 4 non-breakable spaces
         if (!localStorage.getItem("app.eula")) {
             localStorage.clear() // no one promissed to keep data forever

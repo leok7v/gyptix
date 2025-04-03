@@ -12,15 +12,11 @@ typealias Context = NSViewRepresentableContext<WebView>
 
 let app = "app" // experiments: app2, app3
 
+let schemeHandler = FileSchemeHandler()
+
 struct WebView: ViewRepresentable {
     
-    init() { }
-    
     class Coordinator: NSObject, WKNavigationDelegate {
-        
-        let parent: WebView
-        
-        init(_ parent: WebView) { self.parent = parent; super.init() }
         
         func webView(_ webView: WKWebView,
              decidePolicyFor navigationAction: WKNavigationAction,
@@ -38,13 +34,10 @@ struct WebView: ViewRepresentable {
             }
             decisionHandler(.allow)
         }
-        
-        func webView(_ webView: WKWebView,
-                     didFinish navigation: WKNavigation!) { }
-        
+                
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
     func create_web_view() -> WKWebView {
         let debugger = is_debugger_attached() || is_debug_build()
@@ -70,7 +63,7 @@ struct WebView: ViewRepresentable {
     }
 
     func load(_ wv: WKWebView) {
-        if let url = URL(string: "gyptix://./\(app).html") {
+        if let url = URL(string: origin + "./\(app).html") {
             wv.load(URLRequest(url: url))
         } else {
             fatalError("failed to load")
