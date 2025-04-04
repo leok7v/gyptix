@@ -22,13 +22,13 @@ const buttons = (actions, done) => {
     const buttons = document.createElement("div")
     buttons.style.display = "flex"
     buttons.style.justifyContent = "center"
-    buttons.style.gap = "1em"
+    buttons.style.gap = "1rem"
     actions.forEach(a => {
         const { color, text } = button_color(a)
         const b = document.createElement("button")
-        b.style.padding = "0.75em 2em"
+        b.style.padding = "0.75em 2rem"
         b.style.border = "none"
-        b.style.borderRadius = "0.5em"
+        b.style.borderRadius = "0.5rem"
         b.style.cursor = "pointer"
         b.style.color = "white"
         b.style.fontWeight = "bold"
@@ -45,16 +45,14 @@ const buttons = (actions, done) => {
 }
 
 const page = (pts) => {
-    console.log(`pts: ${pts}`)
     const panel = document.createElement("div")
-    panel.style.fontSize = pts
-    console.log(`panel.style.fontSize: ${panel.style.fontSize}`)
-    panel.style.border = "none"
+    panel.style.fontSize  = pts
+    panel.style.border    = "none"
     panel.style.minWidth  = "100%"
     panel.style.minHeight = "100%"
     panel.style.maxWidth  = "100%"
     panel.style.maxHeight = "100%"
-    panel.style.display = "flex"
+    panel.style.display   = "flex"
     panel.style.flexDirection = "column"
     panel.classList.add("modal_page")
     return panel
@@ -71,19 +69,19 @@ const message_box = (centered, markdown, done, actions) => {
     mbx.style.justifyContent = "center"
     mbx.style.alignItems = "center"
     mbx.style.backgroundColor = "var(--background-message-box)"
-    mbx.style.maxWidth = "40em"
+    mbx.style.maxWidth = "40rem"
     mbx.style.border = "1px solid #888"
-    mbx.style.borderRadius = "0.5em"
+    mbx.style.borderRadius = "0.5rem"
     const content = document.createElement("div")
     content.style.overflowY = "auto"
-    content.style.padding = "1em"
+    content.style.padding = "1rem"
     content.style.width = "100%"
     content.style.textAlign = centered ? "center" : "left"
     if (centered) content.style.justifyContent = "center"
     content.innerHTML = html
     mbx.appendChild(content)
     const b = buttons(actions, done)
-    b.style.padding = "1em"
+    b.style.padding = "1rem"
     mbx.appendChild(b)
     panel.appendChild(mbx)
     const modal = get("modal")

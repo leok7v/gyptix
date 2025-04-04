@@ -86,7 +86,6 @@ export const run = () => { // called DOMContentLoaded
 
     let at_the_bottom = true
     let at_the_bottom_stopped = false // false at start of polling
-    let user_scrolling = false
     let current  = null // current  chat id
     let selected = null // selected chat id
     let selected_item = null // item in chats list
@@ -106,13 +105,18 @@ export const run = () => { // called DOMContentLoaded
     const scroll_gap = 20
     
     const show_hide_scroll_to_bottom = () => {
+        if (is_scrolling()) return // shown/hidden when scrolling is done
         const sh = messages.scrollHeight
         const ch = messages.clientHeight
         const top = messages.scrollTop
         const d = sh - top
-        scroll.style.display = d > ch + scroll_gap &&
-        (!model.is_answering() || !at_the_bottom)
-        ? "block" : "none"
+        if (d > ch + scroll_gap && (!model.is_answering() || !at_the_bottom)) {
+            console.log(`sh: ${sh} ch: ${ch} top: ${top} d: ${d}`)
+            console.log("show_hide_scroll_to_bottom ui.show(scroll)")
+            ui.show(scroll)
+        } else {
+            ui.hide(scroll)
+        }
     }
     
     const scrolled_to_bottom = () => {
@@ -130,13 +134,97 @@ export const run = () => { // called DOMContentLoaded
         messages.style.overflow = originalOverflow;
     }
     
+    var scroll_queue = { top: 0, next: 0 }
+
+    const is_scrolling = () => !at_the_bottom_stopped &&
+            (scroll_queue.top !== 0 || scroll_queue.next !== 0)
+
+    const scroll_to_bottom_canceled = () => !is_scrolling()
+    
     const scroll_to_bottom = () => {
-        stop_in_flight_scroll() // must be stopped before assignment below
+        var top = messages.scrollHeight - messages.offsetHeight
+        top = Math.max(top, scroll_queue.next)
+        if (Math.abs(top - messages.scrollTop) < 1) {
+            console.log("scroll_to_bottom() nothing to do." +
+                        " messages.scrollTop: " + messages.scrollTop +
+                        " top: " + top
+                        )
+            return
+        }
+        const done = () => {
+            if (scroll_queue.next > scroll_queue.top) {
+                console.log("scroll_to_bottom()" +
+                            " scroll_queue.next: " + scroll_queue.next +
+                            " scroll_queue.top: "  + scroll_queue.top
+                            )
+                requestAnimationFrame(scroll_to_bottom)
+            } else {
+                at_the_bottom = true
+                requestAnimationFrame(() => ui.hide(scroll))
+            }
+        }
+        const max_top = Math.max(messages.scrollTop, top)
+        scroll_queue.next = Math.max(max_top, scroll_queue.next)
+        if (!scroll_queue.done) { // async scroll is not started yet
+            scroll_queue.top  = max_top // .top and .next the same
+            messages.scrollTo({ top: max_top, behavior: "smooth" })
+            const check_scroll = () => {
+                if (Math.abs(scroll_queue.top - messages.scrollTop) < 1) {
+/*
+                    console.log("scroll_to_bottom() smooth scroll done." +
+                                " scroll_queue.next: " + scroll_queue.next +
+                                " scroll_queue.top: "  + scroll_queue.top +
+                                " messages.scrollTop: " + messages.scrollTop
+                                )
+*/
+                    done()
+                } else if (!scroll_to_bottom_canceled()){
+/*
+                    console.log("scroll_to_bottom() requestAnimationFrame." +
+                                " scroll_queue.next: " + scroll_queue.next +
+                                " scroll_queue.top: "  + scroll_queue.top +
+                                " messages.scrollTop: " + messages.scrollTop
+                                )
+*/
+                    requestAnimationFrame(check_scroll)
+                } else {
+/*
+                    console.log("scroll_to_bottom() scroll_to_bottom_canceled(): " +
+                                scroll_to_bottom_canceled())
+*/
+                }
+            }
+            requestAnimationFrame(check_scroll)
+        }
+    }
+
+    const scroll_to_bottom_cancel = () => {
+        stop_in_flight_scroll()
+        scroll_queue = { top: 0, next: 0 }
+        const top = messages.scrollHeight - messages.offsetHeight
+        if (!at_the_bottom_stopped && Math.abs(top - messages.scrollTop) >= 1) {
+            messages.scrollTop = top
+        } else if (at_the_bottom_stopped && !at_the_bottom) {
+            console.log("scroll_to_bottom_cancel() ui.show(scroll)")
+            ui.show(scroll)
+        }
+        at_the_bottom_stopped = true
+        show_hide_scroll_to_bottom()
+    }
+    
+/*
+    const scroll_to_bottom = () => {
 //      messages.scrollTop = messages.scrollHeight
-        messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth"})
+        if (messages.scrollTop != messages.scrollHeight) {
+            stop_in_flight_scroll() // must be stopped before assignment below
+            console.log("messages.scrollTop: " + messages.scrollTop + " " +
+                        "messages.scrollHeight: " + messages.scrollHeight)
+            messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth"})
+        }
         at_the_bottom = true
         setTimeout(() => ui.hide(scroll), 50)
     }
+*/
     
     function normalize_line_breaks_to_spaces(text) {
         const paragraphs = text.split(/(\r\n\r\n|\r\r|\n\n)/)
@@ -196,11 +284,12 @@ export const run = () => { // called DOMContentLoaded
                     if (!at_the_bottom_stopped) {
                         const mrc = messages.getBoundingClientRect();
                         const lrc = last_child.getBoundingClientRect();
-                        at_the_bottom_stopped = lrc.top - 30 <= mrc.top
-                        if (at_the_bottom_stopped) at_the_bottom = false
+                        if (lrc.top - scroll_gap <= mrc.top) {
+                            scroll_to_bottom_cancel()
+                            at_the_bottom = false
+                        }
                     }
                     if (at_the_bottom) scroll_to_bottom()
-                    show_hide_scroll_to_bottom()
                 }
             })
         } else {
@@ -211,9 +300,9 @@ export const run = () => { // called DOMContentLoaded
     }
     
     messages.onscroll = () => {
-        if (user_scrolling) {
-            input.blur()
-            collapsed()
+        if (is_expanded) collapsed()
+        if (document.activeElement == input) input.blur()
+        if (!model.is_answering()) {
             layout_and_render().then(() => {
                 scrolled_to_bottom()
                 show_hide_scroll_to_bottom()
@@ -275,7 +364,7 @@ export const run = () => { // called DOMContentLoaded
                 e.stopPropagation()
                 selected = c.id
                 selected_item = span
-                show_menu(e.pageX, e.pageY)
+                show_menu(e.pageX / 2, e.pageY)
             }
             div.appendChild(span)
             div.appendChild(dots)
@@ -365,6 +454,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const done = () => {
+        scroll_to_bottom_cancel()
         send.classList.remove('hidden')
         ui.hide(stop)
         ui.hide(clear)
@@ -568,15 +658,14 @@ export const run = () => { // called DOMContentLoaded
     expand.onclick = () => (is_expanded ? collapsed() : expanded())
     
     scroll.onclick = () => {
-        user_scrolling = false
-        scroll_to_bottom()
+        ui.hide(scroll)
+        layout_and_render().then(() => {
+            at_the_bottom_stopped = false
+            scroll_to_bottom()
+        })
     }
-    
-    scroll.addEventListener("touchend", e => {
-        e.preventDefault()
-        user_scrolling = false
-        scroll_to_bottom()
-    })
+
+    scroll.addEventListener('touchstart', scroll.onclick)
     
     let last_key_down_time = 0
     
@@ -701,31 +790,17 @@ export const run = () => { // called DOMContentLoaded
     get("font-increase").onclick = () => util.increase_font_size()
     get("font-decrease").onclick = () => util.decrease_font_size()
     
-    messages.addEventListener("mousedown", () => { user_scrolling = true })
-    messages.addEventListener("touchstart", () => { user_scrolling = true })
-
-    navigation.addEventListener("mousedown", () => { hide_menu() })
-
-    messages.addEventListener("mouseup", () => {
-        setTimeout(() => { user_scrolling = false }, 50)
-    })
-    
-    messages.addEventListener("touchend", () => {
-        setTimeout(() => { user_scrolling = false }, 50)
-    })
-    
-    let user_scrolling_timeout = null
-    
-    messages.addEventListener("wheel", () => {
-        user_scrolling = true
-        if (user_scrolling_timeout) {
-            clearTimeout(user_scrolling_timeout)
+    const user_started_scrolling = () => {
+        if (is_scrolling()) {
+            at_the_bottom_stopped = true
         }
-        user_scrolling_timeout = setTimeout(() => {
-            user_scrolling = false
-        }, 100)
-    })
+    }
     
+    messages.addEventListener("mousedown",  user_started_scrolling)
+    messages.addEventListener("touchstart", user_started_scrolling)
+    messages.addEventListener("touchend",   user_started_scrolling)
+    messages.addEventListener("wheel", user_started_scrolling)
+
     document.querySelectorAll(".tooltip").forEach(button => {
         button.addEventListener("mouseenter", function() {
             let rect = this.getBoundingClientRect()
@@ -759,10 +834,10 @@ export const run = () => { // called DOMContentLoaded
     let version_data = "25.02.22" // data scheme version
 
     const showEULA = () => {
-        localStorage.removeItem("app.eula") // DEBUG
+//      localStorage.removeItem("app.eula") // DEBUG
         const nbsp4 = "    " // 4 non-breakable spaces
         if (!localStorage.getItem("app.eula")) {
-            localStorage.clear() // no one promissed to keep data forever
+//          localStorage.clear() // no one promissed to keep data forever
             modal.show(util.load("./eula.md"), (action) => {
                 if (action === "Disagree") { model.quit() }
                 localStorage.setItem("app.eula", "true")
@@ -777,6 +852,8 @@ export const run = () => { // called DOMContentLoaded
     
     let v = localStorage.getItem("version.data")
     if (v !== version_data) {
+        console.log("version.data: " + v +
+                    "version_data: " + version_data)
         localStorage.clear() // no one promissed to keep data forever
         localStorage.setItem("version.data", version_data)
     }

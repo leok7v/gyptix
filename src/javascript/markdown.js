@@ -1,5 +1,7 @@
 "use strict" // markdown.js
 
+import * as util        from "./util.js"
+
 let worker = new Worker("mdw.js", { type: "module" })
 let callback = null;
 
@@ -23,7 +25,10 @@ export function start() {
 }
 
 export function post(chunk, cb) {
-    if (processing) throw new Error("Already processing Markdown")
+    if (processing) {
+        if (util.is_debugger_attached) { debugger }
+        throw new Error("Already processing Markdown")
+    }
     processing = true
     callback = (html, error) => { processing = false; cb(html, error) }
     worker.postMessage({ type: "append", chunk: chunk })
