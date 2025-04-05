@@ -29,9 +29,9 @@
 :root {
     --font-size: 100%;
     --placeholder: "Ask anything... Use ⇧⏎ for line break";
-    --background-header:       color-mix(in srgb, var(--background-color) 93%, var(--color)  7%);
+    --background-header:       color-mix(in srgb, var(--background-color) 75%, var(--color) 25%);
     --background-navigation:   color-mix(in srgb, var(--background-color) 89%, var(--color) 11%);
-    --background-user:         color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
+    --background-user:         color-mix(in srgb, var(--background-color) 86%, var(--color) 14%);
     --background-button:       color-mix(in srgb, var(--background-color) 70%, var(--color) 30%);
     --background-button-hover: color-mix(in srgb, var(--background-color) 65%, var(--color) 35%);
     --background-hover:        color-mix(in srgb, var(--background-color) 85%, var(--color) 15%);
@@ -84,16 +84,17 @@ html, body {
     top: 0;
     left: 0;
     width: 100%;
-    height: var(--height, 100vh);
+    height: 100vh;
     min-height: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: var(--color);
 }
 
-body, .modal_page {
-    padding-left:   max(0.25rem, env(safe-area-inset-left));
+
+.modal_page {
+    padding-left:   env(safe-area-inset-left);
     padding-top:    env(safe-area-inset-top);
-    padding-right:  max(0.25rem, env(safe-area-inset-right));
+    padding-right:  env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -111,6 +112,7 @@ body { font-size: var(--font-size); }
     height: 100%;
     min-height: 0;
     max-height: 100%;
+    background-color: var(--background-color);
 /*
     background: linear-gradient(135deg,
           #7f0000  0%, #7f3f00 20%, #7f7f00  40%,
@@ -124,41 +126,87 @@ body { font-size: var(--font-size); }
     flex: 1;
     flex-direction: column;
     background-color: transparent;
-    overscroll-behavior-y: none;
 }
 
-#viewport { /* TODO: rename to `app`? */
+#viewport {
     display: flex;
+    flex-direction: column;
+    height: 100vh;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
 #content {
-    display: grid;
-    grid-template-rows: 1fr auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     height: 100%;
-    background: transparent;
+    padding-top: 2.5rem;
+}
+
+#chat {
+    position: relative;
+    flex: 1;
+    padding: 0.25em;
+}
+
+#suggest {
+    display: flex;
+    height: fit-content !important;
+    width: 100%;
+}
+
+#messages {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
+}
+
+#box {
+    flex: 0 0 auto;
+    margin: 0.25rem;
+    padding: 0.25rem;
+    min-height: 2.5em;
+    background-color: var(--background-input);
+    border: 0.0625rem solid rgba(136, 136, 136, 0.5);
+    border-radius: 0.5rem;
+}
+
+#input {
+    flex: 0 0;
+    min-height: 2.5em;
+    padding: 0.25rem;
+    outline: none;
+    background-color: transparent;
+}
+
+#input:empty::before {
+    content: var(--placeholder);
+    pointer-events: none;
+    color: #888;
+}
+
+#input:focus:empty::before {
+    content: "";
 }
 
 .user {
     background: var(--background-user);
-    margin-top: 1em;
-    margin-bottom: 1em;
-    margin-left: 1em;
-    margin-right: 1em;
-    padding: 0.125em;
-    padding-left: 1em;
-    padding-right: 1em;
+    margin: 1em;
+    padding: 0.125em 1em;
     border-radius: 0.25em;
     max-width: 100%;
-    /* Word-breaking properties */
-    word-wrap: break-word;  /* For older browsers */
-    overflow-wrap: break-word; /* Standard property */
-    word-break: break-word; /* Fallback for very long words */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .user p {
-    margin: 0.25em
-    padding-left:  0.75em;
-    padding-right: 0.75em;
+    margin: 0.25em;
+    padding-bottom: 0.5em;
 }
 
 .bot {
@@ -168,7 +216,7 @@ body { font-size: var(--font-size); }
     border-radius: 0.25em;
     overflow-y: auto;
     overflow-x: auto;
-    max-width: 98%;
+    max-width: 100%;
     white-space: pre-wrap;
     word-wrap:   break-word;
     word-break:  break-word;
@@ -227,16 +275,14 @@ body { font-size: var(--font-size); }
     word-break:   break-word;
 }
 
-
 button {
     z-index: 3;
-    border: 0.03125rem solid #888; /* DEBUG - change to none */
+    border: 1px solid var(--background-button);
     border-radius: 0.5rem;
-    /* atl : */
+    /* alternative : */
 /*  color: var(--color); */
     color: var(--system-blue); /* TODO: #2196f3 is for blue dots on buttons */
-    background-color: var(--background-button)
-    background: transparent;
+    background-color: var(--background-button);
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -245,43 +291,69 @@ button {
     height:     2.0rem;
     min-width:  2.0rem;
     min-height: 2.0rem;
-    transition: background-color 0.2s ease;
     cursor: pointer;
 }
 
 button.mirror { transform: scaleX(-1); }
 
 button.circled {
-    border: 0.03125rem solid #888;
+    border: none;
     border-radius: 50%;
     font-size: 1rem;
+    font-weight: bold;
+    background-color: var(--background-button);
+}
+
+button.square {
+    font-weight: bold;
 }
 
 #scroll {
     z-index: 50;
-    display: none;
     position: absolute;
+    right: 0.5rem;
+    bottom: 0.75rem;
+    display: block;
     font-weight: bold;
-    bottom: 1.0rem;
-    left: 50%;
-    transform: translateX(-50%) rotate(180deg);
     cursor: pointer;
     pointer-events: auto;
 }
 
+#expand {
+    position: relative;
+    left: max(0.25rem, env(safe-area-inset-left));
+    right: auto;
+}
+
 #restart {
+    position: relative;
+    left: auto;
+    right: max(0.25rem, env(safe-area-inset-right));
+}
+
+#header {
+    z-index: 10;
     position: fixed;
-    top: env(safe-area-inset-top);
-    right: env(safe-area-inset-right);
+    top:  env(safe-area-inset-top);
+    left: env(safe-area-inset-left);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--background-header);
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
 }
 
 #tools {
-    z-index: 3;
-    position: fixed;
+    position: relative;
     display: flex;
     top: 0;
-    right: 40%; /* 100% - 60% navigation */
-    gap: 0.5rem;
+    right: 0;
+}
+
+#tools button {
+    margin-left: 1rem;
 }
 
 #title { /* TODO: this is mess... sort it out */
@@ -293,84 +365,107 @@ button.circled {
     max-width: 100%;
     text-align: center;
     font-size: small;
+    align-items: center;
+}
+
+.logo {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    background: url("./logo-256x256.png") no-repeat center center;
+    background-size: contain;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 100%;
+    background-color: transparent;
+}
+
+.logo-content {
+    display: flex;
 }
 
 #navigation {
     z-index: 2;
-    position: absolute;
-    top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom) !important;
+    position: relative;
     left: 0;
+    top: 2.5rem;
     display: flex;
+    flex: 1;
     flex-direction: column;
     max-width: 75%;
     min-width: 75%;
-    height: 100%;
+    min-height: 100%;
+    padding-bottom: env(safe-area-inset-bottom) !important;
     background-color: var(--background-navigation);
     transition: all 0.3s ease;
 }
+
 #navigation.collapsed { /* hiding #navigation */
     display: none;
     transform: translateX(-100%);
     transition: max-width 0.3s ease;
 }
 
-#chats {
+#history {
     display: flex;
-    width: 100%;
     flex: 1;
     flex-direction: column;
-    height: -webkit-fill-available;
+    height: 100%;
     overflow: hidden;
 }
 
 #list {
     display: block;
-    font-size: 85%;
-    padding: 0.25em;
     overflow-x: hidden;
-    overflow-y: auto;
-    margin-top: 2.0rem;
-    margin-bottom: 0.5rem;
+    margin: 0.25em 0.5em 0.25em 0.5em;
 }
 
 .item {
     display: flex;
     align-items: center;
     width: 100%;
-    margin: 0;
+    max-height: 1.5em !important;
     cursor: pointer;
 }
+
+#list .item:first-child { margin-top: 0.25em; }
+
+#list .item:last-child { margin-bottom: 0.25em; }
 
 .item span {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     display: inline-block;
-    max-width: 100%;
+    width: 100%;
 }
 
-.item .button {
+.item button {
     position: relative;
-    right: 0.25rem;
-    margin-left: auto;
+    left: auto;
+    right: 0;
     border: none;
+    max-height: 0.75em !important;
+    font-size: 0.75em !important;
+    background-color: transparent !important;
 }
 
 .item:hover, button:hover { background-color: var(--background-hover); }
+.button:hover { background-color: var(--background-button-hover); }
 
 #footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-shrink: 0;
     width: 100%;
-    margin: 0;
-    margin-top: auto;
-    padding-top: 0.25em;
-    padding-left: max(env(safe-area-inset-left), 1.25em);
-    padding-right: 1em;
-    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+    margin-bottom: 0.75rem;
+    line-height: 1;
+    height: fit-content;
 }
 
 #info, #shred {
@@ -379,7 +474,9 @@ button.circled {
     right: auto;
     font-size: 1rem !important;
     width: fit-content !important;
-    border: none;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    line-height: 1;
 }
 
 #info  { left:  0.25rem; }
@@ -416,15 +513,13 @@ button.circled {
     font-size: small;
 }
 
-#list, #messages {
-    height: -webkit-fill-available;
-    max-height: none;
+#list, #chat {
     overflow-y: auto;
     -webkit-mask-image:
                 linear-gradient(to bottom, transparent 0%,
-                                black 3%, black 97%, transparent 100%);
+                                black 2%, black 98%, transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0%,
-                                black 3%, black 97%, transparent 100%);
+                                black 2%, black 98%, transparent 100%);
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
 }
@@ -432,40 +527,6 @@ button.circled {
 #menu {
     z-index: 3;
     display: none; /* start with hidden navigation */
-}
-
-#chat {
-    overflow-y: auto;
-}
-
-#box { /* input container */
-    flex: 0 0 auto;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    min-height: 2.5em;
-    margin: 0.5rem;
-    outline: none;
-    background-color: transparent;
-    border: 0.125rem solid #888;
-    border-radius: 0.5rem;
-}
-
-#input {
-    min-height: 1em;
-    padding: 0.25rem;
-    outline: none;
-    background-color: transparent;
-}
-
-#input:empty::before {
-    content: var(--placeholder);
-    pointer-events: none;
-    color: #888;
-}
-
-#input:focus:empty::before {
-    content: "";
 }
 
 .button_row {
@@ -496,28 +557,6 @@ button.circled {
 #modal button {
     font-size: 0.75rem !important;
     width: fit-content !important;
-}
-
-.logo {
-    display: inline-block;
-    width: 1.5em;
-    height: 1.5em;
-    background: url("./logo-256x256.png") no-repeat center center;
-    background-size: contain;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    height: 100%;
-    background-color: transparent;
-}
-
-.logo-content {
-    display: flex;
-    align-items: center;
 }
 
 #menu {
@@ -558,11 +597,10 @@ span.label {
     flex-grow: 1;
 }
 
-.icon.half { font-size: 0.5rem !important;  }
-
 .icon.mirror { transform: scaleX(-1) translateX(60%); }
 
-#remove .label { color: red; }
+#remove .label, #remove .icon { color: rgb(192, 16, 16); }
+#remove .icon { font-weight: bold }
 
 #share { display: none; } /* TODO: not implemented yet */
 
@@ -603,12 +641,6 @@ span.label {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: bold;
-}
-
-#suggest {
-    display: none;
-    height: fit-content !important;
-    width: 100%;
 }
 
 .suggestions_container {

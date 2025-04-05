@@ -117,7 +117,7 @@ export const show = () => {
     if (disp.length === 0) build()
     cycle()
     cycle()
-    get("suggest").style.display = "block"
+    get("suggest").style.display = "flex"
     start()
 }
 

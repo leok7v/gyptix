@@ -10,14 +10,14 @@ import * as suggestions from "./suggestions.js"
 import * as util        from "./util.js"
 import * as ui          from "./ui.js"
 
+const nbsp4 = "    " // 4 non-breakable spaces
+
 const get = id => document.getElementById(id)
 
-/* “double rAF,” is the usual way to ensure the browser
-   has actually laid out (and often painted) before the
-   second callback runs
-*/
-
 const layout_and_render = () => {
+    /* “double rAF,” is the usual way to ensure the browser
+       has actually laid out (and often painted) before the
+       second callback runs */
     return new Promise(resolve => {
         requestAnimationFrame(() => requestAnimationFrame(resolve))
     })
@@ -39,6 +39,22 @@ const load_chat = id => {
     return c
 }
 
+const save_failed = (c) => {
+    modal.toast(error, 5000)
+    localStorage.removeItem("chat.id." + c.id)
+    localStorage.removeItem("chat." + c.id)
+}
+
+const save_chat_header = (c) => {
+    const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
+    try {
+        localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
+    } catch (error) {
+        console.log(error)
+        save_failed(c)
+    }
+}
+
 const save_chat = (c) => {
     if (c.messages.length == 0) return // never save empty chats
     const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
@@ -47,9 +63,7 @@ const save_chat = (c) => {
         localStorage.setItem("chat." + c.id, JSON.stringify(c.messages))
     } catch (error) {
         console.log(error)
-        modal.toast(error, 5000)
-        localStorage.removeItem("chat.id." + c.id)
-        localStorage.removeItem("chat." + c.id)
+        save_failed(c)
     }
 }
 
@@ -113,10 +127,14 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const is_scrolled_to_the_bottom = () => {
-        const sh = messages.scrollHeight
-        const ch = messages.clientHeight
-        const top = messages.scrollTop
-        return sh - ch <= top + scroll_gap
+        const verbose = false
+        const log = verbose ? console.log : () => {}
+        const top = messages.scrollHeight - messages.offsetHeight
+        const r = Math.abs(top - messages.scrollTop) < scroll_gap
+        log("is_scrolled_to_the_bottom " +
+            ".scrollTop: " + messages.scrollTop +
+            " top: " + top + " : " + r)
+        return r
     }
 
     const scroll_show_hide = () => {
@@ -139,7 +157,7 @@ export const run = () => { // called DOMContentLoaded
                 " .offsetHeight: " + messages.offsetHeight +
                 " .next: " + scroll_queue.next +
                 " .top: "  + scroll_queue.top +
-                " ui.show(scroll)")
+                " ui.hide(scroll) because is_scrolled_to_the_bottom()")
             ui.hide(scroll)
         } else {
             log("scroll_show_hide " +
@@ -170,8 +188,8 @@ export const run = () => { // called DOMContentLoaded
                 " .scrollTop: " + messages.scrollTop +
                 " .scrollHeight: " + messages.scrollHeight +
                 " .offsetHeight: " + messages.offsetHeight +
-                " .next: " + scroll_queue.next +
                 " .top: "  + scroll_queue.top +
+                " .next: " + scroll_queue.next +
                 " top: " + top
             )
             return
@@ -185,8 +203,8 @@ export const run = () => { // called DOMContentLoaded
                 " .scrollTop: " + messages.scrollTop +
                 " .scrollHeight: " + messages.scrollHeight +
                 " .offsetHeight: " + messages.offsetHeight +
-                " .next: " + scroll_queue.next +
-                " .top: "  + scroll_queue.top
+                " .top: "  + scroll_queue.top +
+                " .next: " + scroll_queue.next
             )
             scroll_queue.top  = next // .top and .next the same
             messages.scrollTo({ top: next, behavior: "smooth" })
@@ -198,14 +216,17 @@ export const run = () => { // called DOMContentLoaded
                         " .scrollTop: " + messages.scrollTop +
                         " .scrollHeight: " + messages.scrollHeight +
                         " .offsetHeight: " + messages.offsetHeight +
-                        " .next: " + scroll_queue.next +
-                        " .top: "  + scroll_queue.top
+                        " .top: "  + scroll_queue.top +
+                        " .next: " + scroll_queue.next
                         )
                     if (autoscroll) {
+                        log("scroll_to_bottom scroll_to_bottom() again")
                         scroll_queue = { top: 0, next: 0 }
                         requestAnimationFrame(scroll_to_bottom)
                     } else {
+                        log("scroll_to_bottom scroll_to_bottom_cancel()")
                         scroll_to_bottom_cancel()
+                        scroll_show_hide()
                     }
                 } else if (is_scrolling()) {
                     log("scroll_to_bottom requestAnimationFrame " +
@@ -213,8 +234,8 @@ export const run = () => { // called DOMContentLoaded
                         " .scrollTop: " + messages.scrollTop +
                         " .scrollHeight: " + messages.scrollHeight +
                         " .offsetHeight: " + messages.offsetHeight +
-                        " .next: " + scroll_queue.next +
-                        " .top: "  + scroll_queue.top
+                        " .top: "  + scroll_queue.top +
+                        " .next: " + scroll_queue.next
                     )
                     requestAnimationFrame(check_scroll)
                 } else {
@@ -223,12 +244,14 @@ export const run = () => { // called DOMContentLoaded
                         " .scrollTop: " + messages.scrollTop +
                         " .scrollHeight: " + messages.scrollHeight +
                         " .offsetHeight: " + messages.offsetHeight +
-                        " .next: " + scroll_queue.next +
                         " .top: "  + scroll_queue.top +
+                        " .next: " + scroll_queue.next +
                         " is_scrolling(): " + is_scrolling())
                 }
             }
             requestAnimationFrame(check_scroll)
+        } else {
+            log("scroll_to_bottom is_scrolling(): true")
         }
     }
         
@@ -255,7 +278,9 @@ export const run = () => { // called DOMContentLoaded
             if (input !== document.activeElement) suggestions.show()
             return
         }
+        console.log("chat.messages.length: " + chat.messages.length)
         if (chat.messages.length > 0) {
+            console.log("suggestions.hide()")
             suggestions.hide()
         }
         // this is optimization because markdown rendering is slow
@@ -263,12 +288,11 @@ export const run = () => { // called DOMContentLoaded
         chat.messages.forEach(msg => {
             if (i > messages.childNodes.length - 1) {
                 messages.appendChild(render_message(msg))
-                console.log("messages.appendChild(): " + i)
-                if (ui.is_hidden(scroll) || autoscroll) scroll_to_bottom()
+//              console.log("render_messages messages.appendChild(): " + i)
             }
             i++;
         })
-        if (ui.is_hidden(scroll) || autoscroll) scroll_to_bottom()
+        if (autoscroll || ui.is_hidden(scroll)) scroll_to_bottom()
     }
     
     const last_child_scroll = () => {
@@ -283,7 +307,7 @@ export const run = () => { // called DOMContentLoaded
             scroll_to_bottom_cancel()
         } else {
             console.log("last_child_scroll autoscroll: " + autoscroll)
-            if (ui.is_hidden(scroll) || autoscroll) scroll_to_bottom()
+            if (autoscroll || ui.is_hidden(scroll)) scroll_to_bottom()
         }
     }
 
@@ -304,13 +328,13 @@ export const run = () => { // called DOMContentLoaded
                     console.error(error)
                 } else {
                     last_child.innerHTML = html
-                    console.log("render_last last_child_scroll()")
+//                  console.log("render_last last_child_scroll()")
                     last_child_scroll()
                 }
             })
         } else {
             messages.appendChild(render_message(last_msg))
-            console.log("render_last last_child_scroll()")
+//          console.log("render_last last_child_scroll()")
             last_child_scroll()
         }
     }
@@ -348,20 +372,26 @@ export const run = () => { // called DOMContentLoaded
                 selected = null
                 collapsed()
                 hide_menu()
-                ui.hide(scroll) // loaded chat will be scrolled to bottom
                 if (current !== c.id) {
-                    ui.hide(carry)
+                    ui.hide(scroll, carry)
                     suggestions.hide()
                     messages.innerHTML = ""
                     current = c.id
+                    set_chat_title(c.title)
                     layout_and_render().then(() => {
                         chat = load_chat(current)
+                        chat.timestamp = util.timestamp() // make it recent
+                        save_chat_header(chat) // and save it
                         placeholder()
                         render_messages()
                         rebuild_list()
                         layout_and_render().then(() => {
                             layout_and_render().then(() => {
                                 model.run(c.id) // slowest
+                                if (!is_scrolled_to_the_bottom()) {
+                                    ui.show(scroll)
+                                    scroll_to_bottom()
+                                }
                             })
                         })
                     })
@@ -370,7 +400,6 @@ export const run = () => { // called DOMContentLoaded
             const span = document.createElement("span")
             span.textContent = c.title
             const dots = document.createElement("button")
-            dots.className = "button"
             dots.textContent = "⋯"
             dots.onclick = e => {
                 e.stopPropagation()
@@ -401,8 +430,8 @@ export const run = () => { // called DOMContentLoaded
             messages: []
         }
         ui.hide(carry)
-        title.innerHTML = ""
-        send.classList.add('hidden')
+        set_title('')
+        ui.hide(send)
         save_chat(chat)
         collapsed()
         rebuild_list()
@@ -441,11 +470,15 @@ export const run = () => { // called DOMContentLoaded
     const placeholder = () => {
         let ph = ""
         if (model.is_answering()) {
-            ph = "click ▣ to stop"
+            if (ui.is_hidden(scroll)) {
+                ph = "▣ stop"
+            } else {
+                ph = "▣ stop" + nbsp4 + "↓ scroll"
+            }
         } else if (chat.messages.length > 0) {
             ph = "Anything else can I help you with?"
         } else if (!detect.macOS) { // double quotes improtant for css variable:
-            ph = "Ask anything... and click ⇧"
+            ph = "Ask anything... and click ↑"
         } else {
             ph = "Ask anything... Use ⇧⏎ for line break"
         }
@@ -453,6 +486,37 @@ export const run = () => { // called DOMContentLoaded
         input.style.setProperty("--placeholder", `"${ph}"`)
     }
     
+    const set_title = (s) => {
+        const classes = s === '' ? 'logo-container rainbow' :
+                                   'logo-container shimmering'
+        const t = s === '' ? (detect.macOS ? '' : 'GyPTix') : s
+        const c = t === '' ? '' : `<span class='logo-content'>${t}</span>`
+        title.innerHTML =
+            `<div class='${classes}' >` +
+                "<span class='logo'></span>" + c +
+            "</div>"
+    }
+
+    const set_chat_title = (s) => {
+        if (s === '') {
+            set_title(s)
+        } else {
+            title.innerHTML =
+                "<div class='logo-container' >" +
+                    `<span class='logo-content'>${s}</span>` +
+                "</div>"
+        }
+    }
+    
+    const thinking = detect.macOS ?
+        [          "Reasoning", "Thinking", "Answering"] :
+        ["GyPTix", "Reasoning", "Thinking", "Answering"]
+
+    const cycle_titles = (count) => {
+        set_title(thinking[count])
+        return (count + 1) % thinking.length
+    }
+
     const summarize_to_title = () => {
         // Poor man summarization. TODO: use AI for that
         if (chat.messages.length == 2) {
@@ -466,31 +530,17 @@ export const run = () => { // called DOMContentLoaded
     
     const done = () => {
         autoscroll = false
-        ui.show(send)
-        ui.hide(stop, clear)
-        carry.style.display = interrupted ? "inline" : "none"
+        input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
         summarize_to_title()
+        set_chat_title(chat.title)
         save_chat(chat)
         rebuild_list()
         stop.classList.remove("pulsing")
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         placeholder()
-    }
-    
-    const thinking = detect.macOS ?
-        [          "Reasoning", "Thinking", "Answering"] :
-        ["GyPTix", "Reasoning", "Thinking", "Answering"]
-
-    const cycle_titles = (count) => {
-        title.innerHTML =
-            "<div class='logo-container shimmering'>" +
-                "<span class='logo'></span>" +
-                "<span class='logo-content'>" + thinking[count] + "</span>" +
-            "</div>"
-        return (count + 1) % thinking.length
     }
     
     const poll = (context) => {
@@ -577,20 +627,13 @@ export const run = () => { // called DOMContentLoaded
         if (!model.is_answering() && s !== "") {
             ui.hide(carry, clear)
             interrupted = false
-            input.innerText = ""
-            send.classList.add('hidden')
+            input.innerHTML = ""
+            ui.hide(send)
             input.style.setProperty("--placeholder", '""')
-            title.innerHTML =
-                "<div class='logo-container shimmering'>" +
-                    "<span class='logo'></span>" +
-                    (detect.macOS ? "" :
-                     "<span class='logo-content'>GyPTix</span>") +
-                "</div>"
-            setTimeout(() => { // let frame to re-render first
-                ask(s)
-                placeholder()
-                layout_and_render().then(() => input.blur())
-            }, 10)
+            set_title('')
+            placeholder()
+            input.blur()
+            layout_and_render().then( () => ask(s) )
         }
     }
 
@@ -608,7 +651,7 @@ export const run = () => { // called DOMContentLoaded
 
     clear.onclick = e => {
         input.innerText = ""
-        ui.hide(clear)
+        placeholder()
         layout_and_render().then(() => {
             input.focus()
             if (chat.messages.length == 0) suggestions.show()
@@ -616,6 +659,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     carry.onclick = e => {
+        interrupted = false
         ui.hide(carry)
         ask("carry on")
     }
@@ -635,6 +679,8 @@ export const run = () => { // called DOMContentLoaded
     }
 
     shred.onclick = () => {
+        hide_menu()
+        // TODO: menu here "Older than month" / "Older than a week" / "All"
         modal.ask("### **Erase All Chat History**  \n" +
             "For your privacy and storage<br>" +
             "efficiency, wiping everything<br>" +
@@ -652,6 +698,7 @@ export const run = () => { // called DOMContentLoaded
         is_expanded = false
         navigation.classList.add("collapsed")
         ui.hide(tools)
+        ui.show(title)
         hide_menu()
     }
     
@@ -660,6 +707,7 @@ export const run = () => { // called DOMContentLoaded
             is_expanded = true
             navigation.classList.remove("collapsed")
             ui.show(tools)
+            ui.hide(scroll, title)
         }
     }
     
@@ -671,7 +719,7 @@ export const run = () => { // called DOMContentLoaded
         layout_and_render().then(scroll_to_bottom)
     }
 
-    scroll.addEventListener('touchstart', scroll.onclick)
+//  scroll.addEventListener('touchstart', scroll.onclick, { passive: true })
     
     let last_key_down_time = 0
     
@@ -679,8 +727,8 @@ export const run = () => { // called DOMContentLoaded
         let s = input.innerText.trim()
         if (detect.macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             e.preventDefault()
-            input.innerText = ""
-            send.classList.add('hidden')
+            input.innerHTML = ""
+            ui.hide(send)
             layout_and_render().then(() => {
                 const sel = window.getSelection()
                 if (sel) sel.removeAllRanges()
@@ -713,11 +761,12 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.oninput = () => {
+        const answering = model.is_answering()
         let s = input.innerText
-        if (s !== "" && !model.is_answering()) {
-            ui.hide(stop, carry)
-            ui.show(send, clear)
-        }
+        ui.show_hide(s !== "", clear)
+        ui.show_hide(answering, stop)
+        ui.show_hide(!answering, send)
+        ui.show_hide(interrupted, carry)
         const lines = input.innerText.split("\n").length
         input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
         scroll_show_hide()
@@ -778,6 +827,9 @@ export const run = () => { // called DOMContentLoaded
                 }
                 rebuild_list()
                 render_messages()
+                // bug in iOS input scroll back:
+                collapsed()
+                expanded()
             }
         })
     }
@@ -795,14 +847,16 @@ export const run = () => { // called DOMContentLoaded
     
     const user_started_scrolling = () => {
         autoscroll = false
-        ui.show(scroll)
-        if (is_scrolling()) scroll_to_bottom_cancel()
+        if (chat && chat.messages && chat.messages.length > 0) {
+            requestAnimationFrame(scroll_show_hide)
+            if (is_scrolling()) scroll_to_bottom_cancel()
+        }
     }
     
-    messages.addEventListener("mousedown",  user_started_scrolling)
-    messages.addEventListener("touchstart", user_started_scrolling)
-    messages.addEventListener("touchend",   user_started_scrolling)
-    messages.addEventListener("wheel", user_started_scrolling)
+    messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
+//  messages.addEventListener("touchstart", user_started_scrolling, { passive: true })
+//  messages.addEventListener("touchend",   user_started_scrolling, { passive: true })
+    messages.addEventListener("wheel",      user_started_scrolling)
 
     document.querySelectorAll(".tooltip").forEach(button => {
         button.addEventListener("mouseenter", function() {
@@ -812,7 +866,7 @@ export const run = () => { // called DOMContentLoaded
             } else {
                 this.classList.remove("tooltip-bottom")
             }
-        })
+        }, { passive: true })
     })
     
     suggest.innerHTML = suggestions.init({
@@ -820,9 +874,7 @@ export const run = () => { // called DOMContentLoaded
         callback: s => {
             interrupted = false;
             input.innerText = s.prompt
-            ui.hide(stop, carry)
-            clear.style.display = "inline"
-            send.classList.remove('hidden')
+            input.oninput()
             suggestions.hide()
         }
     })
@@ -838,7 +890,6 @@ export const run = () => { // called DOMContentLoaded
 
     const showEULA = () => {
 //      localStorage.removeItem("app.eula") // DEBUG
-        const nbsp4 = "    " // 4 non-breakable spaces
         if (!localStorage.getItem("app.eula")) {
 //          localStorage.clear() // no one promissed to keep data forever
             modal.show(util.load("./eula.md"), (action) => {
@@ -879,6 +930,8 @@ export const run = () => { // called DOMContentLoaded
     scroll.title = "Scroll to the Bottom"
 
     showEULA()
+
+    input.oninput()
 }
 
 export const inactive = () => {
@@ -891,7 +944,7 @@ export const debugger_attached = (attached) => {
     if (typeof attached === "string") attached = (attached === "true")
     util.set_debugger_attached(attached);
     if (!attached) {
-        document.body.oncontextmenu = (e) => e.preventDefault()
+        if (detect.macOS) document.body.oncontextmenu = e => e.preventDefault()
 //      console.log("debugger_attached: disabling context menu")
     }
     return attached ? "conext menu enabled" : "conext menu disabled"

@@ -28,20 +28,22 @@
     <div id="viewport" class="viewport">
         <div id="backdrop"></div>
         <div id="modal" class="viewport"></div>
-        <button id="expand" title="History">☰</button>
-        <button id="restart" class="mirror" title="New Conversation">✎</button>
-        <div id="title"></div>
-        <div id="tools">
-            <button id="font-decrease" class="button" title="Smaller Font">a</button>
-            <button id="font-increase" class="button" title="Bigger Font">A</button>
-            <button id="toggle_theme"  class="button" title="Dark/Light">◐</button>
-        </div>
+        <header id="header">
+            <button id="expand" class="square" title="History">☰</button>
+            <span id="tools">
+                <button id="font-decrease" title="Smaller Font">a</button>
+                <button id="font-increase" title="Bigger Font">A</button>
+                <button id="toggle_theme"  title="Dark/Light">◐</button>
+            </span>
+            <div id="title"></div>
+            <button id="restart" class="mirror square" title="New Conversation">✎</button>
+        </header>
         <div id="navigation" class="collapsed">
-            <div id="chats">
+            <div id="history">
                 <div id="list"></div>
             </div>
             <span id="footer">
-                <button id="info" title="Info">ⓘ Info</button>
+                <button id="info"  title="Info">ⓘ Info</button>
                 <button id="shred" title="Erase Chats History">♽ Shred</button>
             </span>
         </div>
@@ -49,17 +51,17 @@
             <div id="suggest"></div>
             <div id="chat">
                 <div id="messages"></div>
+                <button id="scroll" class="circled" title="to the Bottom">↓</button>
             </div>
-            <button id="scroll" class="circled" title="Scroll Down">⇧</button>
             <div id="box">
                 <div id="input" contenteditable="plaintext-only"></div>
                 <div class="button_row">
                     <span class="left-buttons hidden">
-                        <button id="stop" class="circled">▣</button>
-                        <button id="clear" class="button">⌫</button>
+                        <button id="stop"  class="circled">■</button>
+                        <button id="clear" class="square">⌫</button>
                         <button id="carry" class="circled">→</button>
                     </span>
-                    <button id="send" class="circled" title="Ask">⇧</button>
+                    <button id="send" class="circled" title="Ask">↑</button>
                 </div>
             </div>
         </div>
@@ -75,7 +77,7 @@
       <span class="label">Share</span>
     </button>
     <button id="remove" class="menu_item">
-      <span class="icon half">❌</span>
+      <span class="icon">x</span>
       <span class="label">Delete</span>
     </button>
   </div>
