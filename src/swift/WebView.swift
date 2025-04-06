@@ -10,7 +10,7 @@ typealias ViewRepresentable = NSViewRepresentable
 typealias Context = NSViewRepresentableContext<WebView>
 #endif
 
-let app = "app" // experiments: app2, app3
+let app = "app3" // experiments: app2, app3
 
 let schemeHandler = FileSchemeHandler()
 

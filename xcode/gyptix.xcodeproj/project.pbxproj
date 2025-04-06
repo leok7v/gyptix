@@ -48,6 +48,8 @@
 		B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D391F2D458EFA00B8196B /* special_tokens_map.json */; };
 		B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A02D4826E400155A33 /* ggml-metal.m */; };
 		B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A12D4826E400155A33 /* ggml-metal.metal */; };
+		B33026C52DA1F40C0082BBB5 /* app3.js in Resources */ = {isa = PBXBuildFile; fileRef = B33026C42DA1F40C0082BBB5 /* app3.js */; };
+		B33026C72DA1F46B0082BBB5 /* app3.css in Resources */ = {isa = PBXBuildFile; fileRef = B33026C62DA1F46B0082BBB5 /* app3.css */; };
 		B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */; };
 		B34A04482D458A880010D066 /* ggml-quants.c in Sources */ = {isa = PBXBuildFile; fileRef = B34A04352D458A880010D066 /* ggml-quants.c */; };
 		B34A044C2D458A880010D066 /* ggml-threading.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A04372D458A880010D066 /* ggml-threading.cpp */; };
@@ -173,6 +175,8 @@
 		B313D3A12D4826E400155A33 /* ggml-metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "ggml-metal.metal"; sourceTree = "<group>"; };
 		B313D3A22D4826E400155A33 /* ggml-metal-impl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-metal-impl.h"; sourceTree = "<group>"; };
 		B323E3632D1CDAB2007BA38C /* GyPTix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GyPTix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B33026C42DA1F40C0082BBB5 /* app3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app3.js; sourceTree = "<group>"; };
+		B33026C62DA1F46B0082BBB5 /* app3.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app3.css; sourceTree = "<group>"; };
 		B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		B33E9D0E2D4B262E005FEE9B /* GyPTix.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTix.entitlements; sourceTree = "<group>"; };
 		B33E9D0F2D4B262E005FEE9B /* GyPTixDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTixDebug.entitlements; sourceTree = "<group>"; };
@@ -500,7 +504,9 @@
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
 				B361EBDF2D8FD06500B45B70 /* app1.css */,
 				B375A6A82D946AC8001F9286 /* app2.css */,
+				B33026C62DA1F46B0082BBB5 /* app3.css */,
 				B375A6AA2D946ADB001F9286 /* app2.js */,
+				B33026C42DA1F40C0082BBB5 /* app3.js */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
@@ -590,9 +596,11 @@
 				B363D0A52D7DD32600993F90 /* mdw.js in Resources */,
 				B375A6AB2D946ADB001F9286 /* app2.js in Resources */,
 				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
+				B33026C52DA1F40C0082BBB5 /* app3.js in Resources */,
 				B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */,
 				B3E2499B2D6162110048A24F /* model.js in Resources */,
 				B30D39252D458EFA00B8196B /* added_tokens.json in Resources */,
+				B33026C72DA1F46B0082BBB5 /* app3.css in Resources */,
 				B3F5905A2D6A848C008B5B7D /* modal.js in Resources */,
 				B30D39262D458EFA00B8196B /* merges.txt in Resources */,
 				B30D39272D458EFA00B8196B /* tokenizer.json in Resources */,
