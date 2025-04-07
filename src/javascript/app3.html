@@ -1,69 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, 
-                                   maximum-scale=1.0, user-scalable=no"
-    >
+    <meta name="viewport" content="width=device-width, 
+                                   initial-scale=1.0, 
+                                   maximum-scale=1.0,
+                                   viewport-fit=cover,
+                                   user-scalable=no">
     <meta name="color-scheme" content="light dark">
-    <script type="module">
-        import * as util  from "./util.js"
-        import * as model from "./model.js"
-        import * as app   from "./app3.js"
-        document.addEventListener("DOMContentLoaded", () => { app.run() })
-    </script>
     <style>
         @media (prefers-color-scheme: light) {
             :root {
                 --background-color: #f0f0f0;
                 --color: #121212;
-                --system-blue: #007AFF; /* Apple System Blue for Light Theme */
+                --system-blue: #007AFF;
             }
         }
         @media (prefers-color-scheme: dark) {
             :root {
                 --background-color: #101010;
                 --color: #f0f0f0;
-                --system-blue: #0A84FF; /* Apple System Blue for Dark Theme */
+                --system-blue: #0A84FF;
             }
         }
 
         :root {
-            font-size: 130%;    /* 'rem' for iPhones */
-            --font-size: 100%;  /* of root font */
+            font-size: 130%;
+            --font-size: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --header-height: 1.5rem;
         }
 
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        
         body {
-            position: relative;
-            height: 100dvh;
             width: 100dvw;
-            display: flex;
-            flex-direction: column;
+            min-height: 50%;
             margin: 0;
             padding: 0;
             font-size: var(--font-size);
-            color: var(--color);
-            overflow: hidden;
+            /* color: var(--color); */
+            color: canvastext;
+            background-color: canvas;
             background: linear-gradient(135deg,
                   #7f0000  0%, #7f3f00 20%, #7f7f00  40%,
                   #007f00 60%, #00007f 80%, #4b007f 100%);
             filter: brightness(0.9);
+/*            transition: height 0.25s ease; */
         }
-        
+
         button.square {
-            display:    inline-block;
-            margin:     0.125rem;
-            width:      1.25rem;
-            height:     1.25rem;
-            min-width:  1.25rem;
+            display: inline-block;
+            margin: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            min-width: 1.25rem;
             min-height: 1.25rem;
-            max-width:  1.25rem;
+            max-width: 1.25rem;
             max-height: 1.25rem;
-            font-size:  1.00rem;
+            font-size: 1.00rem;
             justify-content: center;
-            align-items:     center;
-            text-align:      center;
+            align-items: center;
+            text-align: center;
         }
 
         .section {
@@ -71,12 +71,106 @@
             box-sizing: border-box;
         }
 
-        #header {
-            z-index: 3;
-            position: absolute;
+        .header-container {
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
+            right: 0;
+            background-color: transparent;
+            z-index: 1000;  /* ensure this container stays on top */
+        }
+
+        #header {
+            height: 100%;  /* fill the container’s height */
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            background: orange;
+        }
+        
+        #content {
+            z-index: 0;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #tools {
+            height: 1.5rem;
+            background-color: maroon;
+        }
+
+        #before {
+            flex: 1;
+            min-height: 0;
+            background-color: FireBrick;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            background-color: blue;
+        }
+
+        .item {
+            margin: 0.25em;
+            padding: 0.25em;
+            background: indigo;
+        }
+
+        #after {
+            flex: 1;
+            min-height: 0;
+            background-color: green;
+            background-color: transparent;
+        }
+
+        #input {
+            z-index: 1;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            flex: 0;
+            z-index: 1;
+            height: 5.5em;
+            min-height: 5.5em;
+            max-height: 50%;
+            padding: 0.25em;
+            overflow-y: auto;
+            line-height: 1.2em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-word;
+            background: #888;
+        }
+
+        #navigation {
+            z-index: 3;
+            position: fixed;
+            top: 0;
+            left: -50%;
+            width: 50%;
+            min-height: 0;
+            display: flex;
+            overflow: hidden;
+            flex-direction: column;
+            transition: left 0.3s ease;
+        }
+
+        #navigation.expanded { left: 0; }
+        #extras { flex: 0; height: 1.5rem; background-color: red; }
+        #top    { flex: 1; min-height: 0; background: brown; }
+        #list   { flex: 1; overflow-y: auto; min-height: 0; background: teal; }
+        #bottom { flex: 1; min-height: 0; max-height: 50%; background: navy; }
+
+        #footer {
+            z-index: 4;
+            position: absolute;
+            bottom: 0;
+            left: 0;
             height: var(--header-height);
             display: flex;
             align-items: center;
@@ -84,112 +178,47 @@
             background: orange;
         }
 
-        #content {
-            display: flex;
-            flex-direction: column;
-            height: calc(100dvh - var(--header-height));
-            margin-top: var(--header-height);
-        }
-        
-        #tools {
-            height: 1.5rem;
-            background-color: var(--background-color);
-            background-color: maroon;
-        }
-        
-        #before {
-            flex: 1;
-            min-height: 0;
-            background-color: var(--background-color);
-            background-color: FireBrick;
-        }
-        
-        #messages {
-            flex: 1;
-            overflow-y: auto;
-            min-height: 0;
-            background-color: var(--background-color);
-            background-color: blue;
-        }
-        
-        #after {
-            flex: 1;
-            min-height: 0;
-            background-color: var(--background-color);
-            background-color: green;
-        }
-        
-        #input {
-            z-index:     1;
-            position:    absolute;
-            bottom:      0;
-            height:      2.5em;
-            min-height:  2.5em;
-            max-height:  50%;
-            padding:     0.25em;
-            overflow-y:  auto;
-            white-space: pre-wrap;
-            word-wrap:   break-word;
-            word-break:  break-word;
-            background: #888;
-        }
-        
-        .item {
-            margin: 0.25em;
-            padding: 0.25em;
-            background: indigo;
-        }
-
-        #navigation {
-            z-index: 2;
-            position: absolute;
-            top: 0;
-            left: -50%;
-            width: 50%;
-            height: 100%;
-            margin-top: var(--header-height);
-            height: calc(100dvh - var(--header-height));
-            display: flex;
-            flex-direction: column;
-            background: rgba(0, 0, 0, 0.9);
-            transition: left 0.3s ease;
-        }
-
-        #navigation.expanded { left: 0; }
-        #extras {
-            height: 1.5rem;
-            background-color: var(--background-color);
-            background-color: red;
-        }
-        #top    { flex: 1; min-height: 0; background: brown; }
-        #list   { flex: 1; overflow-y: auto; min-height: 0; background: teal; }
-        #bottom { min-height: 0; max-height: 50%; background: navy; }
     </style>
 </head>
 <body>
-    <div id="header">Header</div>
-    <div id="content">
+    <div class="header-container">
+        <div id="header" class="section">Header</div>
+    </div>
+    <div id="content" class="section">
         <span id="tools" class="section">Tools
-            <button onclick="toggleNav()" class="square">&gg;</button>
+            <button onclick="toggle_navigation()" class="square">&gg;</button>
         </span>
-        <div id="before" class="before">Before</div>
+        <div id="before" class="section">Before</div>
         <div id="messages" class="section"></div>
         <div id="after" class="section">After</div>
-        <div id="input" class="section" contenteditable="plaintext-only"
-            placeholder="Type here...">
-        </div>
     </div>
     <div id="navigation">
         <span id="extras" class="section">
-            <button onclick="toggleNav()" class="square">&ll;</button>
+            <button onclick="toggle_navigation()" class="square">&ll;</button>
             Extras
         </span>
-        <div id="top" class="section">Top</div>
-        <div id="list"  class="section"></div>
-        <div id="bottom" class="section">Bottom</div>
+        <div id="top" class="section">Top<br>Next Line</div>
+        <div id="list" class="section"></div>
+        <div id="bottom" class="section">Bottom<br>Next Line</div>
     </div>
+    <div id="input" class="section" contenteditable="plaintext-only" placeholder="Type here..."></div>
+    <script type="module">
+        import * as util  from "./util.js";
+        import * as model from "./model.js";
+        import * as app   from "./app3.js";
+        document.addEventListener("DOMContentLoaded", () => { app.run() });
 
-    <script>
+        const get = id => document.getElementById(id)
+
+        const layout_and_render = () => {
+            /* “double rAF,” is the usual way to ensure the browser
+               has actually laid out (and often painted) before the
+               second callback runs */
+            return new Promise(resolve => {
+                requestAnimationFrame(() => requestAnimationFrame(resolve))
+            })
+        }
+
         const populate = (e, n) => {
             for (let i = 1; i <= n; i++) {
                 const p = document.createElement('p');
@@ -198,6 +227,7 @@
                 e.appendChild(p);
             }
         }
+        
         const insert_paragraph_break = () => {
             const selection = window.getSelection();
             if (selection.rangeCount > 0) {
@@ -210,42 +240,62 @@
             }
         }
 
-        populate(document.getElementById('messages'), 33)
-        populate(document.getElementById('list'), 33)
+        const input_line_height = () => {
+            const cs = window.getComputedStyle(input); // computed style
+            console.log("lineHeight: " + cs.lineHeight);
+            const h = parseFloat(cs.lineHeight);
+            if (isNaN(h)) {
+                const fontSize = parseFloat(cs.fontSize);
+                h = fontSize * 1.2;
+            }
+            console.log("lineHeight: " + h + "px");
+            return h;
+        }
 
-        const input = document.getElementById('input');
+        
+        const
+            header     = get('header'),
+            input      = get('input'),
+            messages   = get('messages'),
+            list       = get('list'),
+            navigation = get('navigation')
+
+        populate(messages, 33);
+        populate(list, 33);
+
         input.addEventListener('keydown', (e) => {
             const enter = e.key === 'Enter';
-            const shift_enter = e.shiftKey && enter; // macOS and external keyboard
-            if (enter) { // TODO: check soft vs hard keyboard here
-                e.preventDefault();
-                insert_paragraph_break();
-                const lineHeight = parseInt(window.getComputedStyle(input).lineHeight) || 20;
-                let newHeight = input.offsetHeight + lineHeight;
-                const maxHeight = parseInt(input.style.maxHeight) || window.innerHeight / 2;
-                if (newHeight <= maxHeight) {
-                    input.style.height = `${newHeight}px`;
-                }
+            if (enter) {
+                const lh = input_line_height()
+                let h = input.offsetHeight + lh;
+                let mx = Math.max(parseFloat(input.style.maxHeight),
+                                  window.innerHeight / 2);
+                console.log("mx: " + mx);
+                if (h <= mx) { input.style.height = `${h}px`; }
             }
         });
-        const navigation = document.getElementById('navigation');
-        function toggleNav() {
+
+        input.addEventListener('focus', () => {
+            navigation.classList.remove('expanded');
+        })
+                               
+        function toggle_navigation() {
             navigation.classList.toggle('expanded');
         }
+        
         document.addEventListener('click', (e) => {
             if (!navigation.contains(e.target) &&
-                !e.target.matches('button[onclick="toggleNav()"]')) {
+                !e.target.matches('button[onclick="toggle_navigation()"]')) {
                 navigation.classList.remove('expanded');
             }
         });
-        
+
         let touch_start_x = 0;
         let touch_end_x = 0;
-
         document.addEventListener('touchstart', (e) => {
             touch_start_x = e.changedTouches[0].screenX;
         }, false);
-
+        
         document.addEventListener('touchend', (e) => {
             touch_end_x = e.changedTouches[0].screenX;
             handleSwipeGesture();
@@ -255,19 +305,102 @@
             const dx = touch_end_x - touch_start_x;
             const threshold = window.innerWidth / 4;
             if (Math.abs(dx) > threshold) {
-                if (dx > 0) { // Swipe right
-                    if (!navigation.classList.contains('expanded')) {
-                        toggleNav();
-                    }
-                } else { // Swipe left
-                    if (navigation.classList.contains('expanded')) {
-                        toggleNav();
-                    }
+                if (dx > 0 && !navigation.classList.contains('expanded')) {
+                    toggle_navigation();
+                } else if (dx < 0 && navigation.classList.contains('expanded')) {
+                    toggle_navigation();
                 }
             }
         }
+
+        function dump() {
+            console.log('window.visualViewport.offsetTop: ' + window.visualViewport.offsetTop);
+            console.log('window.visualViewport.height: ' + window.visualViewport.height);
+            console.log('document.documentElement.offsetTop: ' + document.documentElement.offsetTop);
+            console.log('document.documentElement.style.height: ' + document.documentElement.style.height);
+            console.log('document.documentElement.offsetHeight: ' + document.documentElement.offsetHeight);
+            console.log('document.documentElement.scrollHeight: ' + document.documentElement.scrollHeight);
+            console.log('document.documentElement.scrollTop: ' + document.documentElement.scrollTop);
+            console.log('document.body.offsetTop: ' + document.body.offsetTop);
+            console.log('document.body.style.height: ' + document.body.style.height);
+            console.log('document.body.offsetHeight: ' + document.body.offsetHeight);
+            console.log('document.body.scrollHeight: ' + document.body.scrollHeight);
+            console.log('document.body.scrollTop: ' + document.body.scrollTop);
+            console.log('content.offsetHeight: ' + content.offsetHeight);
+            console.log('content.scrollHeight: ' + content.scrollHeight);
+            console.log('window.innerHeight: ' + window.innerHeight);
+            console.log('window.outerHeight: ' + window.outerHeight);
+        }
         
-        console.log(window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var k = 0;
+        var timestamps = [];
+        var tops = [];
+
+        const collect = (timestamp) => {
+            if (k == 0) {
+                for (var i = 0; i < 20; i++) {
+                    timestamps[i] = 0;
+                    tops[i] = 0;
+ }
+            }
+            if (k < timestamps.length) {
+                tops[k] = window.visualViewport.offsetTop;
+                timestamps[k++] = util.timestamp();
+                requestAnimationFrame(collect)
+            } else {
+                for (var i = 0; i < 20; i++) {
+                    console.log("[" + i + "] " + timestamps[i] + " " + tops[i]);
+                }
+                k = 0;
+            }
+        }
+        
+        window.visualViewport.addEventListener('resize', (e) => {
+            console.log('*** resize: ' + util.timestamp())
+            console.log('document.documentElement.scrollTop: ' + document.documentElement.scrollTop);
+            const h = window.visualViewport.height;
+//document.documentElement.scrollTop = 0;
+//          document.body.style.height = `${h}px`;
+//          dump()
+//          input.scrollIntoView({ block: 'end', behavior: 'smooth' });
+            const h1 = window.innerHeight - document.documentElement.scrollTop;
+//          console.log('h1: ' + h1);
+            document.documentElement.style.height = h1;
+            document.body.style.height = h1;
+            document.documentElement.scrollHeight = h1;
+//          e.preventDefault();
+//          e.stopPropagation();
+//          e.stopImmediatePropagation();
+//          header.scrollIntoView({ block: 'start', behavior: 'instant' });
+//          header.scrollIntoView({ block: 'start', behavior: 'smooth' });
+//          console.log('->');
+//          dump();
+//          console.log('-------------------------------------');
+//          requestAnimationFrame(collect)
+        }, { capture: true });
+        
+        window.visualViewport.addEventListener('scroll', (e) => {
+            console.log('*** scroll: ' + util.timestamp())
+//          document.documentElement.scrollTop = 0;
+//          document.documentElement.scrollTop = 0;
+            e.preventDefault();
+        })
+        window.visualViewport.addEventListener('scrollend', (e) => {
+            console.log('*** scrollend: ' + util.timestamp())
+            document.documentElement.scrollTop = 0;
+        })
+
+        layout_and_render().then(() => {
+            const lh = input_line_height();
+            const lines = Math.floor(window.innerHeight / lh);
+//          input.style.minHeight = lh + "px";
+//          input.style.maxHeight = lh * (lines / 4) + "px";
+        })
+          
+//      content.style.height = `${window.visualViewport.height}px`
+          
+        console.log("(prefers-color-scheme: dark): " +
+                    window.matchMedia('(prefers-color-scheme: dark)').matches);
     </script>
 </body>
 </html>

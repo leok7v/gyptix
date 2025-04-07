@@ -313,6 +313,17 @@ func on_appear() {
     DispatchQueue.main.asyncAfter(deadline: .now() + 1) { trim_menu() }
     restrict_windows()
     setup_termination()
+    #else
+    if let wv = web_view, let parent = wv.superview {
+        wv.translatesAutoresizingMaskIntoConstraints = false
+        parent.keyboardLayoutGuide.usesBottomSafeArea = false
+        NSLayoutConstraint.activate([
+            wv.topAnchor.constraint(equalTo: parent.topAnchor),
+            wv.bottomAnchor.constraint(equalTo: parent.keyboardLayoutGuide.topAnchor),
+            wv.leadingAnchor.constraint(equalTo: parent.leadingAnchor),
+            wv.trailingAnchor.constraint(equalTo: parent.trailingAnchor)
+        ])
+    }
     #endif
     AppRating.trackAppLaunch()
     if let f = Bundle.main.url(forResource: gguf, withExtension: nil) {
