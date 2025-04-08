@@ -224,7 +224,7 @@ static void list() {
             if (stat(path, &st) != 0) {
                 perror("stat");
             } else {
-                printf("%12'd %s\n", (int)st.st_size, path);
+                printf("%12d %s\n", (int)st.st_size, path);
             }
         }
     }
@@ -278,7 +278,7 @@ static void load_model(const char* model) {
             if (quit || id == nullptr) { break; }
             running = true;
 //          fprintf(stderr, "running = true\n");
-            list();
+//          list();
             int r = llama.run(id, existing);
             free(id);
             running = false;

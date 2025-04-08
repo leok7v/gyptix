@@ -341,13 +341,37 @@ export const run = () => { // called DOMContentLoaded
     
     messages.onscroll = () => {
         if (is_expanded) collapsed()
-        if (document.activeElement == input) input.blur()
+//      if (document.activeElement == input) input.blur()
         if (!model.is_answering() || ui.is_hidden(scroll)) {
             scroll_show_hide()
         }
     }
     
     const key2id = (key) => parseInt(key.substring("chat.id.".length))
+
+    const load = (c) => {
+        ui.hide(scroll, carry)
+        suggestions.hide()
+        messages.innerHTML = ""
+        current = c.id
+        set_chat_title(c.title)
+        layout_and_render().then(() => {
+            chat = load_chat(current)
+            chat.timestamp = util.timestamp() // make it recent
+            save_chat_header(chat) // and save it
+            placeholder()
+            render_messages()
+            rebuild_list()
+            layout_and_render().then(() => {
+                console.log("model.run(" + c.id + ")")
+                model.run(c.id) // slowest
+                if (!is_scrolled_to_the_bottom()) {
+                    ui.show(scroll)
+                    scroll_to_bottom()
+                }
+            })
+        })
+    }
     
     const rebuild_list = () => {
         if (!list) return
@@ -372,29 +396,7 @@ export const run = () => { // called DOMContentLoaded
                 selected = null
                 collapsed()
                 hide_menu()
-                if (current !== c.id) {
-                    ui.hide(scroll, carry)
-                    suggestions.hide()
-                    messages.innerHTML = ""
-                    current = c.id
-                    set_chat_title(c.title)
-                    layout_and_render().then(() => {
-                        chat = load_chat(current)
-                        chat.timestamp = util.timestamp() // make it recent
-                        save_chat_header(chat) // and save it
-                        placeholder()
-                        render_messages()
-                        rebuild_list()
-                        layout_and_render().then(() => {
-                            console.log("model.run(" + c.id + ")")
-                            model.run(c.id) // slowest
-                            if (!is_scrolled_to_the_bottom()) {
-                                ui.show(scroll)
-                                scroll_to_bottom()
-                            }
-                        })
-                    })
-                }
+                if (current !== c.id) { load(c) }
             }
             const span = document.createElement("span")
             span.textContent = c.title
@@ -437,8 +439,9 @@ export const run = () => { // called DOMContentLoaded
         messages.innerText = ""
         render_messages()
         suggestions.show()
-        model.run('+' + id)
-//      console.log("model.run(" + id + ")")
+        placeholder()
+        console.log("model.run(" + id + ")")
+        layout_and_render().then(() => model.run('+' + id))
     }
     
     const recent = () => { // most recent chat -> current
@@ -540,6 +543,7 @@ export const run = () => { // called DOMContentLoaded
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         placeholder()
+        ui.show(expand, restart)
     }
     
     const poll = (context) => {
@@ -560,8 +564,8 @@ export const run = () => { // called DOMContentLoaded
     
     const polling = () => {
         autoscroll = false
-        ui.show(stop) // ? ▣ ◾ ◼ ■ ▣ ◻
-        ui.hide(send)
+        ui.show(stop)
+        ui.hide(send, expand, restart)
         stop.classList.add("pulsing")
         markdown.start()
         cycle_titles(0)
@@ -702,11 +706,14 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const expanded = () => {
-        if (!model.is_answering()){
-            is_expanded = true
-            navigation.classList.add("expanded")
-            ui.show(tools)
-            ui.hide(scroll, title)
+        if (!model.is_answering()) {
+            input.blur()
+            setTimeout(() => {
+                is_expanded = true
+                navigation.classList.add("expanded")
+                ui.show(tools)
+                ui.hide(scroll, title)
+            }, 500)
         }
     }
     
@@ -717,8 +724,6 @@ export const run = () => { // called DOMContentLoaded
         ui.hide(scroll)
         layout_and_render().then(scroll_to_bottom)
     }
-
-//  scroll.addEventListener('touchstart', scroll.onclick, { passive: true })
     
     let last_key_down_time = 0
     
@@ -747,20 +752,25 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.onblur = () => { // focus lost
+        ui.show(expand, restart)
         scroll_show_hide()
-        document.body.style.overflow = ""
-        if (chat.messages.length == 0) suggestions.show()
+//      document.body.style.overflow = ""
+        if (chat.messages.length == 0 && input.innerText.trim() === "") {
+            suggestions.show()
+        }
     }
     
     input.onfocus = () => {
-        ui.hide(scroll)
-        document.body.style.overflow = "hidden"
+        ui.hide(scroll, expand, restart)
+        suggestions.hide()
+//      document.body.style.overflow = "hidden"
         collapsed()
     }
     
     input.oninput = () => {
         const answering = model.is_answering()
         let s = input.innerText
+        if (s !== "") suggestions.hide()
         ui.show_hide(s !== "", clear)
         ui.show_hide(answering, stop)
         ui.show_hide(!answering, send)
@@ -852,8 +862,6 @@ export const run = () => { // called DOMContentLoaded
     }
     
     messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
-//  messages.addEventListener("touchstart", user_started_scrolling, { passive: true })
-//  messages.addEventListener("touchend",   user_started_scrolling, { passive: true })
     messages.addEventListener("wheel",      user_started_scrolling)
 
     document.querySelectorAll(".tooltip").forEach(button => {
@@ -867,6 +875,15 @@ export const run = () => { // called DOMContentLoaded
         }, { passive: true })
     })
     
+    const caret_to_end = () => {
+        const range = document.createRange();
+        range.selectNodeContents(input);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+    
     suggest.innerHTML = suggestions.init({
         data: prompts.data,
         callback: s => {
@@ -874,8 +891,33 @@ export const run = () => { // called DOMContentLoaded
             input.innerText = s.prompt
             input.oninput()
             suggestions.hide()
+            input.focus()
+            caret_to_end()
         }
     })
+    
+    let touch_start_x = 0;
+    let touch_end_x = 0;
+    document.addEventListener('touchstart', (e) => {
+        touch_start_x = e.changedTouches[0].screenX;
+    }, false);
+    
+    document.addEventListener('touchend', (e) => {
+        touch_end_x = e.changedTouches[0].screenX;
+        swipe();
+    }, false);
+
+    function swipe() {
+        const dx = touch_end_x - touch_start_x;
+        const threshold = window.innerWidth / 4;
+        if (Math.abs(dx) > threshold) {
+            if (dx > 0 && !navigation.classList.contains('expanded')) {
+                expanded();
+            } else if (dx < 0 && navigation.classList.contains('expanded')) {
+                collapsed();
+            }
+        }
+    }
     
     const licenses = () => {
         modal.show(util.load("./licenses.md"), (action) => {

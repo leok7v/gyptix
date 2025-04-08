@@ -28,16 +28,18 @@ const build = () => {
     })
     disp = sc.slice(0, 2)
     let container = get("suggestions_container")
-    if (!container) return
     container.innerHTML = ""
-    const invite = document.createElement("div")
-    invite.innerHTML =
+    const discuss = document.createElement("div")
+    discuss.innerHTML =
         "What would you like to discuss today?<br>" +
         "<sup>Using full sentences helps me respond better.</sup>"
-    container.appendChild(invite)
+    discuss.style.flex = "0 0 auto"
+    discuss.style.height = "fit-content"
+    container.appendChild(discuss)
     const bc = document.createElement("div")
     bc.id = "suggestion_boxes_container"
     bc.style.display = "flex"
+    bc.style.flex = "0 0 auto"
     bc.style.gap = "1em"
     bc.style.flexDirection = flex_direction()
     for (let c of disp) {
