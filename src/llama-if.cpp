@@ -201,7 +201,7 @@ static std::string prompt_cache_filename(const char* session) {
     return std::string(prompt_cache);
 }
 
-static int chat(struct context &context, const char* session) {
+static int chat(struct context &context, const char* session, bool existing) {
     llama_kv_cache_clear(context.ctx);
     context.chat_msgs.clear();
     context.embd.clear();
@@ -883,11 +883,11 @@ int llama_load(int argc, char* argv[]) {
     return 0;
 }
 
-int llama_run(const char* session) {
+int llama_run(const char* session, bool existing) {
     int r = 0;
     LOG_INF(">>>chat\n");
     try {
-        r = chat(*context, session);
+        r = chat(*context, session, existing);
     } catch (...) {
         fprintf(stderr, "exception in chat()\n");
         // Oops...

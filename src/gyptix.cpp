@@ -41,6 +41,7 @@ static char* question;
 static std::string output;
 static bool answering   = false;
 static bool running     = false;
+static bool existing    = false;
 static bool quit        = false;
 static bool interrupted = false;
 static char* session_id = nullptr;
@@ -198,6 +199,38 @@ static std::string system_prompt() {
     ;
 }
 
+static const char* prompts_dir() {
+    static const char *cwd = get_cwd();
+    static char prompts[4 * 1024];
+    strcpy(prompts, cwd);
+    strcat(prompts, "/prompts");
+    return prompts;
+}
+
+static void list() {
+    const char* prompts = prompts_dir();
+    DIR *dir = opendir(prompts);
+    if (!dir) {
+        perror("opendir");
+        return;
+    }
+    struct dirent *entry;
+    char path[4 * 1024];
+    while ((entry = readdir(dir))) {
+        if (strcmp(entry->d_name, ".") != 0 &&
+            strcmp(entry->d_name, "..") != 0) {
+            snprintf(path, sizeof(path), "%s/%s", prompts, entry->d_name);
+            struct stat st = {0};
+            if (stat(path, &st) != 0) {
+                perror("stat");
+            } else {
+                printf("%12'd %s\n", (int)st.st_size, path);
+            }
+        }
+    }
+    closedir(dir);
+}
+
 static void load_model(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
     static char arg0[1024];
@@ -245,7 +278,8 @@ static void load_model(const char* model) {
             if (quit || id == nullptr) { break; }
             running = true;
 //          fprintf(stderr, "running = true\n");
-            int r = llama.run(id);
+            list();
+            int r = llama.run(id, existing);
             free(id);
             running = false;
 //          fprintf(stderr, "running = false\n");
@@ -261,14 +295,6 @@ static void load_model(const char* model) {
         running = false;
         fprintf(stderr, "Exception in run()\n");
     }
-}
-
-static const char* prompts_dir() {
-    static const char *cwd = get_cwd();
-    static char prompts[4 * 1024];
-    strcpy(prompts, cwd);
-    strcat(prompts, "/prompts");
-    return prompts;
 }
 
 static void remove_chat(const char* id) {
@@ -395,8 +421,9 @@ static void load(const char* model) {
     }
 }
 
-static void run(const char* id) {
+static void run(const char* id, int create_new) {
     session_id = strdup(id);
+    existing = !create_new;
 //  printf("session: %s\n", id);
     ask("<--end-->"); // end previous session
     answering = false; // because no one will be polling right after run

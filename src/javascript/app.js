@@ -138,7 +138,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const scroll_show_hide = () => {
-        const verbose = true
+        const verbose = false
         const log = verbose ? console.log : () => {}
         if (is_scrolling()) { // indeterminate for now
             log("scroll_show_hide " +
@@ -178,7 +178,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const scroll_to_bottom = () => {
-        const verbose = true
+        const verbose = false
         const log = verbose ? console.log : () => {}
         var top = messages.scrollHeight - messages.offsetHeight
         top = Math.max(top, scroll_queue.next)
@@ -302,11 +302,11 @@ export const run = () => { // called DOMContentLoaded
         const lrc = last_child.getBoundingClientRect()
         if (lrc.top - scroll_gap <= mrc.top &&
             ui.is_hidden(scroll) && !autoscroll) {
-            console.log("last_child_scroll scroll_to_bottom_cancel()")
+//          console.log("last_child_scroll scroll_to_bottom_cancel()")
             ui.show(scroll)
             scroll_to_bottom_cancel()
         } else {
-            console.log("last_child_scroll autoscroll: " + autoscroll)
+//          console.log("last_child_scroll autoscroll: " + autoscroll)
             if (autoscroll || ui.is_hidden(scroll)) scroll_to_bottom()
         }
     }
@@ -386,13 +386,12 @@ export const run = () => { // called DOMContentLoaded
                         render_messages()
                         rebuild_list()
                         layout_and_render().then(() => {
-                            layout_and_render().then(() => {
-                                model.run(c.id) // slowest
-                                if (!is_scrolled_to_the_bottom()) {
-                                    ui.show(scroll)
-                                    scroll_to_bottom()
-                                }
-                            })
+                            console.log("model.run(" + c.id + ")")
+                            model.run(c.id) // slowest
+                            if (!is_scrolled_to_the_bottom()) {
+                                ui.show(scroll)
+                                scroll_to_bottom()
+                            }
                         })
                     })
                 }
@@ -438,7 +437,7 @@ export const run = () => { // called DOMContentLoaded
         messages.innerText = ""
         render_messages()
         suggestions.show()
-        model.run(id)
+        model.run('+' + id)
 //      console.log("model.run(" + id + ")")
     }
     
@@ -696,7 +695,7 @@ export const run = () => { // called DOMContentLoaded
     
     const collapsed = () => {
         is_expanded = false
-        navigation.classList.add("collapsed")
+        navigation.classList.remove("expanded")
         ui.hide(tools)
         ui.show(title)
         hide_menu()
@@ -705,7 +704,7 @@ export const run = () => { // called DOMContentLoaded
     const expanded = () => {
         if (!model.is_answering()){
             is_expanded = true
-            navigation.classList.remove("collapsed")
+            navigation.classList.add("expanded")
             ui.show(tools)
             ui.hide(scroll, title)
         }
@@ -754,7 +753,6 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.onfocus = () => {
-        suggestions.hide()
         ui.hide(scroll)
         document.body.style.overflow = "hidden"
         collapsed()
@@ -906,8 +904,7 @@ export const run = () => { // called DOMContentLoaded
     
     let v = localStorage.getItem("version.data")
     if (v !== version_data) {
-        console.log("version.data: " + v +
-                    "version_data: " + version_data)
+        console.log("version.data: " + v + " version_data: " + version_data)
         localStorage.clear() // no one promissed to keep data forever
         localStorage.setItem("version.data", version_data)
     }

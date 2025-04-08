@@ -7,7 +7,7 @@ extern "C" {
 
 struct gyptix {
     void (*load)(const char* model);
-    void (*run)(const char* id);
+    void (*run)(const char* id, int create_new);
     int  (*is_running)(void);
     void (*ask)(const char* question);
     int  (*is_answering)(void);

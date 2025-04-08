@@ -5,7 +5,9 @@ var in_call  = false // native called from JavaScript
 var out_call = false // JavaScript called from native
 
 func run(_ id: String) -> String {
-    id.withCString { s in gyptix.run(s) }
+    let create_new = id.first == "+"
+    let session = create_new ? String(id.dropFirst()) : id
+    session.withCString { s in gyptix.run(s, create_new ? 1 : 0) }
     return ""
 }
 
@@ -120,7 +122,7 @@ func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
 //  print("dispatch_post: " + path + " request: " + r)
     switch path {
         case "log":             print(r)
-    case "run":                 check(path); s = call(run(r));
+        case "run":             check(path); s = call(run(r));
         case "ask":             check(path); s = call(ask(r));
         case "poll":            check(path); s = call(poll(r));
         case "remove":          check(path); s = call(remove(r));

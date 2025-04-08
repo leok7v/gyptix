@@ -11,76 +11,67 @@
     <meta name="viewport"
           content="width=device-width, 
                    initial-scale=1.0, maximum-scale=1.0, 
-                   user-scalable=no, shrink-to-fit=yes, viewport-fit=cover">
-    <!-- iOS Safari Status Bar Styling -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Android Chrome Status Bar Color -->
-    <meta name="theme-color" content="#000000">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" href="./app1.css" />
+                   user-scalable=no, viewport-fit=cover"
+    >
+    <link rel="stylesheet" href="./app.css" />
     <script type="module">
         import * as app from "./app.js"
         document.addEventListener("DOMContentLoaded", () => { app.run() })
     </script>
 </head>
 <body>
-    <div id="viewport" class="viewport">
-        <div id="backdrop"></div>
-        <div id="modal" class="viewport"></div>
-        <header id="header">
-            <button id="expand" class="square" title="History">☰</button>
-            <span id="tools">
-                <button id="font-decrease" title="Smaller Font">a</button>
-                <button id="font-increase" title="Bigger Font">A</button>
-                <button id="toggle_theme"  title="Dark/Light">◐</button>
-            </span>
-            <div id="title"></div>
-            <button id="restart" class="mirror square" title="New Conversation">✎</button>
-        </header>
-        <div id="navigation" class="collapsed">
-            <div id="history">
-                <div id="list"></div>
-            </div>
-            <span id="footer">
-                <button id="info"  title="Info">ⓘ Info</button>
-                <button id="shred" title="Erase Chats History">♽ Shred</button>
-            </span>
+    <header id="header">
+        <button id="expand" class="square" title="History">☰</button>
+        <span id="tools">
+            <button id="font-decrease" title="Smaller Font">a</button>
+            <button id="font-increase" title="Bigger Font">A</button>
+            <button id="toggle_theme"  title="Dark/Light">◐</button>
+        </span>
+        <div id="title"></div>
+        <button id="restart" class="mirror square" title="New Conversation">✎</button>
+    </header>
+    <nav id="navigation">
+        <div id="history">
+            <div id="list"></div>
         </div>
-        <div id="content">
-            <div id="suggest"></div>
-            <div id="chat">
-                <div id="messages"></div>
-                <button id="scroll" class="circled" title="to the Bottom">↓</button>
-            </div>
-            <div id="box">
-                <div id="input" contenteditable="plaintext-only"></div>
-                <div class="button_row">
-                    <span class="left-buttons hidden">
-                        <button id="stop"  class="circled">■</button>
-                        <button id="clear" class="square">⌫</button>
-                        <button id="carry" class="circled">→</button>
-                    </span>
-                    <button id="send" class="circled" title="Ask">↑</button>
-                </div>
+        <span id="footer">
+            <button id="info"  title="Info">ⓘ Info</button>
+            <button id="shred" title="Erase Chats History">♽ Shred</button>
+        </span>
+    </nav>
+    <main id="content">
+        <div id="suggest"></div>
+        <div id="chat">
+            <div id="messages"></div>
+            <button id="scroll" class="circled" title="to the Bottom">↓</button>
+        </div>
+        <div id="box">
+            <div id="input" contenteditable="plaintext-only"></div>
+            <div class="button_row">
+                <span class="left-buttons hidden">
+                    <button id="stop"  class="circled">■</button>
+                    <button id="clear" class="square">⌫</button>
+                    <button id="carry" class="circled">→</button>
+                </span>
+                <button id="send" class="circled" title="Ask">↑</button>
             </div>
         </div>
-      </div>
-  </div>
-  <div id="menu">
-    <button id="rename" class="menu_item">
-      <span class="icon mirror">✎</span>
-      <span class="label">Rename</span>
-    </button>
-    <button id="share" class="menu_item">
-      <span class="icon">⤴</span>
-      <span class="label">Share</span>
-    </button>
-    <button id="remove" class="menu_item">
-      <span class="icon">x</span>
-      <span class="label">Delete</span>
-    </button>
-  </div>
+    </main>
+    <div id="modal"></div>
+    <div id="menu">
+        <button id="rename" class="menu_item">
+            <span class="icon mirror">✎</span>
+            <span class="label">Rename</span>
+        </button>
+        <button id="share" class="menu_item">
+            <span class="icon">⤴</span>
+            <span class="label">Share</span>
+        </button>
+        <button id="remove" class="menu_item">
+            <span class="icon">x</span>
+            <span class="label">Delete</span>
+        </button>
+    </div>
 </body>
 </html>
 

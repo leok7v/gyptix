@@ -7,7 +7,7 @@ extern "C" {
 
 struct llama_if {
     int   (*load)(int argc, char** argv);
-    int   (*run)(const char* session);
+    int   (*run)(const char* session, bool create_new);
     void  (*fini)(void);
     char* (*read_line)(void); // returns malloc()ed string
     bool  (*output_text)(const char* s); // returns false on stop interruption
