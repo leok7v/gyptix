@@ -1,6 +1,7 @@
 "use strict"
 
 import * as detect      from "./detect.js"
+import * as history     from "./history.js"
 import * as markdown    from "./markdown.js"
 import * as marked      from "./marked.js"
 import * as modal       from "./modal.js"
@@ -24,48 +25,6 @@ const layout_and_render = () => {
 }
 
 let chat = null // **the** chat
-
-const load_chat = id => {
-    const header = localStorage.getItem("chat.id." + id)
-    const content = localStorage.getItem("chat." + id)
-    const h = JSON.parse(header)
-    // if chat was corrupted fix it and report it:
-    if (!h || !h.id) {
-        console.log("missing header.id replacing with: " + id)
-        h.id = id
-    }
-    const m = JSON.parse(content) // [] messages
-    const c  = { id: h.id, title: h.title, timestamp: h.timestamp, messages: m }
-    return c
-}
-
-const save_failed = (c) => {
-    modal.toast(error, 5000)
-    localStorage.removeItem("chat.id." + c.id)
-    localStorage.removeItem("chat." + c.id)
-}
-
-const save_chat_header = (c) => {
-    const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
-    try {
-        localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
-    } catch (error) {
-        console.log(error)
-        save_failed(c)
-    }
-}
-
-const save_chat = (c) => {
-    if (c.messages.length == 0) return // never save empty chats
-    const header  = { id: c.id, title: c.title, timestamp: c.timestamp }
-    try {
-        localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
-        localStorage.setItem("chat." + c.id, JSON.stringify(c.messages))
-    } catch (error) {
-        console.log(error)
-        save_failed(c)
-    }
-}
 
 export const run = () => { // called DOMContentLoaded
     const
@@ -347,8 +306,6 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    const key2id = (key) => parseInt(key.substring("chat.id.".length))
-
     const load = (c) => {
         ui.hide(scroll, carry)
         suggestions.hide()
@@ -356,9 +313,9 @@ export const run = () => { // called DOMContentLoaded
         current = c.id
         set_chat_title(c.title)
         layout_and_render().then(() => {
-            chat = load_chat(current)
+            chat = history.load_chat(current)
             chat.timestamp = util.timestamp() // make it recent
-            save_chat_header(chat) // and save it
+            history.save_chat_header(chat)    // and save it
             placeholder()
             render_messages()
             rebuild_list()
@@ -373,47 +330,29 @@ export const run = () => { // called DOMContentLoaded
         })
     }
     
-    const rebuild_list = () => {
-        if (!list) return
-        list.innerHTML = ""
-        const chats = []
-        const count = localStorage.length
-        for (let i = 0; i < count; i++) {
-            const key = localStorage.key(i)
-            if (!key || !key.startsWith("chat.id.")) continue
-            const id = key2id(key)
-            const c = load_chat(id)
-            if (c.timestamp) {
-                chats.push({ id: id, timestamp: c.timestamp, title: c.title })
-            }
+    const list_item = (c) => {
+        const div = document.createElement("div")
+        div.className = "item"
+        if (c.id === current) div.classList.add("selected")
+        div.onclick = () => {
+            selected = null; collapsed(); hide_menu()
+            if (current !== c.id) load(c)
         }
-        chats.sort((a, b) => b.timestamp - a.timestamp)
-        chats.forEach(c => {
-            const div = document.createElement("div")
-            div.className = "item"
-            if (c.id === current) div.classList.add("selected")
-            div.onclick = () => {
-                selected = null
-                collapsed()
-                hide_menu()
-                if (current !== c.id) { load(c) }
-            }
-            const span = document.createElement("span")
-            span.textContent = c.title
-            const dots = document.createElement("button")
-            dots.textContent = "⋯"
-            dots.onclick = e => {
-                e.stopPropagation()
-                selected = c.id
-                selected_item = span
-                show_menu(e.pageX / 2, e.pageY)
-            }
-            div.appendChild(span)
-            div.appendChild(dots)
-            list.appendChild(div)
-        })
+        const span = document.createElement("span")
+        span.textContent = c.title
+        const dots = document.createElement("button")
+        dots.textContent = "⋯"
+        dots.onclick = e => {
+            e.stopPropagation()
+            selected = c.id; selected_item = span
+            show_menu(e.pageX / 2, e.pageY)
+        }
+        div.append(span, dots)
+        list.appendChild(div)
     }
-    
+
+    const rebuild_list = () => history.generate(list, list_item)
+
     const new_session = () => {
         // already have new empty chat?
         if (chat && chat.messages && chat.messages.length == 0) return
@@ -433,7 +372,7 @@ export const run = () => { // called DOMContentLoaded
         ui.hide(carry)
         set_title('')
         ui.hide(send)
-        save_chat(chat)
+        history.save_chat(chat)
         collapsed()
         rebuild_list()
         messages.innerText = ""
@@ -447,9 +386,9 @@ export const run = () => { // called DOMContentLoaded
     const recent = () => { // most recent chat -> current
         const keys = Object.keys(localStorage).filter(k => k.startsWith("chat.id."))
         const valid_chats = keys.map(key => {
-            const h = load_chat(key2id(key))
+            const h = history.load_chat(history.key2id(key))
             return h && h.timestamp
-            ? { id: key2id(key),
+            ? { id: history.key2id(key),
                 timestamp: h.timestamp,
                 title: h.title }
             : null
@@ -458,7 +397,7 @@ export const run = () => { // called DOMContentLoaded
             valid_chats.sort((a, b) => b.timestamp - a.timestamp)
             const most_recent = valid_chats[0]
             current = most_recent.id
-            chat = load_chat(most_recent.id)
+            chat = history.load_chat(most_recent.id)
             model.run(most_recent.id)
 //          console.log("model.run(" + most_recent.id + ")")
             messages.innerHTML = ""
@@ -480,7 +419,7 @@ export const run = () => { // called DOMContentLoaded
         } else if (chat.messages.length > 0) {
             ph = "Anything else can I help you with?"
         } else if (!detect.macOS) { // double quotes improtant for css variable:
-            ph = "Ask anything... and click ↑"
+            ph = "Ask anything... (↑)"
         } else {
             ph = "Ask anything... Use ⇧⏎ for line break"
         }
@@ -537,7 +476,7 @@ export const run = () => { // called DOMContentLoaded
         title.innerHTML = ""
         summarize_to_title()
         set_chat_title(chat.title)
-        save_chat(chat)
+        history.save_chat(chat)
         rebuild_list()
         stop.classList.remove("pulsing")
         const last_index = chat.messages.length - 1
@@ -591,7 +530,7 @@ export const run = () => { // called DOMContentLoaded
         if (!model.is_running()) oops()
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
-        save_chat(chat)
+        history.save_chat(chat)
         render_messages()
         layout_and_render().then(() => { // render before asking
             let error = model.ask(t)
@@ -811,7 +750,7 @@ export const run = () => { // called DOMContentLoaded
     remove.onclick = () => {
         hide_menu()
         if (!selected) return
-        let c = load_chat(selected)
+        let c = history.load_chat(selected)
         modal.ask("# **Delete Chat**\n\n" +
                           '"' + c.title + '"\n\n' +
                           "This cannot be undone.",
@@ -824,11 +763,11 @@ export const run = () => { // called DOMContentLoaded
     rename.onclick = () => {
         if (!selected) return
         hide_menu()
-        const c = selected === current ? chat : load_chat(selected)
+        const c = selected === current ? chat : history.load_chat(selected)
         modal.rename_in_place(selected_item, c.title).then(new_name => {
             if (new_name && new_name !== c.title) {
                 c.title = new_name
-                save_chat(c)
+                history.save_chat(c)
                 if (selected === current) {
                     chat = c
                     title.textContent = c.title
@@ -845,7 +784,7 @@ export const run = () => { // called DOMContentLoaded
     share.onclick = () => {
         if (!selected) return
         hide_menu()
-        const c = load_chat(selected)
+        const c = history.load_chat(selected)
         prompt("Copy chat data:", JSON.stringify(c))
         hide_menu()
     }
@@ -974,7 +913,7 @@ export const run = () => { // called DOMContentLoaded
 }
 
 export const inactive = () => {
-    if (chat) save_chat(chat)
+    if (chat) history.save_chat(chat)
     return "done"
 }
 

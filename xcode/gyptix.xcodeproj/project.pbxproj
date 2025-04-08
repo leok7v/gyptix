@@ -75,6 +75,7 @@
 		B375A6AB2D946ADB001F9286 /* app2.js in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AA2D946ADB001F9286 /* app2.js */; };
 		B375A6AD2D946B0E001F9286 /* app2.html in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AC2D946B0E001F9286 /* app2.html */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
+		B39546C92DA5ABE300E35252 /* history.js in Resources */ = {isa = PBXBuildFile; fileRef = B39546C82DA5ABE300E35252 /* history.js */; };
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
 		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
@@ -224,6 +225,7 @@
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
 		B37AB35B2D8C2FC300199E85 /* llama.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = llama.h; path = ../llama.cpp/include/llama.h; sourceTree = SOURCE_ROOT; };
 		B37AB35C2D8C2FC300199E85 /* llama-cpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-cpp.h"; path = "../llama.cpp/include/llama-cpp.h"; sourceTree = SOURCE_ROOT; };
+		B39546C82DA5ABE300E35252 /* history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = history.js; sourceTree = "<group>"; };
 		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
@@ -509,6 +511,7 @@
 				B33026C42DA1F40C0082BBB5 /* app3.js */,
 				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
+				B39546C82DA5ABE300E35252 /* history.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
 				B363D0A22D7DD32600993F90 /* markdown.js */,
 				B363D0A32D7DD32600993F90 /* mdw.js */,
@@ -622,6 +625,7 @@
 				B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */,
 				B3E2499F2D617B780048A24F /* app.html in Resources */,
 				B30D392C2D458EFA00B8196B /* generation_config.json in Resources */,
+				B39546C92DA5ABE300E35252 /* history.js in Resources */,
 				B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */,
 				B3F590562D6A7294008B5B7D /* detect.js in Resources */,
 				B375A6A92D946AC8001F9286 /* app2.css in Resources */,
