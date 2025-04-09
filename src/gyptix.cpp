@@ -354,8 +354,8 @@ static void ask(const char* s) {
         while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
         if (question == NULL) {
             answering = true;
-//          printf("%s : %s\n", __func__, s);
-//          printf("%s answering = true;\n", __func__);
+            printf("%s : %s\n", __func__, s);
+            printf("%s answering = true;\n", __func__);
         }
     }
 }

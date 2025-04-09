@@ -38,6 +38,7 @@ export const run = () => { // called DOMContentLoaded
         menu         = get("menu"),
         messages     = get("messages"),
         navigation   = get("navigation"),
+        search       = get("search"),
         remove       = get("remove"),
         rename       = get("rename"),
         restart      = get("restart"),
@@ -237,9 +238,7 @@ export const run = () => { // called DOMContentLoaded
             if (input !== document.activeElement) suggestions.show()
             return
         }
-        console.log("chat.messages.length: " + chat.messages.length)
         if (chat.messages.length > 0) {
-            console.log("suggestions.hide()")
             suggestions.hide()
         }
         // this is optimization because markdown rendering is slow
@@ -247,7 +246,6 @@ export const run = () => { // called DOMContentLoaded
         chat.messages.forEach(msg => {
             if (i > messages.childNodes.length - 1) {
                 messages.appendChild(render_message(msg))
-//              console.log("render_messages messages.appendChild(): " + i)
             }
             i++;
         })
@@ -261,11 +259,9 @@ export const run = () => { // called DOMContentLoaded
         const lrc = last_child.getBoundingClientRect()
         if (lrc.top - scroll_gap <= mrc.top &&
             ui.is_hidden(scroll) && !autoscroll) {
-//          console.log("last_child_scroll scroll_to_bottom_cancel()")
             ui.show(scroll)
             scroll_to_bottom_cancel()
         } else {
-//          console.log("last_child_scroll autoscroll: " + autoscroll)
             if (autoscroll || ui.is_hidden(scroll)) scroll_to_bottom()
         }
     }
@@ -287,13 +283,11 @@ export const run = () => { // called DOMContentLoaded
                     console.error(error)
                 } else {
                     last_child.innerHTML = html
-//                  console.log("render_last last_child_scroll()")
                     last_child_scroll()
                 }
             })
         } else {
             messages.appendChild(render_message(last_msg))
-//          console.log("render_last last_child_scroll()")
             last_child_scroll()
         }
     }
@@ -320,7 +314,6 @@ export const run = () => { // called DOMContentLoaded
             render_messages()
             rebuild_list()
             layout_and_render().then(() => {
-                console.log("model.run(" + c.id + ")")
                 model.run(c.id) // slowest
                 if (!is_scrolled_to_the_bottom()) {
                     ui.show(scroll)
@@ -337,6 +330,7 @@ export const run = () => { // called DOMContentLoaded
         div.onclick = () => {
             selected = null; collapsed(); hide_menu()
             if (current !== c.id) load(c)
+            search.innerText = ""
         }
         const span = document.createElement("span")
         span.textContent = c.title
@@ -344,14 +338,16 @@ export const run = () => { // called DOMContentLoaded
         dots.textContent = "⋯"
         dots.onclick = e => {
             e.stopPropagation()
-            selected = c.id; selected_item = span
+            selected = c.id;
+            selected_item = span
             show_menu(e.pageX / 2, e.pageY)
+            search.innerText = ""
         }
         div.append(span, dots)
         list.appendChild(div)
     }
 
-    const rebuild_list = () => history.generate(list, list_item)
+    const rebuild_list = () => history.generate(list, search, list_item)
 
     const new_session = () => {
         // already have new empty chat?
@@ -379,7 +375,6 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
         suggestions.show()
         placeholder()
-        console.log("model.run(" + id + ")")
         layout_and_render().then(() => model.run('+' + id))
     }
     
@@ -399,7 +394,6 @@ export const run = () => { // called DOMContentLoaded
             current = most_recent.id
             chat = history.load_chat(most_recent.id)
             model.run(most_recent.id)
-//          console.log("model.run(" + most_recent.id + ")")
             messages.innerHTML = ""
             render_messages()
             rebuild_list()
@@ -760,11 +754,35 @@ export const run = () => { // called DOMContentLoaded
         "Cancel", "<red>Delete</red>")
     }
     
+    var unfreezing = null
+    
+    const freeze = () => {
+        if (!detect.iOS || detect.macOS) return
+        if (unfreezing) {
+            clearTimeout(unfreezing)
+            unfreezing = null
+        }
+        navigation.dataset.freeze = "true"
+        console.log("navigation.dataset.freeze")
+    }
+
+    const unfreeze = () => {
+        if (!detect.iOS || detect.macOS) return
+        if (!unfreezing) {
+            unfreezing = setTimeout(() => {
+                delete navigation.dataset.freeze
+                console.log("navigation.dataset.unfreeze")
+                unfreezing = null
+            }, 500)
+        }
+    }
+    
     rename.onclick = () => {
         if (!selected) return
         hide_menu()
         const c = selected === current ? chat : history.load_chat(selected)
-        modal.rename_in_place(selected_item, c.title).then(new_name => {
+        modal.rename_in_place(selected_item, freeze, unfreeze).then(
+            new_name => {
             if (new_name && new_name !== c.title) {
                 c.title = new_name
                 history.save_chat(c)
@@ -890,12 +908,15 @@ export const run = () => { // called DOMContentLoaded
         localStorage.setItem("version.data", version_data)
     }
     
+    
     detect.init()
     marked.use({pedantic: false, gfm: true, breaks: true})
     
     util.init_theme()
     util.init_font_size()
-    
+
+    history.init_search(search, freeze, unfreeze)
+
     new_session() // alternatively recent() can load and continue
     placeholder()
     if (chat.messages.length == 0 &&
@@ -928,6 +949,7 @@ export const debugger_attached = (attached) => {
     return attached ? "conext menu enabled" : "conext menu disabled"
 }
 
-window.app = { run: run, inactive: inactive, debugger_attached: debugger_attached }
+window.app = { run: run, inactive: inactive,
+               debugger_attached: debugger_attached }
 
 model.initialized()

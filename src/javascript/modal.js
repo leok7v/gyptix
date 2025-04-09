@@ -153,37 +153,39 @@ export const toast = (s, to) => {
     setTimeout(() => document.body.removeChild(div), to)
 }
 
-export const rename_in_place = (span, old_name) => {
+export const rename_in_place = (span, freeze, unfreeze) => {
     return new Promise(resolve => {
         span.contentEditable = "true"
-        const original_text = span.innerText
+        const was = span.innerText.trim()
+        span.addEventListener("focus",  freeze, { once: true })
         span.focus()
         const range = document.createRange()
         range.selectNodeContents(span)
         const sel = window.getSelection()
         sel.removeAllRanges()
         sel.addRange(range)
-        function finish(value) {
+        const finish = (value) => {
             span.contentEditable = "false"
             resolve(value)
+            unfreeze()
         }
         span.addEventListener("keydown", e => {
             if (e.key === "Enter") {
                 e.preventDefault()
-                const new_text = span.innerText.trim() || old_name
+                const new_text = span.innerText.trim() || was
                 finish(new_text)
             } else if (e.key === "Escape") {
                 e.preventDefault()
-                span.innerText = original_text
+                span.innerText = was
                 finish(null)
             }
         })
         span.addEventListener("blur", () => {
             const new_text = span.innerText.trim()
-            if (new_text && new_text !== original_text) {
+            if (new_text && new_text !== was) {
                 finish(new_text)
             } else {
-                span.innerText = original_text
+                span.innerText = was
                 finish(null)
             }
         }, { once: true })

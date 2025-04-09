@@ -30,7 +30,7 @@
     --font-size: 100%;
     --header-height: 3rem;
     --placeholder: "Ask anything... Use ⇧⏎ for line break";
-    --background-header:       color-mix(in srgb, var(--background-color) 75%, var(--color) 25%);
+    --background-header:       color-mix(in srgb, var(--background-color) 80%, var(--color) 20%);
     --background-navigation:   color-mix(in srgb, var(--background-color) 89%, var(--color) 11%);
     --background-user:         color-mix(in srgb, var(--background-color) 86%, var(--color) 14%);
     --background-button:       color-mix(in srgb, var(--background-color) 70%, var(--color) 30%);
@@ -368,6 +368,22 @@ button.square {
 
 #navigation.expanded { left: 0; }
 
+#navigation[data-freeze="true"] {
+    z-index: 2;
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + var(--header-height));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: auto !important;
+    overflow: hidden !important;
+}
+
+#navigation, #search {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: auto; /* kill momentum scrolling */
+}
+
 #history {
     display: flex;
     flex-direction: column;
@@ -376,15 +392,24 @@ button.square {
 }
 
 #search {
+    display: flex;
+    flex: 0 0 auto;
     outline: none;
     min-height: 1.5em;
-    margin: 0.25em;
+    margin: 0.25em 1em 0.25em 1em;
     padding: 0.25em 0.5em;
-    border-radius: 0.5em;
-    font-size: 90%;
-    background: var(--background-input);
+    border-radius: 0.25em;
     color: var(--color);
+    background: var(--background-input);
     border: 1px solid #888;
+    white-space: nowrap;
+    overflow-x: auto;
+    text-transform: none;
+    -webkit-text-size-adjust: none;
+}
+
+#search br {
+    display: none;
 }
 
 #search:empty:before {
@@ -395,25 +420,25 @@ button.square {
 
 #list {
     display: block;
-    margin: 1em 0.25em 1em 0.25em;
+    margin: 0.5em 0.25em 0.5em 0.25em;
 }
 
-#section-title {
+.section-title {
     margin: 0.25em 0 0.25em 0;
     font-weight: bold;
     font-style: italic;
-    font-size: 125%;
 }
 
 #footer {
     display: flex;
     flex: 0 0 auto;
+    width: 100%;
+    height: fit-content;
+    padding: 0.25rem;
+    line-height: 1;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    line-height: 1;
-    height: fit-content;
-    padding-bottom: 0.25rem;
+    background-color: var(--background-header);
     margin-bottom: env(safe-area-inset-bottom);
 }
 
@@ -421,7 +446,6 @@ button.square {
     display: flex;
     align-items: center;
     width: 100%;
-    font-size: 90%;
     margin-left: 1em;
     max-height: 1.5em;
     cursor: pointer;
@@ -449,14 +473,17 @@ button.square {
     font-size:    0.75rem !important;
     line-height:  1;
     width:        auto;
-    min-width:    3.5rem;
+    min-width:    4rem;
     overflow:     visible;
     border:       none;
     background:   transparent;
 }
 
-.item:hover, button:hover { background-color: var(--background-hover); }
-.button:hover { background-color: var(--background-button-hover); }
+.item:hover {
+    color: orange;
+}
+
+button:hover { background-color: var(--background-button-hover); }
 
 #info, #shred {
     position: relative;
