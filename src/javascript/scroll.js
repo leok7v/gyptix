@@ -1,6 +1,6 @@
 "use strict"
 
-export const create_scrollable = (list, is_answering, verbose) => {
+export const scroll_create_wrapper = (list, appending, verbose) => {
     
     let scrollable = {
         autoscroll: false,
@@ -135,7 +135,7 @@ export const create_scrollable = (list, is_answering, verbose) => {
     const scroll_to_bottom = (e) => {
         log("scroll_to_bottom")
         scroll_to(e, scroll_to_bottom_top_position(e))
-        if (is_answering()) {
+        if (appending()) {
             scrollable.autoscroll = true
             show_hide(false, button_bottom)
         }
@@ -146,13 +146,12 @@ export const create_scrollable = (list, is_answering, verbose) => {
         const lh = line_height(e)
         const bottom = e.scrollTop + e.clientHeight
         const end = e.scrollHeight - lh
-        if (is_answering() && bottom >= end && !scrollable.autoscroll) {
-console.log("is_answering() && bottom: " + bottom + " >= end: " + end)
+        if (appending() && bottom >= end && !scrollable.autoscroll) {
             scrollable.autoscroll = true
             show_hide(false, button_bottom)
             show_hide(true,  button_top)
         }
-        if (!is_programmatic_scroll && is_answering()) {
+        if (!is_programmatic_scroll && appending()) {
             if (scrollable.autoscroll && bottom < end) {
                 scrollable.autoscroll = false
             }
@@ -190,7 +189,6 @@ console.log("is_answering() && bottom: " + bottom + " >= end: " + end)
     list.addEventListener('scrolled',  () => scroll_end(list))
     list.addEventListener('touchmove', () => touch_move(list))
 
-    
     const observer = new MutationObserver(function(mutationsList, observer) {
         /*
         let log_mutation = console.log

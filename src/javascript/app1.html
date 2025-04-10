@@ -119,11 +119,11 @@
 
     <script type="module">
         // ↓↑︽︾﹀⌄⌃⌅⌤⏶⏷
-        import * as app         from "./app1.js";
-        import * as model       from "./model.js";
-        import * as scrollable  from "./scrollable.js";
-        import * as ui          from "./ui.js";
-        import * as util        from "./util.js";
+        import * as app    from "./app1.js";
+        import * as model  from "./model.js";
+        import * as scroll from "./scroll.js";
+        import * as ui     from "./ui.js";
+        import * as util   from "./util.js";
 
         document.addEventListener("DOMContentLoaded", () => { app.run() });
 
@@ -131,9 +131,9 @@
 
         const messages = document.querySelector('#messages')
 
-        const is_answering = () => generating
+        const appending = () => generating
 
-        let scroll = scrollable.create_scrollable(messages, is_answering, false)
+        let scrollable = scroll.scroll_create_wrapper(messages, appending, false)
 
         const append_paragraph = (e, text) => {
             const p = document.createElement('p')
@@ -142,7 +142,8 @@
             return p
         }
 
-        const random_int = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+        const random_int = (min, max) =>
+            Math.floor(Math.random() * (max - min + 1)) + min
 
         const random_word = () => {
             const n = random_int(1, 6)
@@ -165,14 +166,13 @@
             if (generate_interval) clearInterval(generate_interval)
             generate_interval = null
             generating = false
-            scroll.autoscroll = false
+            scrollable.autoscroll = false
         }
 
         const generate = (e) => {
-            console.log("generate()")
             if (generating) return
             generating = true
-            scroll.autoscroll = true
+            scrollable.autoscroll = true
             const paragraphs = random_int(10, 20)
             let added = 0
             let last = e.lastElementChild || append_paragraph(e, '')
