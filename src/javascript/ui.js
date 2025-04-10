@@ -92,3 +92,4 @@ export const is_disabled = e => e.disabled
 
 export const show_hide = (b, ...elements) =>
     elements.forEach(e => b ? show(e) : hide(e))
+

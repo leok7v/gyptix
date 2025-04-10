@@ -78,6 +78,7 @@
 		B39546C92DA5ABE300E35252 /* history.js in Resources */ = {isa = PBXBuildFile; fileRef = B39546C82DA5ABE300E35252 /* history.js */; };
 		B39546CB2DA7007B00E35252 /* app1.html in Resources */ = {isa = PBXBuildFile; fileRef = B39546CA2DA7007B00E35252 /* app1.html */; };
 		B39546CD2DA7012800E35252 /* app1.js in Resources */ = {isa = PBXBuildFile; fileRef = B39546CC2DA7012800E35252 /* app1.js */; };
+		B3994E822DA882F5002906B5 /* scrollable.js in Resources */ = {isa = PBXBuildFile; fileRef = B3994E812DA882F5002906B5 /* scrollable.js */; };
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
 		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
@@ -230,6 +231,7 @@
 		B39546C82DA5ABE300E35252 /* history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = history.js; sourceTree = "<group>"; };
 		B39546CA2DA7007B00E35252 /* app1.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app1.html; sourceTree = "<group>"; };
 		B39546CC2DA7012800E35252 /* app1.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app1.js; sourceTree = "<group>"; };
+		B3994E812DA882F5002906B5 /* scrollable.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = scrollable.js; sourceTree = "<group>"; };
 		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
@@ -526,6 +528,7 @@
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
 				B3A3D8382D67E455000A5839 /* suggestions.js */,
 				B361EBE12D92101100B45B70 /* ui.js */,
+				B3994E812DA882F5002906B5 /* scrollable.js */,
 				B3E2499C2D61621C0048A24F /* util.js */,
 				B3B3F3F92D4AB3C300A2D406 /* eula.md */,
 				B3B3F3FB2D4AB3C300A2D406 /* licenses.md */,
@@ -625,6 +628,7 @@
 				B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */,
 				B3B3F4062D4AB3C300A2D406 /* prompts.js in Resources */,
 				B3B3F4092D4AB3C300A2D406 /* about.md in Resources */,
+				B3994E822DA882F5002906B5 /* scrollable.js in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,
 				B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */,
 				B3D7EDF02D955A86003AF38F /* app3.html in Resources */,

@@ -1,185 +1,5 @@
 "use strict"
 
-import * as detect from "./detect.js"
-
-export let is_debugger_attached = false
-
-export function set_debugger_attached(attached) {
-    is_debugger_attached = attached
-    console.log("set_debugger_attached(" + attached + ")")
-}
-
-const http = (url, method, req = "", done = null) => {
-    let error = null
-    let text = `Failed to load ${url}`
-    try {
-        const request = new XMLHttpRequest()
-        request.open(method, url, false) // false = synchronous
-        request.setRequestHeader("Content-Type", "text/plain")
-        if (method === "POST") {
-            request.send(req)
-        } else {
-            request.send()
-        }
-        if (request.status === 200) {
-            text = request.responseText
-            if (done) done(text)
-        } else {
-            error = new Error(`${url} ${method} failed: ${request.status}`)
-        }
-    } catch (e) {
-        error = new Error(`${url} ${method} failed: ${e}`)
-    }
-    if (error) throw error
-    return text
-}
-
-export const load = (url) => http(url, "GET")
-
-export const post = (url, req = "", done = null) => http(url, "POST", req, done)
-
-export const log = (...args) => {
-    return post("./log", args.join(''), null)
-}
-
-export const console_log = console.log
-
-const start = Date.now() // UTC timestamp in milliseconds
-
-console.log = (...args) => {
-    try {
-        throw new Error()
-    } catch (e) {
-        const dt = (Date.now() - start) / 1000.0 // seconds
-        const lines = e.stack.split('\n')
-        var f = lines[1] || ''
-        if (f.includes('util.js')) f = lines[2] || ''
-        let m = f.match(/at .* \((.*?):(\d+):\d+\)/) ||
-                f.match(/@(.*?):(\d+):\d+/) ||
-                f.match(/(.*?):(\d+):\d+/)
-        if (m) { // m.length > 1 guaranteed by regexes above
-            const file = m[1].split('/').pop()
-            const line = m[2]
-            const s = `${dt.toFixed(3)} ${file}:${line} ${args.join("\x20")}`
-            log(s)
-            console_log(s)
-        } else {
-            if (f != '') log(f)
-            log(...args)
-            console_log(...args)
-        }
-    }
-}
-
-export const init_theme = () => {
-    let theme = localStorage.getItem("settings.theme")
-    if (!theme) {
-        theme = "dark"  // default theme
-        localStorage.setItem("settings.theme", theme)
-    }
-    document.documentElement.setAttribute("data-theme", theme)
-}
-
-export const toggle_theme = () => {
-    const html = document.documentElement
-    let current = html.getAttribute("data-theme")
-    let theme = current === "dark" ? "light" : "dark"
-    html.setAttribute("data-theme", theme)
-    localStorage.setItem("settings.theme", theme)
-}
-
-export const init_font_size = () => {
-    let fs = 100
-    if (detect.iPhone) fs = 130
-    if (detect.iPad)   fs = 160
-    let font_size = localStorage.getItem("settings.font-size") || fs;
-    document.body.style.fontSize = font_size + "%";
-    localStorage.setItem("settings.font-size", font_size);
-}
-
-export const decrease_font_size = () => {
-    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-    const min_font = detect.iPad ? 90 : 100
-    font_size = Math.max(min_font, font_size - 10);
-    document.body.style.fontSize = font_size + "%";
-    localStorage.setItem("settings.font-size", font_size);
-}
-
-export const increase_font_size = () => {
-    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-    const max_font = detect.iPad ? 200 : 160
-    font_size = Math.min(max_font, font_size + 10);
-    document.body.style.fontSize = font_size + "%";
-    localStorage.setItem("settings.font-size", font_size);
-}
-
-export const shorten_the_sentence = (str, limit) => {
-    const words = str.split(/\s+/).filter(Boolean) // Remove empty words
-    let result = ""
-    for (let word of words) {
-        if ((result.length + word.length + (result ? 1 : 0)) > limit) break
-        result += (result ? " " : "") + word
-    }
-    return result
-}
-
-export const timestamp = () => Date.now() // UTC timestamp in milliseconds
-
-export const timestamp_label = (timestamp) => {
-    const d = new Date(timestamp)
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    const options = { hour: "2-digit", minute: "2-digit",
-                    second: "2-digit", hour12: true }
-    const time = d.toLocaleTimeString(undefined, options) ||
-                 `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
-    return `${days[d.getDay()]} ${time}`
-}
-
-const stop_words = new Set([
-        "were", "this", "that", "there", "which", "their", "would",
-        "could", "with", "should", "about", "because", "after", "before",
-        "where", "while", "again"
-])
-
-export const summarize = (str) => {
-    // three most frequent words
-    if (typeof str !== "string") return timestamp_label(timestamp())
-    const words = str.toLowerCase().match(/\b\w+\b/g) || []
-    if (words.length === 0) return timestamp_label(timestamp())
-    let map = new Map()
-    for (let word of words) {
-        if (word.endsWith("s")) {
-            let singular = word.slice(0, -1)
-            if (map.has(singular)) {
-                word = singular
-            }
-        }
-        if (word.length <= 3 || word.startsWith("the") || stop_words.has(word)) {
-            continue
-        }
-        map.set(word, (map.get(word) || 0) + 1)
-    }
-    let s = [...map.entries()]
-        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .slice(0, 3)
-        .map(entry => entry[0])
-        .join(" ")
-    s = shorten_the_sentence(s, 24)
-    return s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s
-}
-
-export const substitutions = (s) => {
-    const now = new Date()
-    const replacements = {
-        "[insert current date]": now.toLocaleDateString(),
-        "[insert day of the week]": now.toLocaleDateString(undefined, { weekday: "long" }),
-        "[insert current time]": now.toLocaleTimeString()
-    }
-    return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
-        return replacements[match.toLowerCase()] || match
-    })
-}
-
 export const create_scrollable = (list, is_answering, verbose) => {
     
     let scrollable = {
@@ -200,16 +20,17 @@ export const create_scrollable = (list, is_answering, verbose) => {
         return b
     }
     
-    const button_top = create_buttton('scroll-top', '⏶')
-    const button_bottom = create_buttton('scroll-bottom', '⏷')
+    const button_top = create_buttton('scroll-top', '⌅')
+    const button_bottom = create_buttton('scroll-bottom', '⌅')
+    button_bottom.style.transform = 'rotate(180deg)'
+    const position_buttons = () => {
+        button_top.style.top       = '0.5rem'
+        button_top.style.right     = '0.5rem'
+        button_bottom.style.bottom = '0.5rem'
+        button_bottom.style.right  = '0.5rem'
+    }
     list.parentElement.appendChild(button_top)
     list.parentElement.appendChild(button_bottom)
-    const position_buttons = () => {
-        button_top.style.top       = "0.5rem"
-        button_top.style.right     = "0.5rem"
-        button_bottom.style.bottom = "0.5rem"
-        button_bottom.style.right  = "0.5rem"
-    }
 
     position_buttons()
 
@@ -262,9 +83,6 @@ export const create_scrollable = (list, is_answering, verbose) => {
         show_hide(e.scrollTop >= lh, button_top)
         const bottom = e.scrollTop + e.clientHeight
         const end = e.scrollHeight - lh
-        console.log("autoscroll: " + scrollable.autoscroll + " bottom: " + bottom + " < end: " + end)
-        console.log("bottom < end: " + (bottom < end))
-        console.log("(bottom < end && !scrollable.autoscroll): " + (bottom < end && !scrollable.autoscroll))
         show_hide(bottom < end && !scrollable.autoscroll, button_bottom)
         log("update_buttons up: " + (e.scrollTop >= lh) +
                         " down: " + (bottom < end && !scrollable.autoscroll))

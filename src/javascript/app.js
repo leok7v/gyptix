@@ -64,7 +64,8 @@ export const run = () => { // called DOMContentLoaded
     let selected_item = null // item in chats list
     let interrupted = false  // output was interrupted
     let is_expanded = false  // navigation pane expanded
-    
+    let touching    = 0      // > 0 between touchstart/touchend
+
     document.addEventListener("copy", e => {
         e.preventDefault()
         const s = window.getSelection().toString()
@@ -292,14 +293,6 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    messages.onscroll = () => {
-        if (is_expanded) collapsed()
-//      if (document.activeElement == input) input.blur()
-        if (!model.is_answering() || ui.is_hidden(scroll)) {
-            scroll_show_hide()
-        }
-    }
-    
     const load = (c) => {
         ui.hide(scroll, carry)
         suggestions.hide()
@@ -465,6 +458,7 @@ export const run = () => { // called DOMContentLoaded
     
     const done = () => {
         autoscroll = false
+        console.log("autoscroll := " + autoscroll)
         input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
@@ -497,6 +491,7 @@ export const run = () => { // called DOMContentLoaded
     
     const polling = () => {
         autoscroll = false
+        console.log("autoscroll := " + autoscroll)
         ui.show(stop)
         ui.hide(send, expand, restart)
         stop.classList.add("pulsing")
@@ -654,6 +649,7 @@ export const run = () => { // called DOMContentLoaded
     
     scroll.onclick = () => {
         autoscroll = model.is_answering()
+        console.log("autoscroll := " + autoscroll)
         ui.hide(scroll)
         layout_and_render().then(scroll_to_bottom)
     }
@@ -811,15 +807,23 @@ export const run = () => { // called DOMContentLoaded
     get("font-decrease").onclick = () => util.decrease_font_size()
     
     const user_started_scrolling = () => {
-        autoscroll = false
         if (chat && chat.messages && chat.messages.length > 0) {
+            if (is_answering() && autoscroll) {
+                autoscroll = false
+                console.log("autoscroll := " + autoscroll)
+                if (is_scrolling()) scroll_to_bottom_cancel()
+            }
             requestAnimationFrame(scroll_show_hide)
-            if (is_scrolling()) scroll_to_bottom_cancel()
         }
     }
     
     messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
     messages.addEventListener("wheel",      user_started_scrolling)
+    messages.addEventListener('touchmove',  user_started_scrolling)
+
+    messages.onscroll = () => {
+        requestAnimationFrame(scroll_show_hide)
+    }
 
     document.querySelectorAll(".tooltip").forEach(button => {
         button.addEventListener("mouseenter", function() {
@@ -855,13 +859,16 @@ export const run = () => { // called DOMContentLoaded
     
     let touch_start_x = 0;
     let touch_end_x = 0;
+    
     document.addEventListener('touchstart', (e) => {
         touch_start_x = e.changedTouches[0].screenX;
+        touching++
     }, false);
     
     document.addEventListener('touchend', (e) => {
         touch_end_x = e.changedTouches[0].screenX;
         swipe();
+        touching--
     }, false);
 
     function swipe() {
