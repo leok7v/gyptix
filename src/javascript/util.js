@@ -44,9 +44,31 @@ export const log = (...args) => {
 
 export const console_log = console.log
 
+const start = Date.now() // UTC timestamp in milliseconds
+
 console.log = (...args) => {
-    log(...args)
-    console_log(...args)
+    try {
+        throw new Error()
+    } catch (e) {
+        const dt = (Date.now() - start) / 1000.0 // seconds
+        const lines = e.stack.split('\n')
+        var f = lines[1] || ''
+        if (f.includes('util.js')) f = lines[2] || ''
+        let m = f.match(/at .* \((.*?):(\d+):\d+\)/) ||
+                f.match(/@(.*?):(\d+):\d+/) ||
+                f.match(/(.*?):(\d+):\d+/)
+        if (m) { // m.length > 1 guaranteed by regexes above
+            const file = m[1].split('/').pop()
+            const line = m[2]
+            const s = `${dt.toFixed(3)} ${file}:${line} ${args.join("\x20")}`
+            log(s)
+            console_log(s)
+        } else {
+            if (f != '') log(f)
+            log(...args)
+            console_log(...args)
+        }
+    }
 }
 
 export const init_theme = () => {
@@ -156,4 +178,55 @@ export const substitutions = (s) => {
     return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
         return replacements[match.toLowerCase()] || match
     })
+}
+
+/*
+    What Debouncing Does:
+ 
+    Debouncing is a technique to limit how often a function is executed,
+    especially for events that fire rapidly.
+ 
+    Instead of running the function immediately every time the event occurs,
+    a debounced function waits until a specified delay (wait) has passed
+    since the last event before executing.
+ 
+    If a new event happens during that delay, the timer resets, and the
+    function only runs after things "settle down."
+ 
+    const obj = {
+        v: 42,
+        f: function(a) {
+            console.log('Function f called with: ', a, 'in context .v:', v)
+        }
+    }
+ 
+    const debounced = util.debounce((a) => { obj.f(a) }, 1000); // 1-second delay
+
+    // rapid calls (e.g., from an event)
+    debounced.call(obj, 1) // Starts a 1s timer
+    debounced.call(obj, 2) // Clears the previous timer, starts a new 1s timer
+    debounced.call(obj, 3) // Clears the previous timer, starts a new 1s timer
+
+    // After 1 second of no more calls, logs: "Function f called with: 3"
+ 
+    const messages = document.querySelector('#messages')
+    messages.addEventListener('scroll', debounce(function () {
+       console.log('Scroll on:', this) // 'this' will be #messages
+    }, 200))
+ 
+    // this works too:
+ 
+    messages.onscroll = debounce(function () {
+       console.log('Scroll on:', this) // 'this' will be #messages
+    }, 200))
+
+*/
+
+export const debounce = (func, wait) => {
+    let timeout
+    return function (...args) { // cannot be arrow function, for this binding
+        const context = this // Capture 'this' at the time of the call
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(context, args), wait)
+    }
 }

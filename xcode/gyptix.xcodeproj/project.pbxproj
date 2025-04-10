@@ -76,6 +76,8 @@
 		B375A6AD2D946B0E001F9286 /* app2.html in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AC2D946B0E001F9286 /* app2.html */; };
 		B37754AB2D41E38900B7B4C5 /* gyptix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37754AA2D41E38900B7B4C5 /* gyptix.cpp */; };
 		B39546C92DA5ABE300E35252 /* history.js in Resources */ = {isa = PBXBuildFile; fileRef = B39546C82DA5ABE300E35252 /* history.js */; };
+		B39546CB2DA7007B00E35252 /* app1.html in Resources */ = {isa = PBXBuildFile; fileRef = B39546CA2DA7007B00E35252 /* app1.html */; };
+		B39546CD2DA7012800E35252 /* app1.js in Resources */ = {isa = PBXBuildFile; fileRef = B39546CC2DA7012800E35252 /* app1.js */; };
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
 		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
@@ -226,6 +228,8 @@
 		B37AB35B2D8C2FC300199E85 /* llama.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = llama.h; path = ../llama.cpp/include/llama.h; sourceTree = SOURCE_ROOT; };
 		B37AB35C2D8C2FC300199E85 /* llama-cpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-cpp.h"; path = "../llama.cpp/include/llama-cpp.h"; sourceTree = SOURCE_ROOT; };
 		B39546C82DA5ABE300E35252 /* history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = history.js; sourceTree = "<group>"; };
+		B39546CA2DA7007B00E35252 /* app1.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app1.html; sourceTree = "<group>"; };
+		B39546CC2DA7012800E35252 /* app1.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app1.js; sourceTree = "<group>"; };
 		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
@@ -501,15 +505,17 @@
 			children = (
 				B3B3F3F62D4AB3C300A2D406 /* about.md */,
 				B3E2499E2D617B780048A24F /* app.html */,
+				B39546CA2DA7007B00E35252 /* app1.html */,
 				B375A6AC2D946B0E001F9286 /* app2.html */,
 				B3D7EDEF2D955A86003AF38F /* app3.html */,
 				B3B3F3F72D4AB3C300A2D406 /* app.css */,
 				B361EBDF2D8FD06500B45B70 /* app1.css */,
 				B375A6A82D946AC8001F9286 /* app2.css */,
 				B33026C62DA1F46B0082BBB5 /* app3.css */,
+				B3B3F3F82D4AB3C300A2D406 /* app.js */,
+				B39546CC2DA7012800E35252 /* app1.js */,
 				B375A6AA2D946ADB001F9286 /* app2.js */,
 				B33026C42DA1F40C0082BBB5 /* app3.js */,
-				B3B3F3F82D4AB3C300A2D406 /* app.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B39546C82DA5ABE300E35252 /* history.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
@@ -608,6 +614,7 @@
 				B30D39262D458EFA00B8196B /* merges.txt in Resources */,
 				B30D39272D458EFA00B8196B /* tokenizer.json in Resources */,
 				B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */,
+				B39546CB2DA7007B00E35252 /* app1.html in Resources */,
 				B30D39282D458EFA00B8196B /* config.json in Resources */,
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B375A6AD2D946B0E001F9286 /* app2.html in Resources */,
@@ -624,6 +631,7 @@
 				B361EBE22D92101100B45B70 /* ui.js in Resources */,
 				B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */,
 				B3E2499F2D617B780048A24F /* app.html in Resources */,
+				B39546CD2DA7012800E35252 /* app1.js in Resources */,
 				B30D392C2D458EFA00B8196B /* generation_config.json in Resources */,
 				B39546C92DA5ABE300E35252 /* history.js in Resources */,
 				B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */,

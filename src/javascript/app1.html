@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scrollable List App</title>
+    <meta name="viewport" content="width=device-width, 
+                                   initial-scale=1.0, 
+                                   maximum-scale=1.0,
+                                   viewport-fit=cover,
+                                   user-scalable=no">
+    <meta name="color-scheme" content="light dark">
+    <style>
+        :root {
+            --font-size: 100%;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --background-color: #f0f0f0;
+                --color: #121212;
+                --system-blue: #007AFF;
+            }
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: #101010;
+                --color: #f0f0f0;
+                --system-blue: #0A84FF;
+            }
+        }
+        body {
+            position: relative;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            padding-left: env(safe-area-inset-left);
+            padding-top: env(safe-area-inset-top);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 130%;
+            box-sizing: border-box; /* Ensure padding doesn't expand body */
+        }
+        #chat {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        #messages {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 1em 0;
+            box-sizing: border-box;
+            overscroll-behavior: contain;
+        }
+        button {
+            cursor:  pointer;
+            padding: 0;
+            margin:  0;
+            -webkit-user-select: none;
+        }
+        .big {
+            font-size: 100%;
+        }
+        .scroll-button {
+            z-index:         99999;
+            display:         block;
+            position:        absolute;
+            font-size:       1.5rem;
+            font-weight:     bold;
+            line-height:     1;
+            width:           2.0rem;
+            height:          2.0rem;
+            overflow:        hidden;
+            opacity:         75%;
+            color:           var(--system-blue);
+            background:      var(--background-color);
+            border:          0.0625rem solid #888;
+            border-radius:   25%;
+        }
+        p {
+            background-color: #444;
+            margin: 0;
+            padding: 0.1em 0.25em 0.1em 0.25em;
+            text-indent: 0.5em;
+        }
+        #controls {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+        }
+        #controls button {
+            padding: 10px 20px;
+            margin-right: 10px;
+        }
+        #messages {
+            mask-image: linear-gradient(to bottom, transparent 0%,
+                                        black 5%, black 95%, transparent 100%);
+            mask-size: 100% 100%;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="chat">
+        <div id="messages"></div>
+    </div>
+    <div id="controls">
+        <button id="generate" class="big">Gen</button>
+        <button id="stop"     class="big">Stop</button>
+        <button id="clear"    class="big">Clear</button>
+    </div>
+
+    <script type="module">
+        // ↓↑︽︾﹀⌄⌃⌅⌤⏶⏷
+        import * as app   from "./app1.js";
+        import * as model from "./model.js";
+        import * as ui    from "./ui.js";
+        import * as util  from "./util.js";
+        document.addEventListener("DOMContentLoaded", () => { app.run() });
+        let generating = false;
+
+        const messages = document.querySelector('#messages');
+        
+        const create_buttton = (id, content) => {
+            const b = document.createElement('button');
+            b.style.position = 'absolute'
+            b.style.display = 'block'
+            b.id = id
+            b.className = 'scroll-button'
+            b.textContent = content
+            return b
+        }
+        
+        const button_top = create_buttton('scroll-top', '⏶')
+        const button_bottom = create_buttton('scroll-bottom', '⏷')
+        messages.parentElement.appendChild(button_top)
+        messages.parentElement.appendChild(button_bottom)
+        const position_buttons = () => {
+            button_top.style.top       = "0.5rem"
+            button_top.style.right     = "0.5rem"
+            button_bottom.style.bottom = "0.5rem"
+            button_bottom.style.right  = "0.5rem"
+        }
+
+        position_buttons()
+
+        window.addEventListener('resize', position_buttons)
+        document.addEventListener('scroll', position_buttons)
+
+        let autoscroll = false
+        let is_programmatic_scroll = false
+
+        const is_answering = () => generating
+        
+        let scroll_position = null
+
+        const line_height = (e) => {
+            const cs = window.getComputedStyle(e) // computed style
+//          console.log("lineHeight: " + cs.lineHeight)
+            let h = parseFloat(cs.lineHeight)
+            if (isNaN(h)) {
+                h = parseFloat(cs.fontSize) * 1.2
+            }
+//          console.log("line_height: " + h + "px")
+            return h
+        }
+
+        const scrolled = new CustomEvent('scrolled', {
+              detail: { message: 'smooth scroll completed' },
+              bubbles: false,
+              cancelable: true
+        })
+        
+        let requested_animation_frame = null
+        let start = Date.now()
+
+        const force_layout = (e) => { // and cancel smooth scroll
+            if (scroll_position !== null) {
+                e.scrollTop = scroll_position
+                scroll_position = null
+                if (requested_animation_frame) {
+                    cancelAnimationFrame(requested_animation_frame)
+                }
+                requested_animation_frame = null
+            }
+            const _ = e.offsetHeight // force layout
+        }
+        
+        const update_buttons = (e) => {
+            const lh = line_height(e)
+            ui.show_hide(e.scrollTop >= lh, button_top)
+            const bottom = e.scrollTop + e.clientHeight
+            const end = e.scrollHeight - lh
+            ui.show_hide(bottom < end && !autoscroll, button_bottom)
+//          console.log("update_buttons up: " + (e.scrollTop >= lh) +
+//                      " down: " + (bottom < end && !autoscroll))
+        }
+
+        const scroll_to = (e, p) => { // element, position
+//          console.log("scroll_to: " + p)
+            is_programmatic_scroll = true
+            if (p == scroll_position) return
+            start = Date.now()
+            scroll_position = p
+            e.scrollTo({ top: p, behavior: 'smooth' })
+            if (requested_animation_frame === null) {
+                const check = (time) => {
+//                  console.log("scroll_to.check p: " + p + " .scrollTop: " + e.scrollTop)
+                    let done = false
+                    if (e.scrollTop === scroll_position) {
+//                      console.log("scroll_to.check DONE scroll_position: " + scroll_position + " .scrollTop: " + e.scrollTop)
+                        done = true
+                    } else if (Date.now() - start > 1000) {
+//                      console.log("scroll_to.check TIMEOUT p: " + scroll_position + " .scrollTop: " + e.scrollTop)
+                        done = true
+                    } else {
+                        requested_animation_frame = requestAnimationFrame(check)
+                    }
+                    if (done) {
+                        is_programmatic_scroll = false
+                        force_layout(e)
+                        scroll_position = null
+                        requested_animation_frame = null
+                        requestAnimationFrame(() => update_buttons(e))
+                        e.dispatchEvent(scrolled)
+                    }
+                }
+                requested_animation_frame = requestAnimationFrame(check)
+            }
+        }
+
+        const scroll_to_bottom_top_position = (e) =>
+            e.scrollHeight - e.clientHeight
+
+        const scroll_to_top = (e) => {
+//          console.log("scroll_to_top")
+            scroll_to(e, 0)
+            autoscroll = false
+        }
+
+        const scroll_to_bottom = (e) => {
+//          console.log("scroll_to_bottom")
+            scroll_to(e, scroll_to_bottom_top_position(e))
+            if (is_answering()) {
+                autoscroll = true
+                ui.show_hide(false, button_bottom)
+            }
+        }
+
+        const scroll = (e) => {
+//          console.log("scroll() .scrollTop: " + e.scrollTop)
+            const bottom = e.scrollTop + e.clientHeight
+            const end = e.scrollHeight - line_height(e)
+            if (is_answering() && bottom >= end) {
+                autoscroll = true
+                ui.show_hide(false, button_bottom)
+                ui.show_hide(true,  button_top)
+            }
+            if (!is_programmatic_scroll && is_answering()) {
+                if (autoscroll && bottom < end) {
+                    autoscroll = false
+                }
+            }
+            requestAnimationFrame(() => update_buttons(e))
+        }
+
+        let later = null
+        
+        const messages_touch_move = (e) => {
+//          console.log("touch_move")
+            force_layout(e)
+            autoscroll = false
+            if (later) clearTimeout(later)
+            later = setTimeout(() => {
+                later = null
+                update_buttons(e)
+            }, 100)
+        }
+
+        const messages_scrolled = (e) => {
+//          console.log("messages_scrolled")
+            if (later) clearTimeout(later)
+            later = setTimeout(() => {
+                later = null
+                update_buttons(e)
+            }, 100)
+        }
+
+        // Event listeners
+        messages.addEventListener('scroll', () => scroll(messages))
+        messages.addEventListener('scrolled', () => messages_scrolled(messages))
+        messages.addEventListener('touchmove', () => messages_touch_move(messages))
+
+        button_top.addEventListener('click', () => scroll_to_top(messages))
+        button_bottom.addEventListener('click', () => scroll_to_bottom(messages))
+        
+        
+        let generate_interval = null
+
+        const append_paragraph = (e, text) => {
+            const p = document.createElement('p')
+            p.textContent = text
+            e.appendChild(p)
+            return p
+        }
+
+        const random_int = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+
+        const random_word = () => {
+            const n = random_int(1, 6)
+            let word = ''
+            for (let i = 0; i < n; i++) {
+                word += String.fromCharCode('a'.charCodeAt(0) + random_int(0, 25))
+            }
+            return word
+        }
+
+        const init_list = (e) => {
+            for (let i = 0; i < 33; i++) {
+                append_paragraph(e, `${String(i).padStart(2, '0')} Lorem Ipsum`)
+            }
+        }
+
+        const stop = (e) => {
+            clearInterval(generate_interval)
+            generating = false
+            autoscroll = false
+            update_buttons(e)
+        }
+
+        const generate = (e) => {
+            if (generating) return
+            generating = true
+            autoscroll = true
+            const paragraphsToAdd = random_int(10, 20)
+            let added = 0
+            let last = e.lastElementChild || append_paragraph(e, '')
+            generate_interval = setInterval(() => {
+                if (added >= paragraphsToAdd) {
+                    stop()
+                    return
+                }
+                let text = last.textContent + ' ' + random_word()
+                if (text.length > 128) {
+                    last = append_paragraph(e, random_word())
+                    added++
+                } else {
+                    last.textContent = text
+                }
+                if (autoscroll) {
+//                  console.log("autoscroll: " + scroll_to_bottom_top_position(e))
+                    scroll_to(e, scroll_to_bottom_top_position(e))
+                }
+            }, 50)
+        }
+
+
+        // Clear logic
+        const clear_list = (e) => {
+            stop(e)
+            e.innerHTML = ''
+            init_list(e)
+            update_buttons(e)
+        }
+        
+        const generateBtn = document.querySelector('#generate')
+        const clearBtn = document.querySelector('#clear')
+
+        document.querySelector('#generate').addEventListener('click',
+            () => generate(messages)
+        )
+        document.querySelector('#stop').addEventListener('click',
+            () => stop(messages)
+        )
+        document.querySelector('#clear').addEventListener('click',
+            () => clear_list(messages)
+        )
+        init_list(messages)
+        update_buttons(messages)
+    </script>
+</body>
+</html>
