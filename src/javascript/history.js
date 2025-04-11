@@ -70,11 +70,11 @@ const start_of_year = () => {
 
 const section_key = ts => {
     const d = new Date(ts)
-    if (d >= start_of_day(0)) return "Today"
-    if (d >= start_of_day(1)) return "Yesterday"
-    if (d >= start_of_day(7)) return "Last Week"
+    if (d >= start_of_day(0))   return "Today"
+    if (d >= start_of_day(1))   return "Yesterday"
+    if (d >= start_of_day(7))   return "Last Week"
     if (d >= start_of_month(1)) return "Last Month"
-    if (d >= start_of_year()) return d.toLocaleString("default", { month: "long" })
+    if (d >= start_of_year())   return d.toLocaleString("default", { month: "long" })
     return String(d.getFullYear())
 }
 

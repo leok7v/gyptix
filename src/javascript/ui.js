@@ -63,11 +63,25 @@ export const show = (...elements) => {
 }
 
 export const hide = (...elements) => {
-    for (const e of elements) {
-        const currentDisplay = e.style.display || "block"
-        if (currentDisplay !== "none") {
-            e.setAttribute("data-display", currentDisplay)
-            e.style.display = "none"
+    try {
+        for (const e of elements) {
+            const currentDisplay = e.style.display || "block"
+            if (currentDisplay !== "none") {
+                e.setAttribute("data-display", currentDisplay)
+                e.style.display = "none"
+            }
+        }
+    } catch (e) {
+        console.log("ui.hide **** ERROR ****")
+        console.log(e.stack)
+        let i = 0
+        for (const e of elements) {
+            if (!e) {
+                console.log('[' + i + ']=null')
+            } else {
+                console.log('[' + i + ']=' + e.id)
+            }
+            i++
         }
     }
 }

@@ -7,6 +7,7 @@ import * as marked      from "./marked.js"
 import * as modal       from "./modal.js"
 import * as model       from "./model.js"
 import * as prompts     from "./prompts.js"
+import * as scroll      from "./scroll.js";
 import * as suggestions from "./suggestions.js"
 import * as util        from "./util.js"
 import * as ui          from "./ui.js"
@@ -42,7 +43,6 @@ export const run = () => { // called DOMContentLoaded
         remove       = get("remove"),
         rename       = get("rename"),
         restart      = get("restart"),
-        scroll       = get("scroll"),
         stop         = get("stop"),
         carry        = get("carry"),
         clear        = get("clear"),
@@ -51,6 +51,9 @@ export const run = () => { // called DOMContentLoaded
         suggest      = get("suggest"),
         title        = get("title"),
         toggle_theme = get("toggle_theme")
+
+    let scrollable = scroll.scroll_create_wrapper(messages,
+                        model.is_answering, false)
     
     // TODO:
     // visiblility (hidden) and display none state management is from HELL
@@ -58,13 +61,11 @@ export const run = () => { // called DOMContentLoaded
     // changes and update all visibility in one place.
     // Maybe also need "disabled" style with <glyp> 50% oppacity
 
-    let autoscroll = false // scroll clicked while answering
     let current  = null // current  chat id
     let selected = null // selected chat id
     let selected_item = null // item in chats list
     let interrupted = false  // output was interrupted
     let is_expanded = false  // navigation pane expanded
-    let touching    = 0      // > 0 between touchstart/touchend
 
     document.addEventListener("copy", e => {
         e.preventDefault()
@@ -72,150 +73,6 @@ export const run = () => { // called DOMContentLoaded
         e.clipboardData.setData("text/plain", s)
     })
     
-    const scroll_gap = 20
-
-    var scroll_queue = { top: 0, next: 0 }
-
-    const is_scrolling = () => // smooth scrolling in flight
-            scroll_queue.top !== 0 || scroll_queue.next !== 0
-
-    const stop_in_flight_scroll = () => {
-        const originalOverflow = messages.style.overflow;
-        messages.style.overflow = "hidden";
-        // Force reflow (e.g., read offsetHeight).
-        const _ = messages.offsetHeight; // reading forces layout
-        messages.style.overflow = originalOverflow;
-    }
-
-    const is_scrolled_to_the_bottom = () => {
-        const verbose = false
-        const log = verbose ? console.log : () => {}
-        const top = messages.scrollHeight - messages.offsetHeight
-        const r = Math.abs(top - messages.scrollTop) < scroll_gap
-        log("is_scrolled_to_the_bottom " +
-            ".scrollTop: " + messages.scrollTop +
-            " top: " + top + " : " + r)
-        return r
-    }
-
-    const scroll_show_hide = () => {
-        const verbose = false
-        const log = verbose ? console.log : () => {}
-        if (is_scrolling()) { // indeterminate for now
-            log("scroll_show_hide " +
-                " autoscroll: " + autoscroll +
-                " .scrollTop: " + messages.scrollTop +
-                " .scrollHeight: " + messages.scrollHeight +
-                " .offsetHeight: " + messages.offsetHeight +
-                " .next: " + scroll_queue.next +
-                " .top: "  + scroll_queue.top +
-                " is_scrolling(): true")
-        } else if (is_scrolled_to_the_bottom()) {
-            log("scroll_show_hide " +
-                " autoscroll: " + autoscroll +
-                " .scrollTop: " + messages.scrollTop +
-                " .scrollHeight: " + messages.scrollHeight +
-                " .offsetHeight: " + messages.offsetHeight +
-                " .next: " + scroll_queue.next +
-                " .top: "  + scroll_queue.top +
-                " ui.hide(scroll) because is_scrolled_to_the_bottom()")
-            ui.hide(scroll)
-        } else {
-            log("scroll_show_hide " +
-                " autoscroll: " + autoscroll +
-                " .scrollTop: " + messages.scrollTop +
-                " .scrollHeight: " + messages.scrollHeight +
-                " .offsetHeight: " + messages.offsetHeight +
-                " .next: " + scroll_queue.next +
-                " .top: "  + scroll_queue.top +
-                " ui.show(scroll)")
-            ui.show(scroll)
-        }
-    }
-
-    const scroll_to_bottom_cancel = () => {
-        if (is_scrolling()) stop_in_flight_scroll()
-        scroll_queue = { top: 0, next: 0 }
-    }
-    
-    const scroll_to_bottom = () => {
-        const verbose = false
-        const log = verbose ? console.log : () => {}
-        var top = messages.scrollHeight - messages.offsetHeight
-        top = Math.max(top, scroll_queue.next)
-        if (Math.abs(top - messages.scrollTop) < 1) {
-            log("scroll_to_bottom nothing to do " +
-                " autoscroll: " + autoscroll +
-                " .scrollTop: " + messages.scrollTop +
-                " .scrollHeight: " + messages.scrollHeight +
-                " .offsetHeight: " + messages.offsetHeight +
-                " .top: "  + scroll_queue.top +
-                " .next: " + scroll_queue.next +
-                " top: " + top
-            )
-            return
-        }
-        const max_top = Math.max(messages.scrollTop, top)
-        const next = Math.max(max_top, scroll_queue.next)
-        if (!is_scrolling()) { // scrolling isn't started yet
-            scroll_queue.next = next
-            log("scroll_to_bottom starting" +
-                " autoscroll: " + autoscroll +
-                " .scrollTop: " + messages.scrollTop +
-                " .scrollHeight: " + messages.scrollHeight +
-                " .offsetHeight: " + messages.offsetHeight +
-                " .top: "  + scroll_queue.top +
-                " .next: " + scroll_queue.next
-            )
-            scroll_queue.top  = next // .top and .next the same
-            messages.scrollTo({ top: next, behavior: "smooth" })
-            const check_scroll = () => {
-                const top = Math.max(scroll_queue.top, scroll_queue.next)
-                if (Math.abs(top - messages.scrollTop) < 1) {
-                    log("scroll_to_bottom smooth scroll done " +
-                        " autoscroll: " + autoscroll +
-                        " .scrollTop: " + messages.scrollTop +
-                        " .scrollHeight: " + messages.scrollHeight +
-                        " .offsetHeight: " + messages.offsetHeight +
-                        " .top: "  + scroll_queue.top +
-                        " .next: " + scroll_queue.next
-                        )
-                    if (autoscroll) {
-                        log("scroll_to_bottom scroll_to_bottom() again")
-                        scroll_queue = { top: 0, next: 0 }
-                        requestAnimationFrame(scroll_to_bottom)
-                    } else {
-                        log("scroll_to_bottom scroll_to_bottom_cancel()")
-                        scroll_to_bottom_cancel()
-                        scroll_show_hide()
-                    }
-                } else if (is_scrolling()) {
-                    log("scroll_to_bottom requestAnimationFrame " +
-                        " autoscroll: " + autoscroll +
-                        " .scrollTop: " + messages.scrollTop +
-                        " .scrollHeight: " + messages.scrollHeight +
-                        " .offsetHeight: " + messages.offsetHeight +
-                        " .top: "  + scroll_queue.top +
-                        " .next: " + scroll_queue.next
-                    )
-                    requestAnimationFrame(check_scroll)
-                } else {
-                    log("scroll_to_bottom canceled" +
-                        " autoscroll: " + autoscroll +
-                        " .scrollTop: " + messages.scrollTop +
-                        " .scrollHeight: " + messages.scrollHeight +
-                        " .offsetHeight: " + messages.offsetHeight +
-                        " .top: "  + scroll_queue.top +
-                        " .next: " + scroll_queue.next +
-                        " is_scrolling(): " + is_scrolling())
-                }
-            }
-            requestAnimationFrame(check_scroll)
-        } else {
-            log("scroll_to_bottom is_scrolling(): true")
-        }
-    }
-        
     function normalize_line_breaks_to_spaces(text) {
         const paragraphs = text.split(/(\r\n\r\n|\r\r|\n\n)/)
         return paragraphs.map(segment => {
@@ -250,23 +107,8 @@ export const run = () => { // called DOMContentLoaded
             }
             i++;
         })
-        if (autoscroll || ui.is_hidden(scroll)) scroll_to_bottom()
     }
     
-    const last_child_scroll = () => {
-        const last_child = messages.lastElementChild
-        const _ = messages.offsetHeight; // reading forces layout
-        const mrc = messages.getBoundingClientRect()
-        const lrc = last_child.getBoundingClientRect()
-        if (lrc.top - scroll_gap <= mrc.top &&
-            ui.is_hidden(scroll) && !autoscroll) {
-            ui.show(scroll)
-            scroll_to_bottom_cancel()
-        } else {
-            if (autoscroll || ui.is_hidden(scroll)) scroll_to_bottom()
-        }
-    }
-
     const render_last = (chunk) => {
         if (!chat || !chat.messages || chat.messages.length === 0) return
         const last_index = chat.messages.length - 1
@@ -284,17 +126,15 @@ export const run = () => { // called DOMContentLoaded
                     console.error(error)
                 } else {
                     last_child.innerHTML = html
-                    last_child_scroll()
                 }
             })
         } else {
             messages.appendChild(render_message(last_msg))
-            last_child_scroll()
         }
     }
     
     const load = (c) => {
-        ui.hide(scroll, carry)
+        ui.hide(carry)
         suggestions.hide()
         messages.innerHTML = ""
         current = c.id
@@ -306,12 +146,9 @@ export const run = () => { // called DOMContentLoaded
             placeholder()
             render_messages()
             rebuild_list()
+            scrollable.scroll_to_bottom()
             layout_and_render().then(() => {
                 model.run(c.id) // slowest
-                if (!is_scrolled_to_the_bottom()) {
-                    ui.show(scroll)
-                    scroll_to_bottom()
-                }
             })
         })
     }
@@ -328,7 +165,7 @@ export const run = () => { // called DOMContentLoaded
         const span = document.createElement("span")
         span.textContent = c.title
         const dots = document.createElement("button")
-        dots.textContent = "⋯"
+        dots.textContent = '⋮' // aka '&vellip;' alternative "⋯"
         dots.onclick = e => {
             e.stopPropagation()
             selected = c.id;
@@ -398,11 +235,7 @@ export const run = () => { // called DOMContentLoaded
     const placeholder = () => {
         let ph = ""
         if (model.is_answering()) {
-            if (ui.is_hidden(scroll)) {
-                ph = "▣ stop"
-            } else {
-                ph = "▣ stop" + nbsp4 + "↓ scroll"
-            }
+            ph = "▣ stop"
         } else if (chat.messages.length > 0) {
             ph = "Anything else can I help you with?"
         } else if (!detect.macOS) { // double quotes improtant for css variable:
@@ -428,6 +261,8 @@ export const run = () => { // called DOMContentLoaded
     const set_chat_title = (s) => {
         if (s === '') {
             set_title(s)
+            title.classList.remove("shimmering")
+            title.classList.add("rainbow")
         } else {
             title.innerHTML =
                 "<div class='logo-container' >" +
@@ -451,14 +286,12 @@ export const run = () => { // called DOMContentLoaded
             chat.title = util.summarize(chat.messages[0].text + " " +
                                         chat.messages[1].text)
             title.textContent = chat.title
-            title.classList.add("shimmering")
-            setTimeout(() => title.classList.remove("shimmering"), 2000)
         }
     }
     
     const done = () => {
-        autoscroll = false
-        console.log("autoscroll := " + autoscroll)
+        scrollable.autoscroll = false
+ //     console.log("autoscroll := " + scrollable.autoscroll)
         input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
@@ -490,8 +323,8 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const polling = () => {
-        autoscroll = false
-        console.log("autoscroll := " + autoscroll)
+        scrollable.autoscroll = messages.length > 0
+ //     console.log("autoscroll := " + scrollable.autoscroll)
         ui.show(stop)
         ui.hide(send, expand, restart)
         stop.classList.add("pulsing")
@@ -611,7 +444,6 @@ export const run = () => { // called DOMContentLoaded
 
     shred.onclick = () => {
         hide_menu()
-        // TODO: menu here "Older than month" / "Older than a week" / "All"
         modal.ask("### **Erase All Chat History**  \n" +
             "For your privacy and storage<br>" +
             "efficiency, wiping everything<br>" +
@@ -640,20 +472,13 @@ export const run = () => { // called DOMContentLoaded
                 is_expanded = true
                 navigation.classList.add("expanded")
                 ui.show(tools)
-                ui.hide(scroll, title)
+                ui.hide(title)
             }, 500)
         }
     }
     
     expand.onclick = () => (is_expanded ? collapsed() : expanded())
-    
-    scroll.onclick = () => {
-        autoscroll = model.is_answering()
-        console.log("autoscroll := " + autoscroll)
-        ui.hide(scroll)
-        layout_and_render().then(scroll_to_bottom)
-    }
-    
+        
     let last_key_down_time = 0
     
     input.onkeydown = e => {
@@ -682,17 +507,14 @@ export const run = () => { // called DOMContentLoaded
     
     input.onblur = () => { // focus lost
         ui.show(expand, restart)
-        scroll_show_hide()
-//      document.body.style.overflow = ""
         if (chat.messages.length == 0 && input.innerText.trim() === "") {
             suggestions.show()
         }
     }
     
     input.onfocus = () => {
-        ui.hide(scroll, expand, restart)
+        ui.hide(expand, restart)
         suggestions.hide()
-//      document.body.style.overflow = "hidden"
         collapsed()
     }
     
@@ -706,7 +528,6 @@ export const run = () => { // called DOMContentLoaded
         ui.show_hide(interrupted, carry)
         const lines = input.innerText.split("\n").length
         input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
-        scroll_show_hide()
     }
 
     const observer = new MutationObserver(input.oninput)
@@ -788,9 +609,6 @@ export const run = () => { // called DOMContentLoaded
                 }
                 rebuild_list()
                 render_messages()
-                // bug in iOS input scroll back:
-                collapsed()
-                expanded()
             }
         })
     }
@@ -806,24 +624,9 @@ export const run = () => { // called DOMContentLoaded
     get("font-increase").onclick = () => util.increase_font_size()
     get("font-decrease").onclick = () => util.decrease_font_size()
     
-    const user_started_scrolling = () => {
-        if (chat && chat.messages && chat.messages.length > 0) {
-            if (is_answering() && autoscroll) {
-                autoscroll = false
-                console.log("autoscroll := " + autoscroll)
-                if (is_scrolling()) scroll_to_bottom_cancel()
-            }
-            requestAnimationFrame(scroll_show_hide)
-        }
-    }
     
-    messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
-    messages.addEventListener("wheel",      user_started_scrolling)
-    messages.addEventListener('touchmove',  user_started_scrolling)
-
-    messages.onscroll = () => {
-        requestAnimationFrame(scroll_show_hide)
-    }
+//  messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
+//  messages.addEventListener("wheel",      user_started_scrolling)
 
     document.querySelectorAll(".tooltip").forEach(button => {
         button.addEventListener("mouseenter", function() {
@@ -862,13 +665,11 @@ export const run = () => { // called DOMContentLoaded
     
     document.addEventListener('touchstart', (e) => {
         touch_start_x = e.changedTouches[0].screenX;
-        touching++
     }, false);
     
     document.addEventListener('touchend', (e) => {
         touch_end_x = e.changedTouches[0].screenX;
         swipe();
-        touching--
     }, false);
 
     function swipe() {
@@ -876,7 +677,11 @@ export const run = () => { // called DOMContentLoaded
         const threshold = window.innerWidth / 4;
         if (Math.abs(dx) > threshold) {
             if (dx > 0 && !navigation.classList.contains('expanded')) {
-                expanded();
+                // This interfereces with user press and hold selection on iOS
+//              expanded();
+                // If 'swipe right' gesture is still desired it would be
+                // necessary to detect if selection is expanding now and
+                // ignore it in that case.
             } else if (dx < 0 && navigation.classList.contains('expanded')) {
                 collapsed();
             }
@@ -933,7 +738,6 @@ export const run = () => { // called DOMContentLoaded
     send.title = "Submit"
     stop.title = "Stop"
     clear.title = "Clear"
-    scroll.title = "Scroll to the Bottom"
 
     showEULA()
 

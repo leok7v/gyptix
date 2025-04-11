@@ -269,15 +269,24 @@ button.square {
     font-weight: bold;
 }
 
-#scroll {
-    z-index: 50;
-    position: absolute;
-    right: 0.5rem;
-    bottom: 0.75rem;
-    display: block;
-    font-weight: bold;
-    cursor: pointer;
-    pointer-events: auto;
+.scroll-button {
+    z-index:         99999;
+    display:         block;
+    position:        absolute;
+    font-size:       1.5rem;
+    width:           2.0rem;
+    height:          2.0rem;
+    overflow:        hidden;
+    opacity:         0;
+    color:           var(--system-blue);
+    background:      var(--background-color);
+    border:          0.0625rem solid #888;
+    border-radius:   25%;
+    transition:         opacity 0.5s ease-in-out;
+    -webkit-transition: opacity 0.5s ease-in-out;
+}
+.scroll-button.scroll-button-visible {
+    opacity:         75%;
 }
 
 #expand {

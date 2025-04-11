@@ -24,10 +24,10 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     const button_bottom = create_buttton('scroll-bottom', '⌅')
     button_bottom.style.transform = 'rotate(180deg)'
     const position_buttons = () => {
-        button_top.style.top       = '0.5rem'
-        button_top.style.right     = '0.5rem'
-        button_bottom.style.bottom = '0.5rem'
-        button_bottom.style.right  = '0.5rem'
+        button_top.style.top       = '0.75rem'
+        button_top.style.right     = '0.75rem'
+        button_bottom.style.bottom = '0.75rem'
+        button_bottom.style.right  = '0.75rem'
     }
     list.parentElement.appendChild(button_top)
     list.parentElement.appendChild(button_bottom)

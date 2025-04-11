@@ -6,7 +6,7 @@ let md = ""
 let length = 0 // last Html length
 
 self.onmessage = function(e) {
-  const { type, chunk } = e.data
+    const { type, chunk } = e.data
     if (type === "append") {
         try {
             md += chunk
@@ -20,6 +20,5 @@ self.onmessage = function(e) {
     if (type === "reset") {
         md = ""
         length = 0
-        self.postMessage({ tail: "" })
     }
 }
