@@ -179,3 +179,33 @@ export const substitutions = (s) => {
         return replacements[match.toLowerCase()] || match
     })
 }
+
+const app_error = new CustomEvent('app_error', {
+      detail: { message: 'application error' },
+      bubbles: false,
+      cancelable: false
+})
+
+window.onerror = function(message, source, lineno, colno, error) {
+    const stack   = error?.stack || "No stack trace available"
+    const details = `Unhandled Exception:\n` +
+                    `Message: ${message}\n` +
+                    `Source: ${source}\n` +
+                    `Line: ${lineno}, Column: ${colno}\n` +
+                    `Stack:\n${stack}\n`
+    console.log(details)
+    localStorage.setItem("app.last_error", details)
+    window.dispatchEvent(app_error)
+    return true
+}
+
+window.onunhandledrejection = (event) => {
+    const reason = event.reason // The Error object
+    const stack  = reason?.stack || "No stack trace available"
+    const details = `Promise Rejection:\n` +
+                    `Reason: ${reason.message}\n` +
+                    `Stack:\n${stack}\n`
+    console.log(details)
+    localStorage.setItem("app.last_error", details)
+    window.dispatchEvent(app_error)
+}

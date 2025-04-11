@@ -58,6 +58,34 @@ const page = (pts) => {
     return panel
 }
 
+const error_box = (markdown, content) => {
+    if (markdown.includes("# **Error**")) {
+        content.style.userSelect       = "text"
+        content.style.webkitUserSelect = "text"
+        content.contentEditable = true
+        content.readOnly = false
+        content.fontSize = "0.5rem"
+        content.innerText = markdown
+        const range = document.createRange()
+        range.selectNodeContents(content)
+        const selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(range)
+        navigator.clipboard.writeText(content.innerHTML)
+        .then(() => {
+//          console.log("Copied to pasteboard.")
+        }).catch(err => {
+            console.log("Failed to copy to pasteboard: ", err)
+            try {
+                const success = document.execCommand("copy")
+                console.log("Fallback copy " + (success ? "done" : "failed"))
+            } catch (err) {
+                console.log("Fallback copy failed: " + err)
+            }
+        })
+    }
+}
+
 const message_box = (centered, markdown, done, actions) => {
     const html = marked.parse(markdown)
     const panel = page(detect.iOS ? "11pt" : "10pt")
@@ -90,8 +118,8 @@ const message_box = (centered, markdown, done, actions) => {
     modal.innerHTML = ""
     modal.appendChild(panel)
     modal.style.display = "block"
+    error_box(markdown, content)
 }
-
 
 // ask|mbx = (markdown, done, ...) =>
 // message boxes:
@@ -106,7 +134,7 @@ export const mbx = (markdown, done, ...actions) =>
 
 // show|ask|mbx = (markdown, done, ...) =>
 // show shcrollable html of markdown inside absolute
-// 100%x100 panel
+// 100%x100% panel
 // draws buttons from ...actions list
 // which are HTML-like strings like
 // "OK" "Cancel" "<green>Agree</green>" "<red>Delete</red>"

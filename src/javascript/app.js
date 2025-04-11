@@ -29,44 +29,44 @@ let chat = null // **the** chat
 
 export const run = () => { // called DOMContentLoaded
     const
-        shred        = get("shred"), // shred & recycle 
-        content      = get("content"),
-        expand       = get("expand"),
-        tools        = get("tools"),
-        input        = get("input"),
-        layout       = get("layout"),
-        list         = get("list"),
-        menu         = get("menu"),
-        messages     = get("messages"),
-        navigation   = get("navigation"),
-        search       = get("search"),
-        remove       = get("remove"),
-        rename       = get("rename"),
-        restart      = get("restart"),
-        stop         = get("stop"),
-        carry        = get("carry"),
-        clear        = get("clear"),
-        send         = get("send"),
-        share        = get("share"),
-        suggest      = get("suggest"),
-        title        = get("title"),
-        toggle_theme = get("toggle_theme")
-
+    shred        = get("shred"), // shred & recycle
+    content      = get("content"),
+    expand       = get("expand"),
+    tools        = get("tools"),
+    input        = get("input"),
+    layout       = get("layout"),
+    list         = get("list"),
+    menu         = get("menu"),
+    messages     = get("messages"),
+    navigation   = get("navigation"),
+    search       = get("search"),
+    remove       = get("remove"),
+    rename       = get("rename"),
+    restart      = get("restart"),
+    stop         = get("stop"),
+    carry        = get("carry"),
+    clear        = get("clear"),
+    send         = get("send"),
+    share        = get("share"),
+    suggest      = get("suggest"),
+    title        = get("title"),
+    toggle_theme = get("toggle_theme")
+    
     let scrollable = scroll.scroll_create_wrapper(messages,
-                        model.is_answering, false)
+                                                  model.is_answering, false)
     
     // TODO:
     // visiblility (hidden) and display none state management is from HELL
     // It was Q&D hack on spur of the moment. Need to subscribe to state
     // changes and update all visibility in one place.
     // Maybe also need "disabled" style with <glyp> 50% oppacity
-
+    
     let current  = null // current  chat id
     let selected = null // selected chat id
     let selected_item = null // item in chats list
     let interrupted = false  // output was interrupted
     let is_expanded = false  // navigation pane expanded
-
+    
     document.addEventListener("copy", e => {
         e.preventDefault()
         const s = window.getSelection().toString()
@@ -85,7 +85,7 @@ export const run = () => { // called DOMContentLoaded
         const d = document.createElement("div")
         d.className = msg.sender === "user" ? "user" : "bot"
         let text = msg.sender === "bot" ? msg.text :
-            normalize_line_breaks_to_spaces(msg.text)
+        normalize_line_breaks_to_spaces(msg.text)
         d.innerHTML = marked.parse(text)
         return d
     }
@@ -94,8 +94,8 @@ export const run = () => { // called DOMContentLoaded
         if (!chat || !chat.messages) { return }
         if (chat.messages.length == 0) {
             if (input !== document.activeElement) suggestions.show()
-            return
-        }
+                return
+                }
         if (chat.messages.length > 0) {
             suggestions.hide()
         }
@@ -111,26 +111,26 @@ export const run = () => { // called DOMContentLoaded
     
     const render_last = (chunk) => {
         if (!chat || !chat.messages || chat.messages.length === 0) return
-        const last_index = chat.messages.length - 1
-        const last_msg = chat.messages[last_index]
-        // Get last child element (assumed to be the last message).
-        const last_child = messages.lastElementChild
-        last_msg.text += chunk
-        last_msg.text = util.substitutions(last_msg.text)
-        if (last_child && last_msg.sender === "user") {
-            messages.appendChild(render_message(last_msg))
-        } else if (last_child && last_msg.sender === "bot") {
-            let text = chunk
-            markdown.post(text, (html, error) => {
-                if (error) {
-                    console.error(error)
-                } else {
-                    last_child.innerHTML = html
-                }
-            })
-        } else {
-            messages.appendChild(render_message(last_msg))
-        }
+            const last_index = chat.messages.length - 1
+            const last_msg = chat.messages[last_index]
+            // Get last child element (assumed to be the last message).
+            const last_child = messages.lastElementChild
+            last_msg.text += chunk
+            last_msg.text = util.substitutions(last_msg.text)
+            if (last_child && last_msg.sender === "user") {
+                messages.appendChild(render_message(last_msg))
+            } else if (last_child && last_msg.sender === "bot") {
+                let text = chunk
+                markdown.post(text, (html, error) => {
+                    if (error) {
+                        console.error(error)
+                    } else {
+                        last_child.innerHTML = html
+                    }
+                })
+            } else {
+                messages.appendChild(render_message(last_msg))
+            }
     }
     
     const load = (c) => {
@@ -157,11 +157,11 @@ export const run = () => { // called DOMContentLoaded
         const div = document.createElement("div")
         div.className = "item"
         if (c.id === current) div.classList.add("selected")
-        div.onclick = () => {
-            selected = null; collapsed(); hide_menu()
-            if (current !== c.id) load(c)
-            search.innerText = ""
-        }
+            div.onclick = () => {
+                selected = null; collapsed(); hide_menu()
+                if (current !== c.id) load(c)
+                    search.innerText = ""
+                    }
         const span = document.createElement("span")
         span.textContent = c.title
         const dots = document.createElement("button")
@@ -176,18 +176,18 @@ export const run = () => { // called DOMContentLoaded
         div.append(span, dots)
         list.appendChild(div)
     }
-
+    
     const rebuild_list = () => history.generate(list, search, list_item)
-
+    
     const new_session = () => {
         // already have new empty chat?
         if (chat && chat.messages && chat.messages.length == 0) return
-        let id = util.timestamp()
-        let k = "chat.id." + id
-        while (localStorage.getItem(k)) {
-            id = util.timestamp()
-            k = "chat.id." + id
-        }
+            let id = util.timestamp()
+            let k = "chat.id." + id
+            while (localStorage.getItem(k)) {
+                id = util.timestamp()
+                k = "chat.id." + id
+            }
         current = id
         chat = {
             id: id,
@@ -249,15 +249,15 @@ export const run = () => { // called DOMContentLoaded
     
     const set_title = (s) => {
         const classes = s === '' ? 'logo-container rainbow' :
-                                   'logo-container shimmering'
+        'logo-container shimmering'
         const t = s === '' ? (detect.macOS ? '' : 'GyPTix') : s
         const c = t === '' ? '' : `<span class='logo-content'>${t}</span>`
         title.innerHTML =
-            `<div class='${classes}' >` +
-                "<span class='logo'></span>" + c +
-            "</div>"
+        `<div class='${classes}' >` +
+        "<span class='logo'></span>" + c +
+        "</div>"
     }
-
+    
     const set_chat_title = (s) => {
         if (s === '') {
             set_title(s)
@@ -265,21 +265,21 @@ export const run = () => { // called DOMContentLoaded
             title.classList.add("rainbow")
         } else {
             title.innerHTML =
-                "<div class='logo-container' >" +
-                    `<span class='logo-content'>${s}</span>` +
-                "</div>"
+            "<div class='logo-container' >" +
+            `<span class='logo-content'>${s}</span>` +
+            "</div>"
         }
     }
     
     const thinking = detect.macOS ?
-        [          "Reasoning", "Thinking", "Answering"] :
-        ["GyPTix", "Reasoning", "Thinking", "Answering"]
-
+    [          "Reasoning", "Thinking", "Answering"] :
+    ["GyPTix", "Reasoning", "Thinking", "Answering"]
+    
     const cycle_titles = (count) => {
         set_title(thinking[count])
         return (count + 1) % thinking.length
     }
-
+    
     const summarize_to_title = () => {
         // Poor man summarization. TODO: use AI for that
         if (chat.messages.length == 2) {
@@ -291,7 +291,7 @@ export const run = () => { // called DOMContentLoaded
     
     const done = () => {
         scrollable.autoscroll = false
- //     console.log("autoscroll := " + scrollable.autoscroll)
+        //     console.log("autoscroll := " + scrollable.autoscroll)
         input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
@@ -324,7 +324,7 @@ export const run = () => { // called DOMContentLoaded
     
     const polling = () => {
         scrollable.autoscroll = messages.length > 0
- //     console.log("autoscroll := " + scrollable.autoscroll)
+        //     console.log("autoscroll := " + scrollable.autoscroll)
         ui.show(stop)
         ui.hide(send, expand, restart)
         stop.classList.add("pulsing")
@@ -339,31 +339,31 @@ export const run = () => { // called DOMContentLoaded
         }, 20) // 50 times per second
         placeholder()
     }
-
+    
     const oops = () => {
         modal.toast("<p>Oops.<br>🤕🧠🤢<br>" +
-                   "Close and try again later<br><br>" +
-                   "or update ⚙️ in AppStore?</p>", 5000)
+                    "Close and try again later<br><br>" +
+                    "or update ⚙️ in AppStore?</p>", 5000)
         setTimeout(() => { model.quit() }, 5100)
     }
     
     const ask = t => {
         if (!current || !t) return
-        if (!model.is_running()) oops()
-        chat.messages.push({ sender: "user", text: t })
-        chat.messages.push({ sender: "bot",  text: "" })
-        history.save_chat(chat)
-        render_messages()
-        layout_and_render().then(() => { // render before asking
-            let error = model.ask(t)
-            ui.hide(clear)
-            if (!error) {
-                polling()
-            } else {
-                modal.toast(error, 5000)
-            }
-        })
-    }
+            if (!model.is_running()) oops()
+                chat.messages.push({ sender: "user", text: t })
+                chat.messages.push({ sender: "bot",  text: "" })
+                history.save_chat(chat)
+                render_messages()
+                layout_and_render().then(() => { // render before asking
+                    let error = model.ask(t)
+                    ui.hide(clear)
+                    if (!error) {
+                        polling()
+                    } else {
+                        modal.toast(error, 5000)
+                    }
+                })
+                }
     
     const show_menu = (x, y) => {
         menu.style.display = "block"
@@ -375,14 +375,14 @@ export const run = () => { // called DOMContentLoaded
         if (y + menu_rect.height > window_height) {
             new_y = y - menu_rect.height
             if (new_y < 0) new_y = 0
-        }
+                }
         y = new_y
         menu.style.left = x + "px"
         menu.style.top  = y + "px"
     }
     
     const hide_menu = () => ui.hide(menu)
-
+    
     toggle_theme.onclick = () => util.toggle_theme()
     
     send.onclick = e => {
@@ -400,7 +400,7 @@ export const run = () => { // called DOMContentLoaded
             layout_and_render().then( () => ask(s) )
         }
     }
-
+    
     stop.onclick = e => {
         e.preventDefault()
         let s = input.innerText.trim()
@@ -412,26 +412,25 @@ export const run = () => { // called DOMContentLoaded
             carry.style.display = "inline"
         }
     }
-
+    
     clear.onclick = e => {
         input.innerText = ""
         placeholder()
         layout_and_render().then(() => {
-            input.focus()
             if (chat.messages.length == 0) suggestions.show()
         })
     }
-
+    
     carry.onclick = e => {
         interrupted = false
         ui.hide(carry)
         ask("carry on")
     }
-
+    
     restart.onclick = () => {
         if (model.is_running() && !model.is_answering()) new_session()
-    }
-
+            }
+    
     const erase = () => {
         collapsed()
         const keys = Object.keys(localStorage).filter(k => k.startsWith("chat."))
@@ -441,18 +440,18 @@ export const run = () => { // called DOMContentLoaded
         rebuild_list()
         new_session()
     }
-
+    
     shred.onclick = () => {
         hide_menu()
         modal.ask("### **Erase All Chat History**  \n" +
-            "For your privacy and storage<br>" +
-            "efficiency, wiping everything<br>" +
-            "clean and shredding the data<br>" +
-            "might be a good idea. *Recycle*<br>" +
-            "*the ellectrons!* But...\n\n" +
-            "**This action is irreversible.**",
+                  "For your privacy and storage<br>" +
+                  "efficiency, wiping everything<br>" +
+                  "clean and shredding the data<br>" +
+                  "might be a good idea. *Recycle*<br>" +
+                  "*the ellectrons!* But...\n\n" +
+                  "**This action is irreversible.**",
         (action) => {
-            if (action === "Delete") erase()
+            if (action === "Delete") { erase() }
         },
         "Cancel", "<red>Delete</red>")
     }
@@ -478,7 +477,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     expand.onclick = () => (is_expanded ? collapsed() : expanded())
-        
+    
     let last_key_down_time = 0
     
     input.onkeydown = e => {
@@ -490,8 +489,8 @@ export const run = () => { // called DOMContentLoaded
             layout_and_render().then(() => {
                 const sel = window.getSelection()
                 if (sel) sel.removeAllRanges()
-                ask(s)
-            })
+                    ask(s)
+                    })
         }
         if (s.length > 0 && last_key_down_time !== 0) {
             setTimeout(() => {
@@ -502,8 +501,8 @@ export const run = () => { // called DOMContentLoaded
             }, 3000)
         }
         if (s.length > 0) suggestions.hide()
-        last_key_down_time = Date.now()
-    }
+            last_key_down_time = Date.now()
+            }
     
     input.onblur = () => { // focus lost
         ui.show(expand, restart)
@@ -522,35 +521,35 @@ export const run = () => { // called DOMContentLoaded
         const answering = model.is_answering()
         let s = input.innerText
         if (s !== "") suggestions.hide()
-        ui.show_hide(s !== "", clear)
-        ui.show_hide(answering, stop)
-        ui.show_hide(!answering, send)
-        ui.show_hide(interrupted, carry)
-        const lines = input.innerText.split("\n").length
-        input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
-    }
-
+            ui.show_hide(s !== "", clear)
+            ui.show_hide(answering, stop)
+            ui.show_hide(!answering, send)
+            ui.show_hide(interrupted, carry)
+            const lines = input.innerText.split("\n").length
+            input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
+            }
+    
     const observer = new MutationObserver(input.oninput)
     
     observer.observe(input, { childList: true, subtree: true,
         characterData: true });
-
+    
     content.onclick = e => {
         if (e.target.closest("#content") || e.target.closest("#input")) {
             collapsed()
         }
         if (!e.target.closest("#menu")) hide_menu()
-    }
-
+            }
+    
     const delete_chat = () => {
         if (!selected) return
-        localStorage.removeItem("chat.id." + selected)
-        localStorage.removeItem("chat." + selected)
-        model.remove(selected)
-        if (current === selected) {
-            current = null
-            recent()
-        }
+            localStorage.removeItem("chat.id." + selected)
+            localStorage.removeItem("chat." + selected)
+            model.remove(selected)
+            if (current === selected) {
+                current = null
+                recent()
+            }
         selected = null
         hide_menu()
         rebuild_list()
@@ -561,73 +560,73 @@ export const run = () => { // called DOMContentLoaded
     remove.onclick = () => {
         hide_menu()
         if (!selected) return
-        let c = history.load_chat(selected)
-        modal.ask("# **Delete Chat**\n\n" +
-                          '"' + c.title + '"\n\n' +
-                          "This cannot be undone.",
+            let c = history.load_chat(selected)
+            modal.ask("# **Delete Chat**\n\n" +
+                      '"' + c.title + '"\n\n' +
+                      "This cannot be undone.",
             (action) => {
-                if (action === "Delete") delete_chat()
+                if (action === "Delete") { delete_chat() }
             },
-        "Cancel", "<red>Delete</red>")
-    }
+                "Cancel", "<red>Delete</red>")
+            }
     
     var unfreezing = null
     
     const freeze = () => {
         if (!detect.iOS || detect.macOS) return
-        if (unfreezing) {
-            clearTimeout(unfreezing)
-            unfreezing = null
-        }
+            if (unfreezing) {
+                clearTimeout(unfreezing)
+                unfreezing = null
+            }
         navigation.dataset.freeze = "true"
         console.log("navigation.dataset.freeze")
     }
-
+    
     const unfreeze = () => {
         if (!detect.iOS || detect.macOS) return
-        if (!unfreezing) {
-            unfreezing = setTimeout(() => {
-                delete navigation.dataset.freeze
-                console.log("navigation.dataset.unfreeze")
-                unfreezing = null
-            }, 500)
-        }
+            if (!unfreezing) {
+                unfreezing = setTimeout(() => {
+                    delete navigation.dataset.freeze
+                    console.log("navigation.dataset.unfreeze")
+                    unfreezing = null
+                }, 500)
+            }
     }
     
     rename.onclick = () => {
         if (!selected) return
-        hide_menu()
-        const c = selected === current ? chat : history.load_chat(selected)
-        modal.rename_in_place(selected_item, freeze, unfreeze).then(
-            new_name => {
-            if (new_name && new_name !== c.title) {
-                c.title = new_name
-                history.save_chat(c)
-                if (selected === current) {
-                    chat = c
-                    title.textContent = c.title
-                }
-                rebuild_list()
-                render_messages()
+            hide_menu()
+            const c = selected === current ? chat : history.load_chat(selected)
+            modal.rename_in_place(selected_item, freeze, unfreeze).then(
+                                                                        new_name => {
+                                                                            if (new_name && new_name !== c.title) {
+                                                                                c.title = new_name
+                                                                                history.save_chat(c)
+                                                                                if (selected === current) {
+                                                                                    chat = c
+                                                                                    title.textContent = c.title
+                                                                                }
+                                                                                rebuild_list()
+                                                                                render_messages()
+                                                                            }
+                                                                        })
             }
-        })
-    }
     
     share.onclick = () => {
         if (!selected) return
-        hide_menu()
-        const c = history.load_chat(selected)
-        prompt("Copy chat data:", JSON.stringify(c))
-        hide_menu()
-    }
+            hide_menu()
+            const c = history.load_chat(selected)
+            prompt("Copy chat data:", JSON.stringify(c))
+            hide_menu()
+            }
     
     get("font-increase").onclick = () => util.increase_font_size()
     get("font-decrease").onclick = () => util.decrease_font_size()
     
     
-//  messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
-//  messages.addEventListener("wheel",      user_started_scrolling)
-
+    //  messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
+    //  messages.addEventListener("wheel",      user_started_scrolling)
+    
     document.querySelectorAll(".tooltip").forEach(button => {
         button.addEventListener("mouseenter", function() {
             let rect = this.getBoundingClientRect()
@@ -671,14 +670,14 @@ export const run = () => { // called DOMContentLoaded
         touch_end_x = e.changedTouches[0].screenX;
         swipe();
     }, false);
-
+    
     function swipe() {
         const dx = touch_end_x - touch_start_x;
         const threshold = window.innerWidth / 4;
         if (Math.abs(dx) > threshold) {
             if (dx > 0 && !navigation.classList.contains('expanded')) {
                 // This interfereces with user press and hold selection on iOS
-//              expanded();
+                //              expanded();
                 // If 'swipe right' gesture is still desired it would be
                 // necessary to detect if selection is expanding now and
                 // ignore it in that case.
@@ -692,25 +691,37 @@ export const run = () => { // called DOMContentLoaded
         modal.show(util.load("./licenses.md"), (action) => {
         }, "OK")
     }
-
+    
     let version_app  = "25.02.24" // application version
-    // data version should be changed only of scheme needs to be wiped out
+                                  // data version should be changed only of scheme needs to be wiped out
     let version_data = "25.02.22" // data scheme version
-
+    
     const showEULA = () => {
-//      localStorage.removeItem("app.eula") // DEBUG
+        //      localStorage.removeItem("app.eula") // DEBUG
         if (!localStorage.getItem("app.eula")) {
-//          localStorage.clear() // no one promissed to keep data forever
+            //          localStorage.clear() // no one promissed to keep data forever
             modal.show(util.load("./eula.md"), (action) => {
                 if (action === "Disagree") { model.quit() }
                 localStorage.setItem("app.eula", "true")
                 localStorage.setItem("version.data", version_data)
                 licenses()
             }, "<red>Disagree</red>",
-               "<green>" + nbsp4 + "Agree" + nbsp4 + "</green>")
+                       "<green>" + nbsp4 + "Agree" + nbsp4 + "</green>")
         }
     }
-
+    
+    const show_error = (error) => {
+        console.log("app_error: \n" + error || '')
+        modal.mbx('# **Error**\n\n' +
+                  '```\n' + error + '\n```\n',
+        (action) => {
+            if (action === "Clear") {
+                localStorage.removeItem("app.last_error")
+            }
+        },
+        "Ignore", "<green>Clear</green>")
+    }
+    
     get("info").onclick = () => { collapsed(); licenses() }
     
     let v = localStorage.getItem("version.data")
@@ -726,9 +737,9 @@ export const run = () => { // called DOMContentLoaded
     
     util.init_theme()
     util.init_font_size()
-
+    
     history.init_search(search, freeze, unfreeze)
-
+    
     new_session() // alternatively recent() can load and continue
     placeholder()
     if (chat.messages.length == 0 &&
@@ -738,10 +749,19 @@ export const run = () => { // called DOMContentLoaded
     send.title = "Submit"
     stop.title = "Stop"
     clear.title = "Clear"
-
+    
     showEULA()
-
+    
     input.oninput()
+    
+    window.addEventListener('app_error', () => {
+        const last_error = localStorage.getItem("app.last_error")
+        console.log("app_error: \n" + last_error || '')
+        show_error(last_error)
+    })
+    const last_error = localStorage.getItem("app.last_error")
+    if (last_error) show_error(last_error) // from previous run
+
 }
 
 export const inactive = () => {
