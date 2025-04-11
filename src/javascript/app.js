@@ -100,7 +100,7 @@ export const run = () => { // called DOMContentLoaded
             suggestions.hide()
         }
         // this is optimization because markdown rendering is slow
-        var i = 0
+        let i = 0
         chat.messages.forEach(msg => {
             if (i > messages.childNodes.length - 1) {
                 messages.appendChild(render_message(msg))
@@ -501,8 +501,8 @@ export const run = () => { // called DOMContentLoaded
             }, 3000)
         }
         if (s.length > 0) suggestions.hide()
-            last_key_down_time = Date.now()
-            }
+        last_key_down_time = Date.now()
+    }
     
     input.onblur = () => { // focus lost
         ui.show(expand, restart)
@@ -521,13 +521,13 @@ export const run = () => { // called DOMContentLoaded
         const answering = model.is_answering()
         let s = input.innerText
         if (s !== "") suggestions.hide()
-            ui.show_hide(s !== "", clear)
-            ui.show_hide(answering, stop)
-            ui.show_hide(!answering, send)
-            ui.show_hide(interrupted, carry)
-            const lines = input.innerText.split("\n").length
-            input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
-            }
+        ui.show_hide(s !== "", clear)
+        ui.show_hide(answering, stop)
+        ui.show_hide(!answering, send)
+        ui.show_hide(interrupted, carry)
+        const lines = input.innerText.split("\n").length
+        input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
+    }
     
     const observer = new MutationObserver(input.oninput)
     
@@ -539,17 +539,17 @@ export const run = () => { // called DOMContentLoaded
             collapsed()
         }
         if (!e.target.closest("#menu")) hide_menu()
-            }
+    }
     
     const delete_chat = () => {
         if (!selected) return
-            localStorage.removeItem("chat.id." + selected)
-            localStorage.removeItem("chat." + selected)
-            model.remove(selected)
-            if (current === selected) {
-                current = null
-                recent()
-            }
+        localStorage.removeItem("chat.id." + selected)
+        localStorage.removeItem("chat." + selected)
+        model.remove(selected)
+        if (current === selected) {
+            current = null
+            recent()
+        }
         selected = null
         hide_menu()
         rebuild_list()
@@ -560,37 +560,37 @@ export const run = () => { // called DOMContentLoaded
     remove.onclick = () => {
         hide_menu()
         if (!selected) return
-            let c = history.load_chat(selected)
-            modal.ask("# **Delete Chat**\n\n" +
-                      '"' + c.title + '"\n\n' +
-                      "This cannot be undone.",
-            (action) => {
-                if (action === "Delete") { delete_chat() }
-            },
-                "Cancel", "<red>Delete</red>")
-            }
+        let c = history.load_chat(selected)
+        modal.ask("# **Delete Chat**\n\n" +
+                  '"' + c.title + '"\n\n' +
+                  "This cannot be undone.",
+        (action) => {
+            if (action === "Delete") { delete_chat() }
+        },
+            "Cancel", "<red>Delete</red>")
+    }
     
-    var unfreezing = null
+    let unfreezing = null
     
     const freeze = () => {
         if (!detect.iOS || detect.macOS) return
-            if (unfreezing) {
-                clearTimeout(unfreezing)
-                unfreezing = null
-            }
+        if (unfreezing) {
+            clearTimeout(unfreezing)
+            unfreezing = null
+        }
         navigation.dataset.freeze = "true"
         console.log("navigation.dataset.freeze")
     }
     
     const unfreeze = () => {
         if (!detect.iOS || detect.macOS) return
-            if (!unfreezing) {
-                unfreezing = setTimeout(() => {
-                    delete navigation.dataset.freeze
-                    console.log("navigation.dataset.unfreeze")
-                    unfreezing = null
-                }, 500)
-            }
+        if (!unfreezing) {
+            unfreezing = setTimeout(() => {
+                delete navigation.dataset.freeze
+                console.log("navigation.dataset.unfreeze")
+                unfreezing = null
+            }, 500)
+        }
     }
     
     rename.onclick = () => {
@@ -710,18 +710,6 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    const show_error = (error) => {
-        console.log("app_error: \n" + error || '')
-        modal.mbx('# **Error**\n\n' +
-                  '```\n' + error + '\n```\n',
-        (action) => {
-            if (action === "Clear") {
-                localStorage.removeItem("app.last_error")
-            }
-        },
-        "Ignore", "<green>Clear</green>")
-    }
-    
     get("info").onclick = () => { collapsed(); licenses() }
     
     let v = localStorage.getItem("version.data")
@@ -753,15 +741,6 @@ export const run = () => { // called DOMContentLoaded
     showEULA()
     
     input.oninput()
-    
-    window.addEventListener('app_error', () => {
-        const last_error = localStorage.getItem("app.last_error")
-        console.log("app_error: \n" + last_error || '')
-        show_error(last_error)
-    })
-    const last_error = localStorage.getItem("app.last_error")
-    if (last_error) show_error(last_error) // from previous run
-
 }
 
 export const inactive = () => {

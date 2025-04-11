@@ -52,15 +52,16 @@ console.log = (...args) => {
     } catch (e) {
         const dt = (Date.now() - start) / 1000.0 // seconds
         const lines = e.stack.split('\n')
-        var f = lines[1] || ''
+        let f = lines[1] || ''
         if (f.includes('util.js')) f = lines[2] || ''
-        let m = f.match(/at .* \((.*?):(\d+):\d+\)/) ||
-                f.match(/@(.*?):(\d+):\d+/) ||
+        let func = f.includes('@') ? f.substring(0, f.indexOf('@')) : ''
+        if (func != '') func = ' ' + func + '()'
+        let m = f.match(/@(.*?):(\d+):\d+/) || // @gyptix://./modal.js:67:46
                 f.match(/(.*?):(\d+):\d+/)
         if (m) { // m.length > 1 guaranteed by regexes above
             const file = m[1].split('/').pop()
             const line = m[2]
-            const s = `${dt.toFixed(3)} ${file}:${line} ${args.join("\x20")}`
+            const s = `${dt.toFixed(3)} ${file}:${line}${func} ${args.join("\x20")}`
             log(s)
             console_log(s)
         } else {
@@ -178,34 +179,4 @@ export const substitutions = (s) => {
     return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
         return replacements[match.toLowerCase()] || match
     })
-}
-
-const app_error = new CustomEvent('app_error', {
-      detail: { message: 'application error' },
-      bubbles: false,
-      cancelable: false
-})
-
-window.onerror = function(message, source, lineno, colno, error) {
-    const stack   = error?.stack || "No stack trace available"
-    const details = `Unhandled Exception:\n` +
-                    `Message: ${message}\n` +
-                    `Source: ${source}\n` +
-                    `Line: ${lineno}, Column: ${colno}\n` +
-                    `Stack:\n${stack}\n`
-    console.log(details)
-    localStorage.setItem("app.last_error", details)
-    window.dispatchEvent(app_error)
-    return true
-}
-
-window.onunhandledrejection = (event) => {
-    const reason = event.reason // The Error object
-    const stack  = reason?.stack || "No stack trace available"
-    const details = `Promise Rejection:\n` +
-                    `Reason: ${reason.message}\n` +
-                    `Stack:\n${stack}\n`
-    console.log(details)
-    localStorage.setItem("app.last_error", details)
-    window.dispatchEvent(app_error)
 }

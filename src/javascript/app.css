@@ -103,6 +103,14 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
 }
 
+.error_content {
+    font-size: 0.75rem;
+    max-width: 95dvw;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
 #content {
     display: flex;
     flex-direction: column;

@@ -58,31 +58,19 @@ const page = (pts) => {
     return panel
 }
 
-const error_box = (markdown, content) => {
+const error_box = (content, markdown, html) => {
     if (markdown.includes("# **Error**")) {
         content.style.userSelect       = "text"
         content.style.webkitUserSelect = "text"
         content.contentEditable = true
         content.readOnly = false
-        content.fontSize = "0.5rem"
-        content.innerText = markdown
+        content.classList.add("error_content")
+        content.dataset.markdown = markdown
         const range = document.createRange()
         range.selectNodeContents(content)
         const selection = window.getSelection()
         selection.removeAllRanges()
         selection.addRange(range)
-        navigator.clipboard.writeText(content.innerHTML)
-        .then(() => {
-//          console.log("Copied to pasteboard.")
-        }).catch(err => {
-            console.log("Failed to copy to pasteboard: ", err)
-            try {
-                const success = document.execCommand("copy")
-                console.log("Fallback copy " + (success ? "done" : "failed"))
-            } catch (err) {
-                console.log("Fallback copy failed: " + err)
-            }
-        })
     }
 }
 
@@ -118,7 +106,7 @@ const message_box = (centered, markdown, done, actions) => {
     modal.innerHTML = ""
     modal.appendChild(panel)
     modal.style.display = "block"
-    error_box(markdown, content)
+    error_box(content, markdown, html)
 }
 
 // ask|mbx = (markdown, done, ...) =>
@@ -218,4 +206,87 @@ export const rename_in_place = (span, freeze, unfreeze) => {
             }
         }, { once: true })
     })
+}
+
+const copy_to_pasteboard = (text) => {
+    navigator.clipboard.writeText(text)
+    .then(() => {
+        console.log("Copied to pasteboard.")
+    }).catch(error => {
+        console.log("Failed to copy to pasteboard: ", error)
+        try {
+            const success = document.execCommand("copy")
+            console.log("Fallback copy " + (success ? "done" : "failed"))
+        } catch (error) {
+            console.log("Fallback copy failed: " + error)
+        }
+    })
+}
+
+const mailto = (email, subject, body) => {
+    console.log("mailto")
+    const to = "example@email.com"
+    const s = encodeURIComponent(subject)
+    const b = encodeURIComponent(body)
+    const link = `mailto:${to}?subject=${s}&body=${b}`
+    window.location.href = link
+}
+
+const show_error = (error) => {
+    console.log("app_error: \n" + error || '')
+    mbx('# **Error**\n\n' +
+      '```\n' + error + '\n```\n' +
+      'Please copy and email to: ' +
+      '<a href="mailto:gyptix@gmail.com">gyptix@gmail.com</a>',
+    (action) => {
+        copy_to_pasteboard(error)
+        if (action === "Copy") {
+            mailto("gyptix@gmail.com", "Feedback", error)
+        }
+        localStorage.removeItem("app.last_error")
+    },
+    "Copy", "Ignore")
+}
+
+const app_error = new CustomEvent('app_error', {
+      detail: { message: 'application error' },
+      bubbles: false,
+      cancelable: false
+})
+
+window.onerror = function(message, source, lineno, colno, error) {
+    const stack   = error?.stack || "No stack trace available"
+    const details = `Unhandled Exception:\n` +
+                    `Message: ${message}\n` +
+                    `Source: ${source}\n` +
+                    `Line: ${lineno}, Column: ${colno}\n` +
+                    `Stack:\n${stack}\n`
+    console.log(details)
+    localStorage.setItem("app.last_error", details)
+    window.dispatchEvent(app_error)
+    return true
+}
+
+window.onunhandledrejection = (event) => {
+    const reason = event.reason // The Error object
+    const stack  = reason?.stack || "No stack trace available"
+    const details = `Promise Rejection:\n` +
+                    `Reason: ${reason.message}\n` +
+                    `Stack:\n${stack}\n`
+    console.log(details)
+    localStorage.setItem("app.last_error", details)
+    window.dispatchEvent(app_error)
+}
+
+window.addEventListener('app_error', () => {
+    const last_error = localStorage.getItem("app.last_error")
+    console.log("app_error: \n" + last_error || '')
+    show_error(last_error)
+})
+
+// show error from previous run if not cleared
+const last_error = localStorage.getItem("app.last_error")
+
+if (last_error) {
+    setTimeout(() => { show_error(last_error) }, 1000)
 }
