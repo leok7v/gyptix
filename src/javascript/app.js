@@ -738,18 +738,23 @@ export const run = () => { // called DOMContentLoaded
     }
     
     let version_app  = "25.02.24" // application version
-                                  // data version should be changed only of scheme needs to be wiped out
+                                  // data version should be changed
+                                  // only of scheme needs to be wiped out
     let version_data = "25.02.22" // data scheme version
     
     const showEULA = () => {
-        //      localStorage.removeItem("app.eula") // DEBUG
+//      localStorage.removeItem("app.eula") // DEBUG
         if (!localStorage.getItem("app.eula")) {
-            //          localStorage.clear() // no one promissed to keep data forever
+//          localStorage.clear() // no one promissed to keep data forever
             modal.show(util.load("./eula.md"), (action) => {
-                if (action === "Disagree") { model.quit() }
-                localStorage.setItem("app.eula", "true")
-                localStorage.setItem("version.data", version_data)
-                licenses()
+                if (action === "Disagree") {
+                    localStorage.removeItem("app.eula")
+                    model.quit()
+                } else {
+                    localStorage.setItem("app.eula", "true")
+                    localStorage.setItem("version.data", version_data)
+                    licenses()
+                }
             }, "<red>Disagree</red>",
                "<green>" + nbsp4 + "Agree" + nbsp4 + "</green>"
             )
@@ -768,7 +773,6 @@ export const run = () => { // called DOMContentLoaded
         localStorage.clear() // no one promissed to keep data forever
         localStorage.setItem("version.data", version_data)
     }
-    
     
     detect.init()
     marked.use({pedantic: false, gfm: true, breaks: true})
