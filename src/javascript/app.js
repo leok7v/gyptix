@@ -542,8 +542,6 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.onblur = () => { // focus lost
-        console.log("")
-        delete input.contentEditable
         ui.show(expand, restart)
         if (chat.messages.length === 0 && input.innerText.trim() === "") {
             suggestions.show()
@@ -551,15 +549,8 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.onfocus = () => {
-        console.log("")
         ui.hide(expand, restart)
-//      suggestions.hide()
         collapsed()
-    }
-
-    input.onclick = () => {
-        console.log("")
-        input.contentEditable = "plaintext-only"
     }
 
     input.oninput = () => {
@@ -568,7 +559,6 @@ export const run = () => { // called DOMContentLoaded
         if (s === '\n') { s = "" } // empty div has '\n'
         if (s !== "") { suggestions.hide() }
         const clear_and_send = s !== "" && !answering;
-        console.log("s: '" + s + "' clear_and_send: " + clear_and_send)
         ui.show_hide(clear_and_send, clear, send)
         ui.show_hide(answering,  stop)
         ui.show_hide(!clear_and_send && !interrupted, strut)
