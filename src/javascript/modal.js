@@ -194,11 +194,22 @@ export const toast = (s, to) => {
     }, to)
 }
 
+const scroll_into_view_later = (span) => {
+    window.visualViewport.addEventListener('resize',() => {
+        setTimeout(() => {
+            span.scrollIntoView({ behavior: "smooth", block: "center" })
+        }, 333)
+    }, { once: true })
+}
+
 export const rename_in_place = (span, freeze, unfreeze) => {
     return new Promise(resolve => {
         span.contentEditable = "true"
         const was = span.innerText.trim()
-        span.addEventListener("focus",  freeze, { once: true })
+        span.addEventListener("focus",  () => {
+            freeze()
+            scroll_into_view_later(span)
+        }, { once: true })
         span.focus()
         const range = document.createRange()
         range.selectNodeContents(span)
