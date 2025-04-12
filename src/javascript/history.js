@@ -35,7 +35,7 @@ export const save_chat_header = (c) => {
 }
 
 export const save_chat = (c) => {
-    if (c.messages.length == 0) return
+    if (c.messages.length == 0) { return }
     const header = { id: c.id, title: c.title, timestamp: c.timestamp }
     try {
         localStorage.setItem("chat.id." + c.id, JSON.stringify(header))
@@ -70,16 +70,19 @@ const start_of_year = () => {
 
 const section_key = ts => {
     const d = new Date(ts)
-    if (d >= start_of_day(0))   return "Today"
-    if (d >= start_of_day(1))   return "Yesterday"
-    if (d >= start_of_day(7))   return "Last Week"
-    if (d >= start_of_month(1)) return "Last Month"
-    if (d >= start_of_year())   return d.toLocaleString("default", { month: "long" })
+    if (d >= start_of_day(0))   { return "Today" }
+    if (d >= start_of_day(1))   { return "Yesterday" }
+    if (d >= start_of_day(7))   { return "Last Week" }
+    if (d >= start_of_month(1)) { return "Last Month" }
+    if (d >= start_of_year())   {
+        return d.toLocaleString("default", { month: "long" })
+    }
     return String(d.getFullYear())
 }
 
 const test_list = timestamp => {
-    const words = "Lorem ipsum dolor sit amet consectetur adipiscing elit sed".split(" ")
+    const words = "Lorem ipsum dolor sit amet consectetur " +
+                  "adipiscing elit sed".split(" ")
     const rand_title = () => {
         const r = () => words[Math.floor(Math.random() * words.length)]
         return `${r()} ${r()} ${r()}`
@@ -93,14 +96,20 @@ const test_list = timestamp => {
     const rand = n => Array.from({ length: n }, () => 0)
     const now = timestamp
     const next = () => now + Math.floor(Math.random() * 10000)
-    rand(3 + Math.floor(Math.random() * 3)).forEach(() => save(next(), now, rand_title()))
+    rand(3 + Math.floor(Math.random() * 3)).forEach(
+        () => save(next(), now, rand_title())
+    )
     for (let w = 1; w <= 6; w++) {
         const ts = now - w * 7 * 86400000
-        rand(3 + Math.floor(Math.random() * 8)).forEach(() => save(next(), ts, rand_title()))
+        rand(3 + Math.floor(Math.random() * 8)).forEach(
+            () => save(next(), ts, rand_title())
+        )
     }
     for (let y = 1; y <= 3; y++) {
         const ts = new Date().setFullYear(new Date().getFullYear() - y)
-        rand(3 + Math.floor(Math.random() * 17)).forEach(() => save(next(), ts, rand_title()))
+        rand(3 + Math.floor(Math.random() * 17)).forEach(
+            () => save(next(), ts, rand_title())
+        )
     }
 }
 
@@ -163,7 +172,7 @@ export const generate = (list, search, render_item) => {
             copy.get(k).push(c)
         })
         ordered.forEach(k => {
-            if (!copy.has(k)) return
+            if (!copy.has(k)) { return }
             if (k) {
                 const h = document.createElement("div")
                 h.className = "section-title"
@@ -199,7 +208,7 @@ export const generate = (list, search, render_item) => {
 
     const filter = () => {
         const text = search.innerText.trim().toLowerCase()
-        if (!text || text.length < 2) return render(chats)
+        if (!text || text.length < 2) { return render(chats) }
         const words = text.split(/\s+/).filter(w => w.length > 1)
         const match = c => words.every(w => c.title.toLowerCase().includes(w))
         const filtered = chats.filter(match)
@@ -207,6 +216,7 @@ export const generate = (list, search, render_item) => {
     }
 
     const observer = new MutationObserver(filter)
+    
     observer.observe(search, {
         characterData: true,
         subtree: true,

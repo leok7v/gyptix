@@ -87,7 +87,7 @@ export const init = cfg => {
 }
 
 export const cycle = () => {
-    if (!disp.length) return
+    if (!disp.length) { return }
     const idx = Math.floor(Math.random() * disp.length)
     let c = shuffle(categories.slice())[0]
     let i = Math.floor(Math.random() * c.prompts.length)

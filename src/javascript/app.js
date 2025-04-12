@@ -7,7 +7,7 @@ import * as marked      from "./marked.js"
 import * as modal       from "./modal.js"
 import * as model       from "./model.js"
 import * as prompts     from "./prompts.js"
-import * as scroll      from "./scroll.js";
+import * as scroll      from "./scroll.js"
 import * as suggestions from "./suggestions.js"
 import * as util        from "./util.js"
 import * as ui          from "./ui.js"
@@ -64,9 +64,9 @@ export const run = () => { // called DOMContentLoaded
     
     let current  = null // current  chat id
     let selected = null // selected chat id
-    let selected_item = null // item in chats list
     let interrupted = false  // output was interrupted
     let is_expanded = false  // navigation pane expanded
+    let selected_item = null // item in chats list
     
     document.addEventListener("copy", e => {
         e.preventDefault()
@@ -93,10 +93,10 @@ export const run = () => { // called DOMContentLoaded
     
     const render_messages = () => {
         if (!chat || !chat.messages) { return }
-        if (chat.messages.length == 0) {
-            if (input !== document.activeElement) suggestions.show()
-                return
-                }
+        if (chat.messages.length === 0) {
+            if (input !== document.activeElement) { suggestions.show() }
+            return
+        }
         if (chat.messages.length > 0) {
             suggestions.hide()
         }
@@ -111,7 +111,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const render_last = (chunk) => {
-        if (!chat || !chat.messages || chat.messages.length === 0) return
+        if (!chat || !chat.messages || chat.messages.length === 0) { return }
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         // Get last child element (assumed to be the last message).
@@ -160,13 +160,13 @@ export const run = () => { // called DOMContentLoaded
     const list_item = (c) => {
         const div = document.createElement("div")
         div.className = "item"
-        if (c.id === current) div.classList.add("selected")
+        if (c.id === current) { div.classList.add("selected") }
         div.onclick = e => {
             e.preventDefault()
             selected = null
             collapsed()
             hide_menu()
-            if (current !== c.id) load(c)
+            if (current !== c.id) { load(c) }
             search.innerText = ""
         }
         const span = document.createElement("span")
@@ -188,13 +188,13 @@ export const run = () => { // called DOMContentLoaded
     
     const new_session = () => {
         // already have new empty chat?
-        if (chat && chat.messages && chat.messages.length == 0) return
-            let id = util.timestamp()
-            let k = "chat.id." + id
-            while (localStorage.getItem(k)) {
-                id = util.timestamp()
-                k = "chat.id." + id
-            }
+        if (chat && chat.messages && chat.messages.length === 0) { return }
+        let id = util.timestamp()
+        let k = "chat.id." + id
+        while (localStorage.getItem(k)) {
+            id = util.timestamp()
+            k = "chat.id." + id
+        }
         current = id
         chat = {
             id: id,
@@ -364,8 +364,8 @@ export const run = () => { // called DOMContentLoaded
         setTimeout(() => { model.quit() }, 5100)
     }
     
-    const ask = t => {
-        if (!current || !t) return
+    const ask = t => { // 't': text
+        if (!current || !t) { return }
         if (!model.is_running()) oops()
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
@@ -392,8 +392,8 @@ export const run = () => { // called DOMContentLoaded
         let new_y = y
         if (y + menu_rect.height > window_height) {
             new_y = y - menu_rect.height
-            if (new_y < 0) new_y = 0
-                }
+            if (new_y < 0) { new_y = 0 }
+        }
         y = new_y
         menu.style.left = x + "px"
         menu.style.top  = y + "px"
@@ -439,7 +439,7 @@ export const run = () => { // called DOMContentLoaded
         input.innerText = ""
         placeholder()
         layout_and_render().then(() => {
-            if (chat.messages.length == 0) suggestions.show()
+            if (chat.messages.length === 0) { suggestions.show() }
         })
     }
     
@@ -452,7 +452,7 @@ export const run = () => { // called DOMContentLoaded
     
     restart.onclick = e => {
         e.preventDefault()
-        if (model.is_running() && !model.is_answering()) new_session()
+        if (model.is_running() && !model.is_answering()) { new_session() }
     }
     
     const erase = () => {
@@ -525,9 +525,9 @@ export const run = () => { // called DOMContentLoaded
             ui.hide(send)
             layout_and_render().then(() => {
                 const sel = window.getSelection()
-                if (sel) sel.removeAllRanges()
-                    ask(s)
-                    })
+                if (sel) { sel.removeAllRanges() }
+                ask(s)
+            })
         }
         if (s.length > 0 && last_key_down_time !== 0) {
             setTimeout(() => {
@@ -537,28 +537,36 @@ export const run = () => { // called DOMContentLoaded
                 }
             }, 3000)
         }
-        if (s.length > 0) suggestions.hide()
+        if (s.length > 0) { suggestions.hide() }
         last_key_down_time = Date.now()
     }
     
     input.onblur = () => { // focus lost
+        console.log("")
+        delete input.contentEditable
         ui.show(expand, restart)
-        if (chat.messages.length == 0 && input.innerText.trim() === "") {
+        if (chat.messages.length === 0 && input.innerText.trim() === "") {
             suggestions.show()
         }
     }
     
     input.onfocus = () => {
+        console.log("")
         ui.hide(expand, restart)
-        suggestions.hide()
+//      suggestions.hide()
         collapsed()
     }
-    
+
+    input.onclick = () => {
+        console.log("")
+        input.contentEditable = "plaintext-only"
+    }
+
     input.oninput = () => {
         const answering = model.is_answering()
         let s = input.innerText
-        if (s === '\n') s = "" // empty divider has '\n'
-        if (s !== "") suggestions.hide()
+        if (s === '\n') { s = "" } // empty div has '\n'
+        if (s !== "") { suggestions.hide() }
         const clear_and_send = s !== "" && !answering;
         console.log("s: '" + s + "' clear_and_send: " + clear_and_send)
         ui.show_hide(clear_and_send, clear, send)
@@ -585,7 +593,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const delete_chat = () => {
-        if (!selected) return
+        if (!selected) { return }
         localStorage.removeItem("chat.id." + selected)
         localStorage.removeItem("chat." + selected)
         model.remove(selected)
@@ -603,7 +611,7 @@ export const run = () => { // called DOMContentLoaded
     remove.onclick = e => {
         e.preventDefault()
         hide_menu()
-        if (!selected) return
+        if (!selected) { return }
         let c = history.load_chat(selected)
         modal.ask("# **Delete Chat**\n\n" +
                   '"' + c.title + '"\n\n' +
@@ -617,7 +625,7 @@ export const run = () => { // called DOMContentLoaded
     let unfreezing = null
     
     const freeze = () => {
-        if (!detect.iOS || detect.macOS) return
+        if (!detect.iOS || detect.macOS) { return }
         if (unfreezing) {
             clearTimeout(unfreezing)
             unfreezing = null
@@ -627,7 +635,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const unfreeze = () => {
-        if (!detect.iOS || detect.macOS) return
+        if (!detect.iOS || detect.macOS) { return }
         if (!unfreezing) {
             unfreezing = setTimeout(() => {
                 delete navigation.dataset.freeze
@@ -638,28 +646,26 @@ export const run = () => { // called DOMContentLoaded
     }
     
     rename.onclick = e => {
-        if (!selected) return
+        if (!selected) { return }
         e.preventDefault()
         hide_menu()
         const c = selected === current ? chat : history.load_chat(selected)
-        modal.rename_in_place(selected_item, freeze, unfreeze).then(
-            new_name => {
-                if (new_name && new_name !== c.title) {
-                    c.title = new_name
-                    history.save_chat(c)
-                    if (selected === current) {
-                        chat = c
-                        title.textContent = c.title
-                    }
-                    rebuild_list()
-                    render_messages()
+        modal.rename_in_place(selected_item, freeze, unfreeze).then(name => {
+            if (name && name !== c.title) {
+                c.title = name
+                history.save_chat(c)
+                if (selected === current) {
+                    chat = c
+                    title.textContent = c.title
                 }
+                rebuild_list()
+                render_messages()
             }
-        )
+        })
     }
     
     share.onclick = e => {
-        if (!selected) return
+        if (!selected) { return }
         e.preventDefault()
         hide_menu()
         const c = history.load_chat(selected)
@@ -755,7 +761,8 @@ export const run = () => { // called DOMContentLoaded
                 localStorage.setItem("version.data", version_data)
                 licenses()
             }, "<red>Disagree</red>",
-                       "<green>" + nbsp4 + "Agree" + nbsp4 + "</green>")
+               "<green>" + nbsp4 + "Agree" + nbsp4 + "</green>"
+            )
         }
     }
     
@@ -783,7 +790,7 @@ export const run = () => { // called DOMContentLoaded
     
     new_session() // alternatively recent() can load and continue
     placeholder()
-    if (chat.messages.length == 0 &&
+    if (chat.messages.length === 0 &&
         input !== document.activeElement) {
         suggestions.show()
     }
@@ -797,17 +804,19 @@ export const run = () => { // called DOMContentLoaded
 }
 
 export const inactive = () => {
-    if (chat) history.save_chat(chat)
+    if (chat) { history.save_chat(chat) }
     return "done"
 }
 
 export const debugger_attached = (attached) => {
 //  console.log(`debugger_attached(): ${attached}, typeof: ${typeof attached}`)
-    if (typeof attached === "string") attached = (attached === "true")
+    if (typeof attached === "string") { attached = (attached === "true") }
     util.set_debugger_attached(attached);
     if (!attached) {
-        if (detect.macOS) document.body.oncontextmenu = e => e.preventDefault()
-//      console.log("debugger_attached: disabling context menu")
+        if (detect.macOS) {
+//          console.log("debugger_attached: disabling context menu")
+            document.body.oncontextmenu = e => e.preventDefault()
+        }
     }
     return attached ? "conext menu enabled" : "conext menu disabled"
 }

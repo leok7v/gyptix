@@ -19,7 +19,7 @@ worker.onmessage = (e) => {
 }
 
 const process_next = () => {
-    if (processing || queue.lengh === 0) return
+    if (processing || queue.lengh === 0) { return }
     const text = queue
     queue = ""
     processing = true

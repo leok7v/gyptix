@@ -353,6 +353,13 @@ func is_debugger_attached() -> Bool {
     return (i.kp_proc.p_flag & P_TRACED) != 0
 }
 
+func is_running_in_test_flight() -> Bool {
+    if let receiptURL = Bundle.main.appStoreReceiptURL {
+        return receiptURL.path.contains("sandboxReceipt")
+    }
+    return false
+}
+
 func inactive() {
     if !js_ready { return }
     var s = DispatchTime.now().uptimeNanoseconds
@@ -374,6 +381,7 @@ func debugger_attached() {
     let a = is_debugger_attached() ? "true" : "false"
     let r = call_js("app.debugger_attached(\(a))", sync: true)
     if r == "" { print("app.debugger_attached(\(a)) -> \(r)") }
+    print("is_running_in_test_flight(): \(is_running_in_test_flight())")
 }
 
 func gyptix_stop() {

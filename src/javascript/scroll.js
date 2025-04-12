@@ -27,7 +27,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     button_bottom.style.transform = 'rotate(180deg)'
     const position_buttons = () => {
         button_top.style.top       = '0.75rem'
-        button_top.style.right     = '0.75rem'
+        button_top.style.right     = '0rem'
         button_bottom.style.bottom = '0.75rem'
         button_bottom.style.right  = '0.75rem'
     }
@@ -93,7 +93,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     const scroll_to = (e, p) => { // element, position
         log("scroll_to: " + p)
         is_programmatic_scroll = true
-        if (p == scroll_position) return
+        if (p == scroll_position) { return }
         start = Date.now()
         scroll_position = p
         e.scrollTo({ top: p, behavior: 'smooth' })

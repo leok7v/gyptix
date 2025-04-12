@@ -81,7 +81,7 @@ const error_box = (content, markdown, html) => {
     if (markdown.includes("# **Error**")) {
         content.style.userSelect       = "text"
         content.style.webkitUserSelect = "text"
-        content.contentEditable = true
+        content.contentEditable = "plaintext-only"
         content.readOnly = false
         content.classList.add("error_content")
         content.dataset.markdown = markdown
@@ -198,26 +198,24 @@ const scroll_into_view_later = (span) => {
     window.visualViewport.addEventListener('resize',() => {
         setTimeout(() => {
             span.scrollIntoView({ behavior: "smooth", block: "center" })
+            const range = document.createRange()
+            range.selectNodeContents(span)
+            const sel = window.getSelection()
+            sel.removeAllRanges()
+            sel.addRange(range)
         }, 333)
     }, { once: true })
 }
 
 export const rename_in_place = (span, freeze, unfreeze) => {
     return new Promise(resolve => {
-        span.contentEditable = "true"
         const was = span.innerText.trim()
         span.addEventListener("focus",  () => {
             freeze()
             scroll_into_view_later(span)
         }, { once: true })
-        span.focus()
-        const range = document.createRange()
-        range.selectNodeContents(span)
-        const sel = window.getSelection()
-        sel.removeAllRanges()
-        sel.addRange(range)
         const finish = (value) => {
-            span.contentEditable = "false"
+            delete span.contentEditable
             resolve(value)
             unfreeze()
         }
@@ -241,6 +239,8 @@ export const rename_in_place = (span, freeze, unfreeze) => {
                 finish(null)
             }
         }, { once: true })
+        span.contentEditable = "plaintext-only"
+        span.focus()
     })
 }
 
@@ -261,7 +261,7 @@ const copy_to_pasteboard = (text) => {
 
 const mailto = (email, subject, body) => {
     console.log("mailto")
-    const to = "example@email.com"
+    const to = "gyptix@gmail.com"
     const s = encodeURIComponent(subject)
     const b = encodeURIComponent(body)
     const link = `mailto:${to}?subject=${s}&body=${b}`
@@ -290,28 +290,46 @@ const app_error = new CustomEvent('app_error', {
       cancelable: false
 })
 
+const sanitize_stack = (stack) => {
+    if (!stack) { return "No stack trace available" }
+    return stack.replaceAll("@gyptix://./", "@")
+}
+
 window.onerror = function(message, source, lineno, colno, error) {
-    const stack   = error?.stack || "No stack trace available"
-    const details = `Unhandled Exception:\n` +
-                    `Message: ${message}\n` +
-                    `Source: ${source}\n` +
-                    `Line: ${lineno}, Column: ${colno}\n` +
-                    `Stack:\n${stack}\n`
-    console.log(details)
-    localStorage.setItem("app.last_error", details)
-    window.dispatchEvent(app_error)
+    try {
+        const src     = source.replaceAll("gyptix://./", "")
+        const stack   = sanitize_stack(error?.stack)
+        const details = `Message: ${message}\n` +
+                        `Source: ${src}\n` +
+                        `Line: ${lineno}:${colno}\n` +
+                        `Stack:\n${stack}\n`
+        console.log(details)
+        localStorage.setItem("app.last_error", details)
+        window.dispatchEvent(app_error)
+    } catch (_) { // prevents infinite recursion
+    }
     return true
 }
 
 window.onunhandledrejection = (event) => {
-    const reason = event.reason // The Error object
-    const stack  = reason?.stack || "No stack trace available"
-    const details = `Promise Rejection:\n` +
-                    `Reason: ${reason.message}\n` +
-                    `Stack:\n${stack}\n`
-    console.log(details)
-    localStorage.setItem("app.last_error", details)
-    window.dispatchEvent(app_error)
+    try {
+        const error   = event.reason
+        const stack   = sanitize_stack(error?.stack)
+        const msg     = error?.message || ''
+        const source  = error?.sourceURL || ''
+        const src     = source.replaceAll("gyptix://./", "")
+        const line    = error?.line   || ''
+        const col     = error?.column || ''
+        const details = `Promise Rejection:\n` +
+                        `Message: ${msg}\n` +
+                        `Source: ${src}\n` +
+                        `Line: ${line}:${col}\n` +
+                        `Stack:\n${stack}\n`
+        console.log(details)
+        localStorage.setItem("app.last_error", details)
+        window.dispatchEvent(app_error)
+    } catch (_) { // prevents infinite recursion
+    }
 }
 
 window.addEventListener('app_error', () => {

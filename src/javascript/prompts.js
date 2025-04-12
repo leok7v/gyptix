@@ -923,9 +923,3 @@ export const data = [
     { category: "Travel",           prompts: travel           },
     { category: "Writing",          prompts: writing          }
 ]
-
-export const random = () => {
-    let e = data[Math.floor(Math.random() * data.length)]
-    let p = e.prompts[Math.floor(Math.random() * e.prompts.length)]
-    return { category: e.category, prompt: p }
-}

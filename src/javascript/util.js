@@ -147,9 +147,9 @@ const stop_words = new Set([
 
 export const summarize = (str) => {
     // three most frequent words
-    if (typeof str !== "string") return timestamp_label(timestamp())
+    if (typeof str !== "string") { return timestamp_label(timestamp()) }
     const words = str.toLowerCase().match(/\b\w+\b/g) || []
-    if (words.length === 0) return timestamp_label(timestamp())
+    if (words.length === 0) { return timestamp_label(timestamp()) }
     let map = new Map()
     for (let word of words) {
         if (word.endsWith("s")) {
