@@ -17,7 +17,7 @@ const nbsp4 = "    " // 4 non-breakable spaces
 const get = id => document.getElementById(id)
 
 const layout_and_render = () => {
-    /* “double rAF,” is the usual way to ensure the browser
+    /* "double rAF" is the usual way to ensure the browser
        has actually laid out (and often painted) before the
        second callback runs */
     return new Promise(resolve => {
@@ -47,6 +47,7 @@ export const run = () => { // called DOMContentLoaded
     carry        = get("carry"),
     clear        = get("clear"),
     send         = get("send"),
+    strut        = get("strut"),
     share        = get("share"),
     suggest      = get("suggest"),
     title        = get("title"),
@@ -111,26 +112,29 @@ export const run = () => { // called DOMContentLoaded
     
     const render_last = (chunk) => {
         if (!chat || !chat.messages || chat.messages.length === 0) return
-            const last_index = chat.messages.length - 1
-            const last_msg = chat.messages[last_index]
-            // Get last child element (assumed to be the last message).
-            const last_child = messages.lastElementChild
-            last_msg.text += chunk
-            last_msg.text = util.substitutions(last_msg.text)
-            if (last_child && last_msg.sender === "user") {
-                messages.appendChild(render_message(last_msg))
-            } else if (last_child && last_msg.sender === "bot") {
-                let text = chunk
-                markdown.post(text, (html, error) => {
-                    if (error) {
-                        console.error(error)
-                    } else {
-                        last_child.innerHTML = html
-                    }
-                })
-            } else {
-                messages.appendChild(render_message(last_msg))
+        const last_index = chat.messages.length - 1
+        const last_msg = chat.messages[last_index]
+        // Get last child element (assumed to be the last message).
+        const last_child = messages.lastElementChild
+        last_msg.text += chunk
+        last_msg.text = util.substitutions(last_msg.text)
+        if (last_child && last_msg.sender === "user") {
+            messages.appendChild(render_message(last_msg))
+        } else if (last_child && last_msg.sender === "bot") {
+            const processed = (html, error) => {
+                if (error) {
+                    console.error(error)
+                } else {
+                    last_child.innerHTML = html
+                }
+                if (markdown.queue.length > 0) {
+                    requestAnimationFrame(() => markdown.post("", processed))
+                }
             }
+            markdown.post(chunk, processed)
+        } else {
+            messages.appendChild(render_message(last_msg))
+        }
     }
     
     const load = (c) => {
@@ -157,11 +161,14 @@ export const run = () => { // called DOMContentLoaded
         const div = document.createElement("div")
         div.className = "item"
         if (c.id === current) div.classList.add("selected")
-            div.onclick = () => {
-                selected = null; collapsed(); hide_menu()
-                if (current !== c.id) load(c)
-                    search.innerText = ""
-                    }
+        div.onclick = e => {
+            e.preventDefault()
+            selected = null
+            collapsed()
+            hide_menu()
+            if (current !== c.id) load(c)
+            search.innerText = ""
+        }
         const span = document.createElement("span")
         span.textContent = c.title
         const dots = document.createElement("button")
@@ -232,14 +239,24 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
+    const followup = [
+        "Want to dig deeper?",
+        "Need more details?",
+        "Want to explore this further?",
+        "Care to dive deeper?",
+        "Shall we go further?",
+        "Want to keep talking about this?",
+        "Let’s keep going…"
+    ]
+    
     const placeholder = () => {
         let ph = ""
         if (model.is_answering()) {
             ph = "▣ stop"
         } else if (chat.messages.length > 0) {
-            ph = "Anything else can I help you with?"
-        } else if (!detect.macOS) { // double quotes improtant for css variable:
-            ph = "Ask anything... (↑)"
+            ph = followup[util.random_int(0, followup.length - 1)]
+        } else if (!detect.macOS) {
+            ph = "Ask anything..."
         } else {
             ph = "Ask anything... Use ⇧⏎ for line break"
         }
@@ -291,7 +308,7 @@ export const run = () => { // called DOMContentLoaded
     
     const done = () => {
         scrollable.autoscroll = false
-        //     console.log("autoscroll := " + scrollable.autoscroll)
+//      console.log("autoscroll := " + scrollable.autoscroll)
         input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
@@ -323,8 +340,8 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const polling = () => {
-        scrollable.autoscroll = messages.length > 0
-        //     console.log("autoscroll := " + scrollable.autoscroll)
+        scrollable.autoscroll = true
+//      console.log("autoscroll := " + scrollable.autoscroll)
         ui.show(stop)
         ui.hide(send, expand, restart)
         stop.classList.add("pulsing")
@@ -341,30 +358,31 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const oops = () => {
-        modal.toast("<p>Oops.<br>🤕🧠🤢<br>" +
-                    "Close and try again later<br><br>" +
-                    "or update ⚙️ in AppStore?</p>", 5000)
+        modal.toast("<p>Oops<br>🤕🧠🤢<br>" +
+                    "Try again later?<br><br>" +
+                    "Update ⚙️ in AppStore?</p>", 5000)
         setTimeout(() => { model.quit() }, 5100)
     }
     
     const ask = t => {
         if (!current || !t) return
-            if (!model.is_running()) oops()
-                chat.messages.push({ sender: "user", text: t })
-                chat.messages.push({ sender: "bot",  text: "" })
-                history.save_chat(chat)
-                render_messages()
-                layout_and_render().then(() => { // render before asking
-                    let error = model.ask(t)
-                    ui.hide(clear)
-                    if (!error) {
-                        polling()
-                    } else {
-                        modal.toast(error, 5000)
-                    }
-                })
-                }
-    
+        if (!model.is_running()) oops()
+        chat.messages.push({ sender: "user", text: t })
+        chat.messages.push({ sender: "bot",  text: "" })
+        history.save_chat(chat)
+        render_messages()
+        scrollable.scroll_to_bottom()
+        layout_and_render().then(() => { // render before asking
+            let error = model.ask(t)
+            ui.hide(clear)
+            if (!error) {
+                polling()
+            } else {
+                modal.toast(error, 5000)
+            }
+        })
+    }
+
     const show_menu = (x, y) => {
         menu.style.display = "block"
         menu.offsetWidth
@@ -383,7 +401,10 @@ export const run = () => { // called DOMContentLoaded
     
     const hide_menu = () => ui.hide(menu)
     
-    toggle_theme.onclick = () => util.toggle_theme()
+    toggle_theme.onclick = e => {
+        e.preventDefault()
+        util.toggle_theme()
+    }
     
     send.onclick = e => {
         e.preventDefault()
@@ -414,6 +435,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     clear.onclick = e => {
+        e.preventDefault()
         input.innerText = ""
         placeholder()
         layout_and_render().then(() => {
@@ -422,14 +444,16 @@ export const run = () => { // called DOMContentLoaded
     }
     
     carry.onclick = e => {
+        e.preventDefault()
         interrupted = false
         ui.hide(carry)
         ask("carry on")
     }
     
-    restart.onclick = () => {
+    restart.onclick = e => {
+        e.preventDefault()
         if (model.is_running() && !model.is_answering()) new_session()
-            }
+    }
     
     const erase = () => {
         collapsed()
@@ -441,7 +465,8 @@ export const run = () => { // called DOMContentLoaded
         new_session()
     }
     
-    shred.onclick = () => {
+    shred.onclick = e => {
+        e.preventDefault()
         hide_menu()
         modal.ask("### **Erase All Chat History**  \n" +
                   "For your privacy and storage<br>" +
@@ -457,26 +482,38 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const collapsed = () => {
-        is_expanded = false
-        navigation.classList.remove("expanded")
-        ui.hide(tools)
-        ui.show(title)
-        hide_menu()
-    }
-    
-    const expanded = () => {
-        if (!model.is_answering()) {
-            input.blur()
-            setTimeout(() => {
-                is_expanded = true
-                navigation.classList.add("expanded")
-                ui.show(tools)
-                ui.hide(title)
-            }, 500)
+        if (is_expanded) {
+            modal.modal_off()
+            is_expanded = false
+            navigation.classList.remove("expanded")
+            ui.hide(tools)
+            ui.show(title)
+            hide_menu()
         }
     }
     
-    expand.onclick = () => (is_expanded ? collapsed() : expanded())
+    const expanded = () => {
+        if (!model.is_answering() && !is_expanded) {
+            ui.hide(title)
+            modal.modal_on()
+            if (window.input === input) {
+                input.blur()
+                setTimeout(() => {
+                    is_expanded = true
+                    navigation.classList.add("expanded")
+                }, 500)
+            } else {
+                is_expanded = true
+                navigation.classList.add("expanded")
+            }
+            setTimeout(() => ui.show(tools), 666)
+        }
+    }
+    
+    expand.onclick = e => {
+        e.preventDefault()
+        if (is_expanded) { collapsed() } else { expanded() }
+    }
     
     let last_key_down_time = 0
     
@@ -520,11 +557,14 @@ export const run = () => { // called DOMContentLoaded
     input.oninput = () => {
         const answering = model.is_answering()
         let s = input.innerText
+        if (s === '\n') s = "" // empty divider has '\n'
         if (s !== "") suggestions.hide()
-        ui.show_hide(s !== "", clear)
-        ui.show_hide(answering, stop)
-        ui.show_hide(!answering, send)
-        ui.show_hide(interrupted, carry)
+        const clear_and_send = s !== "" && !answering;
+        console.log("s: '" + s + "' clear_and_send: " + clear_and_send)
+        ui.show_hide(clear_and_send, clear, send)
+        ui.show_hide(answering,  stop)
+        ui.show_hide(!clear_and_send && !interrupted, strut)
+        ui.show_hide(interrupted && !answering && !clear_and_send,  carry)
         const lines = input.innerText.split("\n").length
         input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
     }
@@ -535,10 +575,13 @@ export const run = () => { // called DOMContentLoaded
         characterData: true });
     
     content.onclick = e => {
-        if (e.target.closest("#content") || e.target.closest("#input")) {
+        if (is_expanded &&
+            e.target.closest("#content") ||
+            e.target.closest("#input")) {
+            e.preventDefault()
             collapsed()
         }
-        if (!e.target.closest("#menu")) hide_menu()
+        if (!e.target.closest("#menu")) { hide_menu() }
     }
     
     const delete_chat = () => {
@@ -557,7 +600,8 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
     }
     
-    remove.onclick = () => {
+    remove.onclick = e => {
+        e.preventDefault()
         hide_menu()
         if (!selected) return
         let c = history.load_chat(selected)
@@ -593,39 +637,44 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    rename.onclick = () => {
+    rename.onclick = e => {
         if (!selected) return
-            hide_menu()
-            const c = selected === current ? chat : history.load_chat(selected)
-            modal.rename_in_place(selected_item, freeze, unfreeze).then(
-                                                                        new_name => {
-                                                                            if (new_name && new_name !== c.title) {
-                                                                                c.title = new_name
-                                                                                history.save_chat(c)
-                                                                                if (selected === current) {
-                                                                                    chat = c
-                                                                                    title.textContent = c.title
-                                                                                }
-                                                                                rebuild_list()
-                                                                                render_messages()
-                                                                            }
-                                                                        })
+        e.preventDefault()
+        hide_menu()
+        const c = selected === current ? chat : history.load_chat(selected)
+        modal.rename_in_place(selected_item, freeze, unfreeze).then(
+            new_name => {
+                if (new_name && new_name !== c.title) {
+                    c.title = new_name
+                    history.save_chat(c)
+                    if (selected === current) {
+                        chat = c
+                        title.textContent = c.title
+                    }
+                    rebuild_list()
+                    render_messages()
+                }
             }
+        )
+    }
     
-    share.onclick = () => {
+    share.onclick = e => {
         if (!selected) return
-            hide_menu()
-            const c = history.load_chat(selected)
-            prompt("Copy chat data:", JSON.stringify(c))
-            hide_menu()
-            }
+        e.preventDefault()
+        hide_menu()
+        const c = history.load_chat(selected)
+        console.log("TODO Copy chat data:", JSON.stringify(c))
+        hide_menu()
+    }
     
-    get("font-increase").onclick = () => util.increase_font_size()
-    get("font-decrease").onclick = () => util.decrease_font_size()
-    
-    
-    //  messages.addEventListener("mousedown",  user_started_scrolling, { passive: true })
-    //  messages.addEventListener("wheel",      user_started_scrolling)
+    get("font-increase").onclick = e => {
+        e.preventDefault()
+        util.increase_font_size()
+    }
+    get("font-decrease").onclick = e => {
+        e.preventDefault()
+        util.decrease_font_size()
+    }
     
     document.querySelectorAll(".tooltip").forEach(button => {
         button.addEventListener("mouseenter", function() {
@@ -710,7 +759,11 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    get("info").onclick = () => { collapsed(); licenses() }
+    get("info").onclick = e => {
+        e.preventDefault()
+        collapsed()
+        licenses()
+    }
     
     let v = localStorage.getItem("version.data")
     if (v !== version_data) {
@@ -725,8 +778,8 @@ export const run = () => { // called DOMContentLoaded
     
     util.init_theme()
     util.init_font_size()
-    
     history.init_search(search, freeze, unfreeze)
+    ui.hide(tools)
     
     new_session() // alternatively recent() can load and continue
     placeholder()

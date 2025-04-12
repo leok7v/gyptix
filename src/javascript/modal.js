@@ -5,6 +5,24 @@ import * as marked from "./marked.js"
 
 const get = id => document.getElementById(id)
 
+export let modality = 0 // modality count
+
+const app_modal = new CustomEvent('app_modal', {
+      detail: { message: 'application modal dialog' },
+      bubbles: false,
+      cancelable: false
+})
+
+export const modal_on = () => {
+    modality++
+    window.dispatchEvent(app_modal)
+}
+
+export const modal_off = () => {
+    modality--
+    window.dispatchEvent(app_modal)
+}
+
 const button_color = (action) => {
     const colors = ["red", "green", "blue"]
     for (const color of colors) {
@@ -37,6 +55,7 @@ const buttons = (actions, done) => {
         b.innerText = text
         b.addEventListener("click", () => {
             get("modal").style.display = "none"
+            modal_off()
             if (done) done(b.innerText.trim())
         })
         buttons.appendChild(b)
@@ -107,6 +126,7 @@ const message_box = (centered, markdown, done, actions) => {
     modal.appendChild(panel)
     modal.style.display = "block"
     error_box(content, markdown, html)
+    modal_on()
 }
 
 // ask|mbx = (markdown, done, ...) =>
@@ -146,6 +166,7 @@ export const show = (markdown, done, ...actions) => {
     modal.appendChild(panel)
     modal.style.backgroundColor = "var(--background-color)"
     modal.style.display = "block"
+    modal_on()
 }
 
 export const toast = (s, to) => {
@@ -166,7 +187,11 @@ export const toast = (s, to) => {
     div.style.maxWidth        = "80%";
     div.innerHTML = s
     document.body.appendChild(div)
-    setTimeout(() => document.body.removeChild(div), to)
+    modal_on()
+    setTimeout(() => {
+        document.body.removeChild(div)
+        modal_off()
+    }, to)
 }
 
 export const rename_in_place = (span, freeze, unfreeze) => {

@@ -1,7 +1,9 @@
 "use strict"
 
+import * as modal from "./modal.js"
+
 export const scroll_create_wrapper = (list, appending, verbose) => {
-    
+
     let scrollable = {
         autoscroll: false,
         scroll_to_top: null,
@@ -47,7 +49,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     }
 
     let is_programmatic_scroll = false
-
+    let user_interacting = false
     let scroll_position = null
 
     const line_height = (e) => {
@@ -142,7 +144,8 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     }
 
     const scroll = (e) => {
-        log("scroll() .scrollTop: " + e.scrollTop)
+        log("scroll() .scrollTop: " + e.scrollTop +
+            " user_interacting: " + user_interacting)
         const lh = line_height(e)
         const bottom = e.scrollTop + e.clientHeight
         const end = e.scrollHeight - lh
@@ -151,7 +154,8 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
             show_hide(false, button_bottom)
             show_hide(true,  button_top)
         }
-        if (!is_programmatic_scroll && appending()) {
+        if (user_interacting ||
+           !is_programmatic_scroll && appending()) {
             if (scrollable.autoscroll && bottom < end) {
                 scrollable.autoscroll = false
             }
@@ -170,14 +174,14 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     }
 
     const touch_move = (e) => {
-        log("touch_move")
+        log("user_interacting: " + user_interacting)
         force_layout(e)
         scrollable.autoscroll = false
         update_buttons_later(e)
     }
 
     const scroll_end = (e) => {
-        log("scroll_end")
+        log("user_interacting: " + user_interacting)
         if (later) clearTimeout(later)
         later = setTimeout(() => {
             later = null
@@ -185,30 +189,32 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         }, 100)
     }
 
-    list.addEventListener('scroll',    () => scroll(list))
-    list.addEventListener('scrolled',  () => scroll_end(list))
-    list.addEventListener('touchmove', () => touch_move(list))
+    list.addEventListener('scroll',     () => scroll(list))
+    list.addEventListener('scrolled',   () => scroll_end(list))
+    list.addEventListener('touchmove',  () => touch_move(list))
+    list.addEventListener('mousemove',  () => touch_move(list))
+    list.addEventListener('wheel',      () => touch_move(list))
+    list.addEventListener('mousewheel', () => touch_move(list))
+
+    let interaction_timeout = null
+
+    const mark_user_active = () => {
+        user_interacting = true
+        clearTimeout(interaction_timeout)
+        interaction_timeout = setTimeout(() => {
+            user_interacting = false
+            log("user inactive")
+            interaction_timeout = null
+        }, 333)
+    }
+
+    ['touchstart', 'touchmove', 'touchend', 'touchcancel',
+     'mousedown', 'mousemove', 'mouseup',
+     'wheel'].forEach(ev => {
+        document.addEventListener(ev, mark_user_active, { passive: true })
+    })
 
     const observer = new MutationObserver(function(mutationsList, observer) {
-        /*
-        let log_mutation = console.log
-        log_mutation = () => {}
-        for (const mutation of mutationsList) {
-            if (mutation.type === 'childList') {
-                log_mutation('Child list change:', mutation);
-                mutation.addedNodes.forEach(node => {
-                    log_mutation("Added node:", node)
-                })
-                mutation.removedNodes.forEach(node => {
-                    log_mutation("Removed node:", node)
-                })
-            } else if (mutation.type === 'characterData') {
-                log_mutation("Text content change:", mutation)
-            } else if (mutation.type === 'attributes') {
-                log_mutation("Attribute change:", mutation)
-            }
-        }
-        */
         if (scrollable.autoscroll) {
             scroll_to(list, scroll_to_bottom_top_position(list))
         } else {
@@ -223,7 +229,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         attributes:    false, // attribute changes
     }
 
-    observer.observe(list, config);
+    observer.observe(list, config)
     
     scrollable.autoscroll = false
     scrollable.scroll_to_top    = () => scroll_to_top(list)
@@ -233,6 +239,17 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     button_bottom.addEventListener('click', () => scrollable.scroll_to_bottom())
 
     update_buttons(list)
+
+    window.addEventListener('app_modal', () => {
+        log("app_modal: " + modal.modality)
+        if (modal.modality > 0) {
+            button_top.style.display    = 'none'
+            button_bottom.style.display = 'none'
+        } else {
+            button_top.style.display    = 'block'
+            button_bottom.style.display = 'block'
+        }
+    })
 
     return scrollable
 }

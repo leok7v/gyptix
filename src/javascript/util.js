@@ -9,6 +9,11 @@ export function set_debugger_attached(attached) {
     console.log("set_debugger_attached(" + attached + ")")
 }
 
+export const timestamp = () => Date.now() // UTC timestamp in milliseconds
+
+export const random_int = (min, max) =>
+    Math.floor(Math.random() * (max - min + 1)) + min
+
 const http = (url, method, req = "", done = null) => {
     let error = null
     let text = `Failed to load ${url}`
@@ -123,8 +128,6 @@ export const shorten_the_sentence = (str, limit) => {
     }
     return result
 }
-
-export const timestamp = () => Date.now() // UTC timestamp in milliseconds
 
 export const timestamp_label = (timestamp) => {
     const d = new Date(timestamp)

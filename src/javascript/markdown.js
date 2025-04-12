@@ -1,36 +1,43 @@
 "use strict" // markdown.js
 
-import * as util        from "./util.js"
-
-let worker = new Worker("mdw.js", { type: "module" })
-let callback = null;
-
+let worker     = new Worker("mdw.js", { type: "module" })
+let callback   = null // user callback
 let processing = false
+let queue      = ""
 
 worker.onmessage = (e) => {
-    const { html, error } = e.data;
-    processing = false;
+    processing = false
+    const { html, error } = e.data
     if (error) {
-        callback?.(null, error);
+        console.log("error: " + error)
+        callback(null, error);
     } else {
-        callback?.(html, null);
+//      console.log("html: " + html)
+        callback(html, null);
     }
-    callback = null; 
+    callback = null
 }
 
-export function start() {
+const process_next = () => {
+    if (processing || queue.lengh === 0) return
+    const text = queue
+    queue = ""
+    processing = true
+//  console.log("text: " + text)
+    worker.postMessage({ type: "append", chunk: text })
+}
+
+export const start = () => {
     processing = false
     callback = null
+    queue = ""
     worker.postMessage({ type: "reset" })
 }
 
-export function post(chunk, cb) {
-    if (processing) {
-        if (util.is_debugger_attached) { debugger }
-        throw new Error("Already processing Markdown")
-    }
-    processing = true
-    callback = (html, error) => { processing = false; cb(html, error) }
-    worker.postMessage({ type: "append", chunk: chunk })
+export const post = (chunk, cb) => {
+    queue += chunk
+    callback = cb
+    process_next()
 }
 
+export { queue }

@@ -12,3 +12,20 @@ max_line_length = 79
 
 [*.md]
 trim_trailing_whitespace = false
+
+[*.js]
+quote_type = double
+max_line_length = 79
+indent_style = space
+indent_size = 4
+insert_final_newline = false
+trim_trailing_whitespace = true
+
+# Do not enforce brace style or return style
+# Keep one-liners untouched
+# Xcode doesn't support these natively but some formatters do,
+# so this prevents tools from reformatting them.
+
+[*.{js,ts}]
+curly_bracket_next_line = false
+keep_single_line_statements = true

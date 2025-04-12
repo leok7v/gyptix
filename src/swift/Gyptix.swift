@@ -10,7 +10,10 @@ typealias Window = NSWindow
 
 let origin = "gyptix://"
 
-let gguf = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"
+public // JavaScript app "gyptix://./app.js"
+let app = "app" // experiments: app1, app2, app3
+
+let gguf = "granite-3.1-1b-a400m-instruct-Q8_0.gguf" // model
 
 var js_ready = false
 var web_view: WKWebView?
