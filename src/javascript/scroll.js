@@ -1,6 +1,7 @@
 "use strict"
 
-import * as modal from "./modal.js"
+import * as modal  from "./modal.js"
+import * as detect from "./detect.js"
 
 export const scroll_create_wrapper = (list, appending, verbose) => {
 
@@ -26,10 +27,11 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     const button_bottom = create_buttton('scroll-bottom', '⌅')
     button_bottom.style.transform = 'rotate(180deg)'
     const position_buttons = () => {
-        button_top.style.top       = '0.75rem'
-        button_top.style.right     = '0rem'
-        button_bottom.style.bottom = '0.75rem'
-        button_bottom.style.right  = '0.75rem'
+        const right = detect.masOS ? '0.75rem' : '0'
+        button_top.style.top       = right
+        button_top.style.right     = '0.125rem'
+        button_bottom.style.bottom = right
+        button_bottom.style.right  = '0.125rem'
     }
     list.parentElement.appendChild(button_top)
     list.parentElement.appendChild(button_bottom)

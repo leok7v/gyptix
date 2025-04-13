@@ -23,6 +23,10 @@ export const run = id => {
 
 export const remove = id => util.post("./remove", id)
 
+export const download = (url) => {
+    return util.post("./download", "url", null)
+}
+
 export const poll = () => {
     return util.post("./poll", "", null)
 }

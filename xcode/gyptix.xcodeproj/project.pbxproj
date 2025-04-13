@@ -65,6 +65,7 @@
 		B34A04712D458A880010D066 /* ggml-cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02992D458A880010D066 /* ggml-cpu.cpp */; };
 		B34A04732D458A880010D066 /* gguf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A04382D458A880010D066 /* gguf.cpp */; };
 		B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02972D458A880010D066 /* cpu-feats-x86.cpp */; };
+		B35FDE042DAB91A80068738F /* Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35FDE032DAB91A80068738F /* Downloads.swift */; };
 		B361EBE02D8FD06500B45B70 /* app1.css in Resources */ = {isa = PBXBuildFile; fileRef = B361EBDF2D8FD06500B45B70 /* app1.css */; };
 		B361EBE22D92101100B45B70 /* ui.js in Resources */ = {isa = PBXBuildFile; fileRef = B361EBE12D92101100B45B70 /* ui.js */; };
 		B363D0A42D7DD32600993F90 /* markdown.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A22D7DD32600993F90 /* markdown.js */; };
@@ -214,6 +215,7 @@
 		B34A04362D458A880010D066 /* ggml-threading.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-threading.h"; sourceTree = "<group>"; };
 		B34A04372D458A880010D066 /* ggml-threading.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "ggml-threading.cpp"; sourceTree = "<group>"; };
 		B34A04382D458A880010D066 /* gguf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gguf.cpp; sourceTree = "<group>"; };
+		B35FDE032DAB91A80068738F /* Downloads.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; name = Downloads.swift; path = ../src/swift/Downloads.swift; sourceTree = SOURCE_ROOT; };
 		B361EBDF2D8FD06500B45B70 /* app1.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app1.css; sourceTree = "<group>"; };
 		B361EBE12D92101100B45B70 /* ui.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ui.js; sourceTree = "<group>"; };
 		B363D0A22D7DD32600993F90 /* markdown.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = markdown.js; sourceTree = "<group>"; };
@@ -394,9 +396,9 @@
 				B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */,
 				B34A02612D458A480010D066 /* llama.cpp */,
 				B3B3F3FE2D4AB3C300A2D406 /* javascript */,
-				B3756DF12D41D46B00BCF111 /* swift */,
-				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
+				B37F0C212DAB31CB00CE7669 /* swift */,
 				B37754A92D41E38900B7B4C5 /* gyptix.h */,
+				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
 				B37754AA2D41E38900B7B4C5 /* gyptix.cpp */,
 				B30D39142D458DA600B8196B /* llama-build.cpp */,
 				B30D39152D458DA600B8196B /* llama-if.h */,
@@ -492,15 +494,16 @@
 			path = ../llama.cpp/ggml;
 			sourceTree = SOURCE_ROOT;
 		};
-		B3756DF12D41D46B00BCF111 /* swift */ = {
+		B37F0C212DAB31CB00CE7669 /* swift */ = {
 			isa = PBXGroup;
 			children = (
+				B35FDE032DAB91A80068738F /* Downloads.swift */,
 				B3E04BD02D84816800C6C67B /* Dispatch.swift */,
 				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
 				B3A482922D5035DC00FCE4A5 /* WebView.swift */,
 			);
 			path = swift;
-			sourceTree = "<group>";
+			sourceTree = SOURCE_ROOT;
 		};
 		B3B3F3FE2D4AB3C300A2D406 /* javascript */ = {
 			isa = PBXGroup;
@@ -710,6 +713,7 @@
 				B34A04712D458A880010D066 /* ggml-cpu.cpp in Sources */,
 				B34A04732D458A880010D066 /* gguf.cpp in Sources */,
 				B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */,
+				B35FDE042DAB91A80068738F /* Downloads.swift in Sources */,
 				B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */,
 				B30D39092D458CDF00B8196B /* console.cpp in Sources */,
 				B30D390A2D458CDF00B8196B /* common.cpp in Sources */,

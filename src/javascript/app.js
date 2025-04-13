@@ -795,6 +795,19 @@ export const run = () => { // called DOMContentLoaded
     showEULA()
     
     input.oninput()
+
+    const test_download = false // WIP
+    
+    if (test_download) { // testing:
+        const origin = "https://github.com/leok7v/gyptix/releases/download/2025-01-25/"
+        const file  = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"
+        const r = model.download(origin + file)
+        console.log("model.download(): " + r)
+    }
+}
+
+export const downloaded = (file, error) => {
+    console.log("downloaded\nfile: " + file + "\nerror: " + error)
 }
 
 export const inactive = () => {
@@ -815,7 +828,17 @@ export const debugger_attached = (attached) => {
     return attached ? "conext menu enabled" : "conext menu disabled"
 }
 
+export const download = (file, percent, error, done, json) => {
+    console.log("file: " + file)
+    console.log("percent: " + percent)
+    console.log("error: " + error)
+    console.log("done: " + done)
+    console.log("json: " + json)
+    const a = JSON.parse(json)
+}
+
 window.app = { run: run, inactive: inactive,
-               debugger_attached: debugger_attached }
+               debugger_attached: debugger_attached,
+               download: download }
 
 model.initialized()

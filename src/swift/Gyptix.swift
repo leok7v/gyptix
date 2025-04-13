@@ -25,6 +25,10 @@ struct Gyptix: App {
     
     @Environment(\.scenePhase) var phase
 
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #endif
+
     init() {
         UserDefaults.standard.set(is_debugger_attached() || is_debug_build(),
                                   forKey: "WebKitDeveloperExtras")
@@ -238,6 +242,19 @@ struct AppRating {
     
 }
 
+#if os(iOS)
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    var backgroundSessionCompletionHandler: (() -> Void)?
+
+    func application(_ application: UIApplication,
+                     handleEventsForBackgroundURLSession identifier: String,
+                     completionHandler: @escaping () -> Void) {
+        backgroundSessionCompletionHandler = completionHandler
+    }
+}
+
+#endif
 
 #if !os(iOS) // os(macOS)
 

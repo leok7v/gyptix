@@ -90,17 +90,20 @@ body {
     color: var(--color);
     background-color: var(--background-color);
     font-size: var(--font-size);
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
 }
 
-.modal_page {
+body, .modal_page {
     padding-left:   env(safe-area-inset-left);
     padding-top:    env(safe-area-inset-top);
     padding-right:  env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
+}
+
+html[data-macos="true"] .modal_page {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 }
 
 .error_content {
@@ -123,6 +126,10 @@ body {
     flex: 1;
     padding: 0.25em;
     overflow-y: auto;
+}
+
+html[data-macos="true"] #chat {
+    padding: 0.75em;
 }
 
 #suggest {
@@ -579,6 +586,10 @@ button:hover { background-color: var(--background-button-hover); }
     bottom: 0;
     overscroll-behavior: contain;
     overflow: hidden;
+}
+
+html[data-macos="true"] #modal * {
+    font-size: 95%;
 }
 
 #modal h3 { padding-top: 0.25rem !important; }

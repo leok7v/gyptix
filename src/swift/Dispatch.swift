@@ -122,10 +122,11 @@ func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
 //  print("dispatch_post: " + path + " request: " + r)
     switch path {
         case "log":             print(r)
-        case "run":             check(path); s = call(run(r));
-        case "ask":             check(path); s = call(ask(r));
-        case "poll":            check(path); s = call(poll(r));
-        case "remove":          check(path); s = call(remove(r));
+        case "run":             check(path); s = call(run(r))
+        case "ask":             check(path); s = call(ask(r))
+        case "poll":            check(path); s = call(poll(r))
+        case "remove":          check(path); s = call(remove(r))
+        case "download":        check(path); s = call(download(r))
         case "keyboard_frame":  check(path); s = call(keyboard_frame())
         default:                dispatched = false
     }
