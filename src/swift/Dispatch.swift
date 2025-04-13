@@ -127,6 +127,7 @@ func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
         case "poll":            check(path); s = call(poll(r))
         case "remove":          check(path); s = call(remove(r))
         case "download":        check(path); s = call(download(r))
+        case "download_remove": check(path); s = call(download_remove(r))
         case "keyboard_frame":  check(path); s = call(keyboard_frame())
         default:                dispatched = false
     }
@@ -152,7 +153,7 @@ func call_js(_ call: String, sync: Bool = false) -> String {
 //                  print("javascript \(call) result: \(r)")
                 }
             } else {
-                print("javascript \(call): no result")
+//              print("javascript \(call): no result")
             }
         }
         // The block above and the wait = false assignment will be

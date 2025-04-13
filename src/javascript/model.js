@@ -24,7 +24,11 @@ export const run = id => {
 export const remove = id => util.post("./remove", id)
 
 export const download = (url) => {
-    return util.post("./download", "url", null)
+    return util.post("./download", url, null)
+}
+
+export const download_remove = (url) => {
+    return util.post("./download_remove", url, null)
 }
 
 export const poll = () => {

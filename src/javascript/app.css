@@ -100,10 +100,10 @@ body, .modal_page {
 }
 
 html[data-macos="true"] .modal_page {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left:   max(0.5rem, env(safe-area-inset-left));
+    padding-top:    max(0.5rem, env(safe-area-inset-top));
+    padding-right:  max(0.5rem, env(safe-area-inset-right));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
 .error_content {

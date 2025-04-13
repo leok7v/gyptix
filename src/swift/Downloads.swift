@@ -49,7 +49,10 @@ class Downloads: NSObject, URLSessionDownloadDelegate {
         guard
             let path = t.taskDescription,
             let url = urls[t]
-        else { fatalError("bad state") }
+        else {
+            print("bad state")
+            return
+        }
         let dest = URL(fileURLWithPath: path)
         try? fm.removeItem(at: dest)
         do {
@@ -148,12 +151,12 @@ func json() -> String {
     return js
 }
 
-private func app_download(_ file: String, _ pct: String,
-                          _ err: String, _ done: String) {
+private func app_download(_ u: String, _ f: String, _ p: String,
+                          _ e: String, _ d: String) {
     let j = json()
     DispatchQueue.main.async {
         let _ = call_js(
-            "app.download('\(file)', '\(pct)', '\(err)', \(done), '\(j)')",
+            "app.download('\(u)', '\(f)', '\(p)', '\(e)', \(d), '\(j)')",
             sync: false)
     }
 }
@@ -177,21 +180,25 @@ func download(_ url: String) -> String {
     dls.start(url, path, { r in
         let p = Int(r * 100)
         print("progress: \(p)%")
-        app_download(path, "\(p)", "", "false")
+        app_download(url, path, "\(p)", "", "false")
     }) { err in
         let p = Int((downloaded[url] ?? 0) * 100)
         if let err = err {
             print("fail: \(err)")
-            app_download(path, "\(p)", err, "true")
+            app_download(url,path, "\(p)", err, "true")
         } else {
             print("done: \(path)")
-            app_download(path, "100", "", "true")
+            app_download(url,path, "100", "", "true")
         }
     }
     return ""
 }
 
-func remove_download(_ url: String) {
+func download_remove(_ url: String) -> String {
+    var r = ""
+    if (active[url] == nil && completed[url] == nil && failed[url] == nil) {
+        r = "not downloading"
+    }
     active[url]?.cancel()
     active[url] = nil
     failed[url] = nil
@@ -202,4 +209,5 @@ func remove_download(_ url: String) {
         progress[task] = nil
         urls[task] = nil
     }
+    return r
 }

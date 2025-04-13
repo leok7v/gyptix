@@ -798,12 +798,7 @@ export const run = () => { // called DOMContentLoaded
 
     const test_download = false // WIP
     
-    if (test_download) { // testing:
-        const origin = "https://github.com/leok7v/gyptix/releases/download/2025-01-25/"
-        const file  = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"
-        const r = model.download(origin + file)
-        console.log("model.download(): " + r)
-    }
+    if (test_download) { download_testing() }
 }
 
 export const downloaded = (file, error) => {
@@ -828,13 +823,43 @@ export const debugger_attached = (attached) => {
     return attached ? "conext menu enabled" : "conext menu disabled"
 }
 
-export const download = (file, percent, error, done, json) => {
-    console.log("file: " + file)
-    console.log("percent: " + percent)
-    console.log("error: " + error)
-    console.log("done: " + done)
-    console.log("json: " + json)
+export const download = (url, file, percent, error, done, json) => {
+//  console.log("urk: " + url)
+//  console.log("file: " + file)
+//  console.log("percent: " + percent)
+//  console.log("error: " + error)
+//  console.log("done: " + done)
+//  console.log("json: " + json)
+    if (error && error !== "") {
+        console.log("failed. removing...")
+        model.download_remove(url)
+        console.log("removed.")
+    }
     const a = JSON.parse(json)
+    for (const i of a) {
+        const url  = i.url
+        const file = i.filename
+        // Display clean, readable values
+        console.log("URL:", url)
+        console.log("File:", file)
+        /* Or inject into DOM
+        const div = document.createElement("div")
+        div.textContent = `📂 ${file}\n🌐 ${url}`
+        document.body.appendChild(div)
+        */
+        model.download_remove(url) // temporarely: not to grow the table
+    }
+}
+
+// macOS sandbox:
+// ls -alR /Users/leo/Library/Containers/io.github.leok7v.gyptix/Data/Library/Caches/
+// rm -rf /Users/leo/Library/Containers/io.github.leok7v.gyptix
+
+const download_testing = () => {
+    const origin = "https://github.com/leok7v/gyptix/releases/download/2025-01-25/"
+    const file  = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"
+    const r = model.download(origin + file)
+    console.log("model.download(): " + r)
 }
 
 window.app = { run: run, inactive: inactive,

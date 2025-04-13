@@ -328,8 +328,16 @@ func window() -> Window? {
     #endif
 }
 
+func is_first_run() -> Bool {
+    !UserDefaults.standard.bool(forKey: "first_run_done")
+}
+
 func on_appear() {
     #if os(macOS)
+    if is_first_run(), let win = NSApplication.shared.windows.first {
+        win.setContentSize(NSSize(width: Gyptix.w, height: Gyptix.h))
+        win.center()
+    }
     DispatchQueue.main.asyncAfter(deadline: .now() + 1) { trim_menu() }
     restrict_windows()
     setup_termination()
@@ -351,6 +359,7 @@ func on_appear() {
     } else {
         fatalError("Resource not found: \(gguf)")
     }
+    UserDefaults.standard.set(true, forKey: "first_run_done")
 }
 
 func is_debug_build() -> Bool {
