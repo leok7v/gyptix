@@ -256,8 +256,8 @@ button {
     border: 1px solid var(--background-button);
     border-radius: 0.5rem;
     /* alternative : */
-/*  color: var(--color); */
-    color: var(--system-blue); /* TODO: #2196f3 is for blue dots on buttons */
+    color: var(--color);
+/*  color: var(--system-blue); */ /* TODO: #2196f3 is for blue dots on buttons */
     background-color: var(--background-button);
     align-items: center;
     justify-content: center;
@@ -361,27 +361,6 @@ button.square {
     margin-left: 1rem;
 }
 
-.logo {
-    display: inline-block;
-    width: 1.5em;
-    height: 1.5em;
-    background: url("./logo-256x256.png") no-repeat center center;
-    background-size: contain;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    height: 100%;
-    background-color: transparent;
-}
-
-.logo-content {
-    display: flex;
-}
-
 #navigation {
     z-index: 2;
     display: flex;
@@ -454,12 +433,6 @@ button.square {
     padding-bottom: 0.5em;
 }
 
-.section-title {
-    margin: 0.25em 0 0.25em 0;
-    font-weight: bold;
-    font-style: italic;
-}
-
 #footer {
     display: flex;
     flex: 0 0 auto;
@@ -530,16 +503,6 @@ button:hover { background-color: var(--background-button-hover); }
 #info  { left:  0.25rem; }
 #shred { right: 0.25rem; }
 
-.left, .right {
-    display: flex;
-    flex: 0 0 auto; /* Prevents stretching */
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 0.5em;
-    white-space: nowrap;
-    flex-shrink: 0; /* Don’t allow left/right to shrink away */
-}
-
 #title {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -549,6 +512,33 @@ button:hover { background-color: var(--background-button-hover); }
     max-width: 100%;
     text-align: center;
     font-size: small;
+}
+
+.section-title {
+    margin: 0.25em 0 0.25em 0;
+    font-weight: bold;
+    font-style: italic;
+}
+
+.logo {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    background: url("./logo-256x256.png") no-repeat center center;
+    background-size: contain;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 100%;
+    background-color: transparent;
+}
+
+.logo-content {
+    display: inline-flex;
 }
 
 #list, #messages {

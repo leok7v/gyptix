@@ -276,7 +276,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const set_chat_title = (s) => {
-        if (s === '') {
+        if (s === '' || s === 'GyPTix') {
             set_title(s)
             title.classList.remove("shimmering")
             title.classList.add("rainbow")
