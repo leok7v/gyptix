@@ -121,14 +121,14 @@ html[data-macos="true"] .modal_page {
     height: calc(100% - var(--header-height))
 }
 
-#chat {
+#talk {
     position: relative;
     flex: 1;
     padding: 0.25em;
     overflow-y: auto;
 }
 
-html[data-macos="true"] #chat {
+html[data-macos="true"] #talk {
     padding: 0.75em;
 }
 
@@ -145,13 +145,26 @@ html[data-macos="true"] #chat {
 }
 
 #box {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
     flex: 0 0 auto;
     margin: 0.25rem;
     padding: 0.25rem;
     min-height: 2.5em;
     background-color: var(--background-input);
+    opacity: 0.75;
     border: 0.0625rem solid rgba(136, 136, 136, 0.5);
     border-radius: 0.5rem;
+}
+
+#box:focus-within {
+    z-index: 5;
+    position: fixed;
+    top: var(--data-top, calc(max(env(safe-area-inset-top, 0), 0.5rem) + var(--header-height)));
+    bottom: auto;
+    border: 0.0625rem solid red;
 }
 
 #input {
@@ -296,13 +309,14 @@ button.square {
     z-index:         99999;
     display:         block;
     position:        absolute;
-    font-size:       1.0rem;
+    font-size:       1.25rem;
     width:           1.5rem;
     height:          1.5rem;
     overflow:        hidden;
     opacity:         0;
-    color:           var(--system-blue);
-    background:      var(--background-color);
+/*  color:           var(--system-blue); */
+    color:           var(--color);
+    background:      transparent;
 /*  border:          0.0625rem solid #888; */
     border:          none;
     border-radius:   25%;
@@ -310,6 +324,8 @@ button.square {
     -webkit-transition: opacity 0.5s ease-in-out;
 }
 .scroll-button.scroll-button-visible { opacity: 75%; }
+
+.scroll-button:hover { background-color: transparent; }
 
 #expand {
     position: relative;
@@ -483,9 +499,7 @@ button.square {
     background:   transparent;
 }
 
-.item:hover {
-    color: orange;
-}
+.item:hover { color: orange; }
 
 button:hover { background-color: var(--background-button-hover); }
 
@@ -699,9 +713,7 @@ span.label {
     overflow: hidden;
 }
 
-.suggestion_box:hover {
-    background: var(--background-hover);
-}
+.suggestion_box:hover { background: var(--background-hover); }
 
 .suggestion_title {
     font-size: 90%;

@@ -29,10 +29,11 @@ let chat = null // **the** chat
 
 export const run = () => { // called DOMContentLoaded
     const
-    shred        = get("shred"), // shred & recycle
+    box          = get("box"),
     content      = get("content"),
     expand       = get("expand"),
     tools        = get("tools"),
+    header       = get("header"),
     input        = get("input"),
     layout       = get("layout"),
     list         = get("list"),
@@ -49,7 +50,9 @@ export const run = () => { // called DOMContentLoaded
     send         = get("send"),
     strut        = get("strut"),
     share        = get("share"),
+    shred        = get("shred"),
     suggest      = get("suggest"),
+    talk         = get("talk"),
     title        = get("title"),
     toggle_theme = get("toggle_theme")
     
@@ -94,7 +97,7 @@ export const run = () => { // called DOMContentLoaded
     const render_messages = () => {
         if (!chat || !chat.messages) { return }
         if (chat.messages.length === 0) {
-            if (input !== document.activeElement) { suggestions.show() }
+//          if (input !== document.activeElement) { suggestions.show() }
             return
         }
         if (chat.messages.length > 0) {
@@ -210,7 +213,7 @@ export const run = () => { // called DOMContentLoaded
         rebuild_list()
         messages.innerText = ""
         render_messages()
-        suggestions.show()
+//      suggestions.show()
         placeholder()
         layout_and_render().then(() => model.run('+' + id))
     }
@@ -496,7 +499,7 @@ export const run = () => { // called DOMContentLoaded
         if (!model.is_answering() && !is_expanded) {
             ui.hide(title)
             modal.modal_on()
-            if (window.input === input) {
+            if (document.activeElement === input) {
                 input.blur()
                 setTimeout(() => {
                     is_expanded = true
@@ -513,6 +516,112 @@ export const run = () => { // called DOMContentLoaded
     expand.onclick = e => {
         e.preventDefault()
         if (is_expanded) { collapsed() } else { expanded() }
+    }
+    
+    const height_with_margins = (e) => {
+        const s = getComputedStyle(e);
+        const mt = parseFloat(s.marginTop)    || 0;
+        const mb = parseFloat(s.marginBottom) || 0;
+        const h = e.offsetHeight + mt + mb;
+        console.log("height_with_margins(): " + h + " mt: " + mt + " mb: " + mb);
+        return h
+    }
+    
+    const set_box_top = () => {
+        const top = (window.visualViewport.height - height_with_margins(box))
+        box.style.setProperty('--data-top', `${top}px`);
+        console.log("set_box_top(): box.top:", box.style.getPropertyValue('--data-top'))
+    }
+
+    const dump = () => {
+        console.log("window.visualViewport.offsetTop: " + window.visualViewport.offsetTop)
+        console.log("window.visualViewport.height: " + window.visualViewport.height)
+        console.log("window.innerHeight: " + window.innerHeight)
+        console.log("box.offsetHeight: " + box.offsetHeight)
+        console.log("height_with_margins(box): " + height_with_margins(box))
+    }
+
+    input.onblur = () => { // focus lost
+        console.log("blur")
+        ui.show(expand, restart)
+        if (chat.messages.length === 0 && input.innerText.trim() === "") {
+//          suggestions.show()
+        }
+        input.contentEditable = "false"
+        const padding_bottom = detect.macOS ? "0.75em" : "0.25em"
+        console.log("talk.dataset.paddingBottom: ", talk.dataset.paddingBottom)
+        talk.style.paddingBottom = talk.dataset.paddingBottom
+    }
+
+    let resizing = null
+    let on_resizing_done = null
+
+    const debounce_resizing = () => {
+        if (window.visualViewport.height == window.innerHeight) {
+            resizing = null
+            console.log("RESIZING DONE")
+            on_resizing_done()
+        } else {
+            requestAnimationFrame(debounce_resizing)
+        }
+    }
+
+    const viewport = (e) => {
+        if (on_resizing_done == null) { return }
+        if (resizing === null) {
+            resizing = requestAnimationFrame(debounce_resizing)
+        }
+        console.log("e.type: " + e.type)
+set_box_top()
+box.style.opacity = "1"
+talk.style.paddingBottom = `${height_with_margins(box)}px`
+//      dump();
+    }
+
+    window.visualViewport.addEventListener('resize', viewport);
+    window.visualViewport.addEventListener('scroll', viewport);
+
+    const focused = () => {
+        console.log("focused")
+    }
+        
+    input.addEventListener('focus', focused)
+        
+    input.onclick = () => {
+        if (document.activeElement === input) { return }
+        talk.dataset.paddingBottom = `${getComputedStyle(talk).paddingBottom}`
+        console.log("talk.dataset.paddingBottom: ", talk.dataset.paddingBottom)
+        ui.hide(expand, restart)
+        collapsed()
+        box.style.opacity = "0"
+        console.log("onclick: box.style.opacity: " + box.style.opacity)
+        on_resizing_done = () => {
+//          dump();
+//          console.log("box.style.top: " + getComputedStyle(box).top)
+//          console.log("box.style.opacity: " + box.style.opacity)
+            set_box_top()
+            box.style.opacity = "1"
+//          console.log("box.style.opacity: " + box.style.opacity)
+//          console.log("show")
+            on_resizing_done = null
+        }
+        input.contentEditable = "plaintext-only"
+        input.focus()
+    }
+    
+    input.oninput = () => {
+        const answering = model.is_answering()
+        let s = input.innerText
+        if (s === '\n') { s = "" } // empty div has '\n'
+        if (s !== "") { suggestions.hide() }
+        const clear_and_send = s !== "" && !answering;
+        ui.show_hide(clear_and_send, clear, send)
+        ui.show_hide(answering,  stop)
+        ui.show_hide(!clear_and_send && !interrupted, strut)
+        ui.show_hide(interrupted && !answering && !clear_and_send,  carry)
+        const lines = input.innerText.split("\n").length
+        input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
+        set_box_top()
     }
     
     let last_key_down_time = 0
@@ -541,47 +650,24 @@ export const run = () => { // called DOMContentLoaded
         last_key_down_time = Date.now()
     }
     
-    input.onblur = () => { // focus lost
-        ui.show(expand, restart)
-        if (chat.messages.length === 0 && input.innerText.trim() === "") {
-            suggestions.show()
-        }
-    }
-    
-    input.onfocus = () => {
-        ui.hide(expand, restart)
-        collapsed()
-    }
-
-    input.oninput = () => {
-        const answering = model.is_answering()
-        let s = input.innerText
-        if (s === '\n') { s = "" } // empty div has '\n'
-        if (s !== "") { suggestions.hide() }
-        const clear_and_send = s !== "" && !answering;
-        ui.show_hide(clear_and_send, clear, send)
-        ui.show_hide(answering,  stop)
-        ui.show_hide(!clear_and_send && !interrupted, strut)
-        ui.show_hide(interrupted && !answering && !clear_and_send,  carry)
-        const lines = input.innerText.split("\n").length
-        input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
-    }
     
     const observer = new MutationObserver(input.oninput)
     
     observer.observe(input, { childList: true, subtree: true,
         characterData: true });
-    
+
     content.onclick = e => {
-        if (is_expanded &&
-            e.target.closest("#content") ||
-            e.target.closest("#input")) {
+        if (is_expanded) {
+            if (!e.target.closest("#menu")) {
+                hide_menu()
+            }
+            if (e.target.closest("#content") || e.target.closest("#input")) {
+                collapsed()
+            }
             e.preventDefault()
-            collapsed()
         }
-        if (!e.target.closest("#menu")) { hide_menu() }
     }
-    
+
     const delete_chat = () => {
         if (!selected) { return }
         localStorage.removeItem("chat.id." + selected)
@@ -784,16 +870,14 @@ export const run = () => { // called DOMContentLoaded
     
     new_session() // alternatively recent() can load and continue
     placeholder()
-    if (chat.messages.length === 0 &&
-        input !== document.activeElement) {
-        suggestions.show()
-    }
+
     send.title = "Submit"
     stop.title = "Stop"
     clear.title = "Clear"
     
     showEULA()
     
+    suggestions.show()
     input.oninput()
 
     const test_download = false // WIP
