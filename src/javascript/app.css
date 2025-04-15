@@ -2,14 +2,16 @@
     :root {
         --background-color: #f0f0f0;
         --color: #121212;
-        --system-blue: #007AFF; /* Apple System Blue */
+        --system-blue-rgb: 0, 122, 255;  /* Apple System Blue Light Theme */
+        --system-blue: rgb(--system-blue-rgb); /* #007AFF */
     }
 }
 @media (prefers-color-scheme: dark) {
     :root {
         --background-color: #101010;
         --color: #f0f0f0;
-        --system-blue: #0A84FF; /* Apple System Blue */
+        --system-blue-rgb: 10, 132, 255; /* Apple System Blue Dark Theme */
+        --system-blue: rgb(--system-blue-rgb); /* ##0A84FF */
     }
 }
 
@@ -57,8 +59,6 @@
 @media screen and (-webkit-dynamic-type: accessibility) {
     html { font-size: 140%; } /* Increase for accessibility settings */
 }
-
-sup { font-size: 75%; }
 
 * {
     box-sizing: border-box;
@@ -121,6 +121,14 @@ html[data-macos="true"] .modal_page {
     height: calc(100% - var(--header-height))
 }
 
+#discuss {
+    padding: 0.5em;
+    flex: 0 0 auto;
+    height: fit-content;
+}
+
+sup { font-size: 75%; }
+
 #talk {
     position: relative;
     flex: 1;
@@ -154,17 +162,27 @@ html[data-macos="true"] #talk {
     padding: 0.25rem;
     min-height: 2.5em;
     background-color: var(--background-input);
-    opacity: 0.75;
     border: 0.0625rem solid rgba(136, 136, 136, 0.5);
     border-radius: 0.5rem;
 }
 
-#box:focus-within {
+html:not([data-macos]) #box:focus-within {
     z-index: 5;
     position: fixed;
-    top: var(--data-top, calc(max(env(safe-area-inset-top, 0), 0.5rem) + var(--header-height)));
-    bottom: auto;
-    border: 0.0625rem solid red;
+    top: auto;
+    margin-top: auto;
+    bottom: 0;
+    height: auto;
+    background-color: var(--background-input);
+    border: 0.0625rem solid rgba(var(--system-blue-rgb), 0.25);
+    overflow: hidden !important;
+}
+
+html:not([data-macos]) #content:focus-within,
+html:not([data-macos]) #navigation:focus-within {
+    top: calc(env(safe-area-inset-top) + var(--header-height));
+    bottom: 0;
+    overflow: hidden !important;
 }
 
 #input {
@@ -172,7 +190,7 @@ html[data-macos="true"] #talk {
     min-height: 2.5em;
     padding: 0.25rem;
     outline: none;
-    background-color: transparent;
+    background-color: var(--background-input);
 }
 
 #input:empty::before {
@@ -301,9 +319,9 @@ button.circled {
     background-color: var(--background-button);
 }
 
-button.square {
-    font-weight: bold;
-}
+button.square { font-weight: bold; }
+
+#clear { font-weight: normal; }
 
 .scroll-button {
     z-index:         99999;
@@ -499,7 +517,7 @@ button.square {
     background:   transparent;
 }
 
-.item:hover { color: orange; }
+.item:hover { color: var(--system-blue); }
 
 button:hover { background-color: var(--background-button-hover); }
 

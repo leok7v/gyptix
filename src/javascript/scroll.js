@@ -82,14 +82,26 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         const _ = e.offsetHeight // force layout
     }
     
+    const at_the_bottom = (e) => {
+        const lh = line_height(e)
+        const bottom = e.scrollTop + e.clientHeight
+        const end = e.scrollHeight - lh
+        /*
+        log("at_the_bottom() lh: " + lh +
+            " bottom: " + bottom + "end: " + end +
+            " bottom >= end " + (bottom >= end))
+        */
+        return bottom >= end
+    }
+    
     const update_buttons = (e) => {
         const lh = line_height(e)
         show_hide(e.scrollTop >= lh, button_top)
         const bottom = e.scrollTop + e.clientHeight
         const end = e.scrollHeight - lh
-        show_hide(bottom < end && !scrollable.autoscroll, button_bottom)
+        show_hide(!at_the_bottom(e) && !scrollable.autoscroll, button_bottom)
         log("update_buttons up: " + (e.scrollTop >= lh) +
-                        " down: " + (bottom < end && !scrollable.autoscroll))
+                        " down: " + (!at_the_bottom(e) && !scrollable.autoscroll))
     }
 
     const scroll_to = (e, p) => { // element, position
@@ -151,14 +163,14 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         const lh = line_height(e)
         const bottom = e.scrollTop + e.clientHeight
         const end = e.scrollHeight - lh
-        if (appending() && bottom >= end && !scrollable.autoscroll) {
+        if (appending() && at_the_bottom(e) && !scrollable.autoscroll) {
             scrollable.autoscroll = true
             show_hide(false, button_bottom)
             show_hide(true,  button_top)
         }
         if (user_interacting ||
            !is_programmatic_scroll && appending()) {
-            if (scrollable.autoscroll && bottom < end) {
+            if (scrollable.autoscroll && !at_the_bottom(e)) {
                 scrollable.autoscroll = false
             }
         }
@@ -233,10 +245,6 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
 
     observer.observe(list, config)
     
-    scrollable.autoscroll = false
-    scrollable.scroll_to_top    = () => scroll_to_top(list)
-    scrollable.scroll_to_bottom = () => scroll_to_bottom(list)
-    
     button_top.addEventListener('click',    () => scrollable.scroll_to_top())
     button_bottom.addEventListener('click', () => scrollable.scroll_to_bottom())
 
@@ -252,6 +260,11 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
             button_bottom.style.display = 'block'
         }
     })
+
+    scrollable.autoscroll = false
+    scrollable.scroll_to_top    = () => scroll_to_top(list)
+    scrollable.scroll_to_bottom = () => scroll_to_bottom(list)
+    scrollable.at_the_bottom    = () => at_the_bottom(list)
 
     return scrollable
 }

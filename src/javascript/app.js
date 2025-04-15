@@ -31,8 +31,8 @@ export const run = () => { // called DOMContentLoaded
     const
     box          = get("box"),
     content      = get("content"),
+    discuss      = get("discuss"),
     expand       = get("expand"),
-    tools        = get("tools"),
     header       = get("header"),
     input        = get("input"),
     layout       = get("layout"),
@@ -43,7 +43,7 @@ export const run = () => { // called DOMContentLoaded
     search       = get("search"),
     remove       = get("remove"),
     rename       = get("rename"),
-    restart      = get("restart"),
+    spawn        = get("spawn"),
     stop         = get("stop"),
     carry        = get("carry"),
     clear        = get("clear"),
@@ -54,6 +54,7 @@ export const run = () => { // called DOMContentLoaded
     suggest      = get("suggest"),
     talk         = get("talk"),
     title        = get("title"),
+    tools        = get("tools"),
     toggle_theme = get("toggle_theme")
     
     let scrollable = scroll.scroll_create_wrapper(messages,
@@ -100,9 +101,8 @@ export const run = () => { // called DOMContentLoaded
 //          if (input !== document.activeElement) { suggestions.show() }
             return
         }
-        if (chat.messages.length > 0) {
-            suggestions.hide()
-        }
+        ui.hide(discuss)
+        suggestions.hide()
         // this is optimization because markdown rendering is slow
         let i = 0
         chat.messages.forEach(msg => {
@@ -189,9 +189,12 @@ export const run = () => { // called DOMContentLoaded
     
     const rebuild_list = () => history.generate(list, search, list_item)
     
-    const new_session = () => {
+    const spawn_new_conversation = () => {
         // already have new empty chat?
-        if (chat && chat.messages && chat.messages.length === 0) { return }
+        if (chat && chat.messages && chat.messages.length === 0) {
+            suggestions.cycle()
+            return
+        }
         let id = util.timestamp()
         let k = "chat.id." + id
         while (localStorage.getItem(k)) {
@@ -205,15 +208,15 @@ export const run = () => { // called DOMContentLoaded
             title: util.timestamp_label(id),
             messages: []
         }
-        ui.hide(carry)
+        ui.hide(carry, send)
+        ui.show(discuss)
         set_title('')
-        ui.hide(send)
         history.save_chat(chat)
         collapsed()
         rebuild_list()
         messages.innerText = ""
         render_messages()
-//      suggestions.show()
+        suggestions.show()
         placeholder()
         layout_and_render().then(() => model.run('+' + id))
     }
@@ -238,7 +241,7 @@ export const run = () => { // called DOMContentLoaded
             render_messages()
             rebuild_list()
         } else {
-            new_session()
+            spawn_new_conversation()
         }
     }
     
@@ -323,7 +326,7 @@ export const run = () => { // called DOMContentLoaded
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         placeholder()
-        ui.show(expand, restart)
+        ui.show(expand, spawn)
     }
     
     const poll = (context) => {
@@ -346,7 +349,7 @@ export const run = () => { // called DOMContentLoaded
         scrollable.autoscroll = true
 //      console.log("autoscroll := " + scrollable.autoscroll)
         ui.show(stop)
-        ui.hide(send, expand, restart)
+        ui.hide(send, expand, spawn)
         stop.classList.add("pulsing")
         markdown.start()
         cycle_titles(0)
@@ -361,9 +364,8 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const oops = () => {
-        modal.toast("<p>Oops<br>🤕🧠🤢<br>" +
-                    "Try again later?<br><br>" +
-                    "Update ⚙️ in AppStore?</p>", 5000)
+        modal.toast("<p>Oops<br>" +
+                    "Fatal Error", 5000)
         setTimeout(() => { model.quit() }, 5100)
     }
     
@@ -453,9 +455,11 @@ export const run = () => { // called DOMContentLoaded
         ask("carry on")
     }
     
-    restart.onclick = e => {
+    spawn.onclick = e => {
         e.preventDefault()
-        if (model.is_running() && !model.is_answering()) { new_session() }
+        if (model.is_running() && !model.is_answering()) {
+            spawn_new_conversation()
+        }
     }
     
     const erase = () => {
@@ -465,7 +469,7 @@ export const run = () => { // called DOMContentLoaded
         model.erase()
         current = null
         rebuild_list()
-        new_session()
+        spawn_new_conversation()
     }
     
     shred.onclick = e => {
@@ -497,7 +501,6 @@ export const run = () => { // called DOMContentLoaded
     
     const expanded = () => {
         if (!model.is_answering() && !is_expanded) {
-            ui.hide(title)
             modal.modal_on()
             if (document.activeElement === input) {
                 input.blur()
@@ -509,7 +512,10 @@ export const run = () => { // called DOMContentLoaded
                 is_expanded = true
                 navigation.classList.add("expanded")
             }
-            setTimeout(() => ui.show(tools), 666)
+            setTimeout(() => {
+                ui.show(tools)
+                ui.hide(title)
+            }, 333)
         }
     }
     
@@ -523,92 +529,56 @@ export const run = () => { // called DOMContentLoaded
         const mt = parseFloat(s.marginTop)    || 0;
         const mb = parseFloat(s.marginBottom) || 0;
         const h = e.offsetHeight + mt + mb;
-        console.log("height_with_margins(): " + h + " mt: " + mt + " mb: " + mb);
+//      console.log("height_with_margins(): " + h + " mt: " + mt + " mb: " + mb);
         return h
     }
     
     const set_box_top = () => {
         const top = (window.visualViewport.height - height_with_margins(box))
         box.style.setProperty('--data-top', `${top}px`);
-        console.log("set_box_top(): box.top:", box.style.getPropertyValue('--data-top'))
     }
 
-    const dump = () => {
-        console.log("window.visualViewport.offsetTop: " + window.visualViewport.offsetTop)
-        console.log("window.visualViewport.height: " + window.visualViewport.height)
-        console.log("window.innerHeight: " + window.innerHeight)
-        console.log("box.offsetHeight: " + box.offsetHeight)
-        console.log("height_with_margins(box): " + height_with_margins(box))
-    }
+    let move_box = false
 
     input.onblur = () => { // focus lost
-        console.log("blur")
-        ui.show(expand, restart)
+        if (detect.macOS) { return }
+        move_box = false
         if (chat.messages.length === 0 && input.innerText.trim() === "") {
-//          suggestions.show()
+            suggestions.show()
         }
         input.contentEditable = "false"
-        const padding_bottom = detect.macOS ? "0.75em" : "0.25em"
-        console.log("talk.dataset.paddingBottom: ", talk.dataset.paddingBottom)
-        talk.style.paddingBottom = talk.dataset.paddingBottom
-    }
-
-    let resizing = null
-    let on_resizing_done = null
-
-    const debounce_resizing = () => {
-        if (window.visualViewport.height == window.innerHeight) {
-            resizing = null
-            console.log("RESIZING DONE")
-            on_resizing_done()
-        } else {
-            requestAnimationFrame(debounce_resizing)
-        }
+        talk.style.marginBottom = talk.dataset.marginBottom
     }
 
     const viewport = (e) => {
-        if (on_resizing_done == null) { return }
-        if (resizing === null) {
-            resizing = requestAnimationFrame(debounce_resizing)
-        }
-        console.log("e.type: " + e.type)
-set_box_top()
-box.style.opacity = "1"
-talk.style.paddingBottom = `${height_with_margins(box)}px`
-//      dump();
+        if (!move_box) { return }
+//      console.log("e.type: " + e.type)
+        set_box_top()
+        box.style.opacity = "1"
+        talk.style.marginBottom = `${height_with_margins(box)}px`
     }
 
     window.visualViewport.addEventListener('resize', viewport);
     window.visualViewport.addEventListener('scroll', viewport);
 
-    const focused = () => {
-        console.log("focused")
-    }
-        
-    input.addEventListener('focus', focused)
-        
     input.onclick = () => {
         if (document.activeElement === input) { return }
-        talk.dataset.paddingBottom = `${getComputedStyle(talk).paddingBottom}`
-        console.log("talk.dataset.paddingBottom: ", talk.dataset.paddingBottom)
-        ui.hide(expand, restart)
+        if (detect.macOS) { return }
+//      suggestions.hide()
+        talk.dataset.marginBottom = `${getComputedStyle(talk).marginBottom}`
         collapsed()
         box.style.opacity = "0"
-        console.log("onclick: box.style.opacity: " + box.style.opacity)
-        on_resizing_done = () => {
-//          dump();
-//          console.log("box.style.top: " + getComputedStyle(box).top)
-//          console.log("box.style.opacity: " + box.style.opacity)
-            set_box_top()
-            box.style.opacity = "1"
-//          console.log("box.style.opacity: " + box.style.opacity)
-//          console.log("show")
-            on_resizing_done = null
-        }
+        move_box = true
         input.contentEditable = "plaintext-only"
         input.focus()
     }
-    
+
+    input.onfocus = () => suggestions.hide()
+
+    if (detect.macOS) {
+        input.contentEditable = "plaintext-only"
+    }
+
     input.oninput = () => {
         const answering = model.is_answering()
         let s = input.innerText
@@ -868,7 +838,7 @@ talk.style.paddingBottom = `${height_with_margins(box)}px`
     history.init_search(search, freeze, unfreeze)
     ui.hide(tools)
     
-    new_session() // alternatively recent() can load and continue
+    spawn_new_conversation() // alternatively recent() can load and continue
     placeholder()
 
     send.title = "Submit"

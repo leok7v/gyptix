@@ -1,9 +1,11 @@
 "use strict"
 
+import * as util from "./util.js"
+
 let categories = []
 let callback = () => {}
-let interval = null
 let disp = []
+let ix = 0
 
 const get = id => document.getElementById(id)
 
@@ -24,18 +26,17 @@ const flex_direction = () => {
 const build = () => {
     let sc = shuffle(categories.slice()).map(cat => {
         let ps = shuffle(cat.prompts.slice())
-        return { category: cat.category, prompts: ps, index: 0, div: null }
+        return { category: cat.category,
+                 prompts: ps,
+                 pix: 0, // prompt index
+                 div: null }
     })
     disp = sc.slice(0, 2)
+    for (let i = 0; i < disp.length; i++) {
+        disp[0].pix = util.random_int(0, categories[i].prompts.length - 1)
+    }
     let container = get("suggestions_container")
     container.innerHTML = ""
-    const discuss = document.createElement("div")
-    discuss.innerHTML =
-        "What would you like to discuss today?<br>" +
-        "<sup>Using full sentences helps me respond better.</sup>"
-    discuss.style.flex = "0 0 auto"
-    discuss.style.height = "fit-content"
-    container.appendChild(discuss)
     const bc = document.createElement("div")
     bc.id = "suggestion_boxes_container"
     bc.style.display = "flex"
@@ -64,7 +65,7 @@ const create_box = c => {
     const text = document.createElement("div")
     text.className = "suggestion_text"
     const span = document.createElement("span")
-    span.textContent = c.prompts[c.index]
+    span.textContent = c.prompts[c.pix]
     text.appendChild(span)
     box.appendChild(title)
     box.appendChild(text)
@@ -88,31 +89,28 @@ export const init = cfg => {
 
 export const cycle = () => {
     if (!disp.length) { return }
-    const idx = Math.floor(Math.random() * disp.length)
     let c = shuffle(categories.slice())[0]
+    let a = disp[(ix + 1) % 2].category.category
+    while (c.category === a) { // avoid two same categories
+        c = shuffle(categories.slice())[0]
+    }
     let i = Math.floor(Math.random() * c.prompts.length)
     let p = c.prompts[i]
-    let box = disp[idx].div
+    let box = disp[ix].div
     let title = box.querySelector(".suggestion_title")
     let text = box.querySelector(".suggestion_text span")
     title.style.transition = "opacity 0.3s ease"
     text.style.transition = "opacity 0.3s ease"
     title.style.opacity = 0
     text.style.opacity = 0
-    setTimeout(() => {
-        title.innerHTML = `${c.category}`
-        text.textContent = p
-        title.style.opacity = 1
-        text.style.opacity = 1
-        disp[idx] = { category: c.category,
-                      prompts: c.prompts,
-                      index: i, div: box }
-    }, 300)
-}
-
-const start = (ms = 5000) => {
-    if (interval) clearInterval(interval)
-    interval = setInterval(() => { cycle() }, ms)
+    title.innerHTML = `${c.category}`
+    text.textContent = p
+    title.style.opacity = 1
+    text.style.opacity = 1
+    disp[ix] = { category: c.category,
+                  prompts: c.prompts,
+                  cix: i, div: box }
+    ix = (ix + 1) % disp.length
 }
 
 export const show = () => {
@@ -120,13 +118,8 @@ export const show = () => {
     cycle()
     cycle()
     get("suggest").style.display = "flex"
-    start()
 }
 
 export const hide = () => {
     get("suggest").style.display = "none"
-    if (interval) {
-        clearInterval(interval)
-        interval = null
-    }
 }
