@@ -417,7 +417,8 @@ export const run = () => { // called DOMContentLoaded
         util.toggle_theme()
     }
     
-    send.addEventListener("touchstart", (e) => {
+
+    const send_click = (e) => {
         e.preventDefault()
         let s = input.innerText.trim()
         // if we did not achive running state in 10 seconds since load time
@@ -434,8 +435,28 @@ export const run = () => { // called DOMContentLoaded
             input.blur()
             layout_and_render().then( () => ask(s) )
         }
-    }, { passive: false })
+    }
 
+    const clear_click = (e) => {
+        e.preventDefault()
+        input.innerText = ""
+        placeholder()
+        layout_and_render().then(() => {
+            clear_selection()
+            if (chat.messages.length === 0 && !is_input_focused()) {
+                suggestions.show()
+            }
+        })
+    }
+
+    if (detect.macOS) {
+        send.addEventListener("click",     send_click,  { passive: false } )
+        clear.addEventListener("click",    clear_click, { passive: false } )
+    } else {
+        send.addEventListener("touchstart",  send_click,  { passive: false } )
+        clear.addEventListener("touchstart", clear_click, { passive: false } )
+    }
+    
     stop.onclick = e => {
         e.preventDefault()
         let s = input.innerText.trim()
@@ -448,17 +469,6 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    clear.addEventListener("touchstart", (e) => {
-        e.preventDefault()
-        input.innerText = ""
-        placeholder()
-        layout_and_render().then(() => {
-            clear_selection()
-            if (chat.messages.length === 0 && !is_input_focused()) {
-                suggestions.show()
-            }
-        })
-    }, { passive: false })
 
     carry.onclick = e => {
         e.preventDefault()
@@ -561,6 +571,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const set_box_top = () => {
+        if (detect.macOS) { return }
         const top = (window.visualViewport.height - height_with_margins(box))
         box.style.setProperty('--data-top', `${top}px`);
 //      console.log(`box.style.setProperty('--data-top', ${top}px)`);
@@ -613,7 +624,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const viewport = (e) => {
-        if (!move_box) { return }
+        if (!move_box || detect.macOS) { return }
 //      console.log("e.type: " + e.type)
 //      dump()
         set_box_top()
@@ -636,7 +647,7 @@ export const run = () => { // called DOMContentLoaded
 
     // save initial marginBottom
     talk.dataset.marginBottom = `${getComputedStyle(talk).marginBottom}`
-    console.log(`talk.dataset.marginBottom = ${getComputedStyle(talk).marginBottom}`)
+//  console.log(`talk.dataset.marginBottom = ${getComputedStyle(talk).marginBottom}`)
 
     input.onfocus = () => suggestions.hide()
 
@@ -745,7 +756,7 @@ export const run = () => { // called DOMContentLoaded
             unfreezing = null
         }
         navigation.dataset.freeze = "true"
-        console.log("navigation.dataset.freeze")
+//      console.log("navigation.dataset.freeze")
     }
     
     const unfreeze = () => {
@@ -753,7 +764,7 @@ export const run = () => { // called DOMContentLoaded
         if (!unfreezing) {
             unfreezing = setTimeout(() => {
                 delete navigation.dataset.freeze
-                console.log("navigation.dataset.unfreeze")
+//              console.log("navigation.dataset.unfreeze")
                 unfreezing = null
             }, 500)
         }
