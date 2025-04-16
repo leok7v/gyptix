@@ -57,20 +57,21 @@ export const run = () => { // called DOMContentLoaded
     tools        = get("tools"),
     toggle_theme = get("toggle_theme")
     
-    let scrollable = scroll.scroll_create_wrapper(messages,
-                                                  model.is_answering, false)
-    
     // TODO:
     // visiblility (hidden) and display none state management is from HELL
     // It was Q&D hack on spur of the moment. Need to subscribe to state
     // changes and update all visibility in one place.
-    // Maybe also need "disabled" style with <glyp> 50% oppacity
+    // Maybe also need "disabled" state for some buttons
     
+    let load_timestamp = util.timestamp()
     let current  = null // current  chat id
     let selected = null // selected chat id
     let interrupted = false  // output was interrupted
     let is_expanded = false  // navigation pane expanded
     let selected_item = null // item in chats list
+    
+    let scrollable = scroll.scroll_create_wrapper(messages,
+                                                  model.is_answering, false)
     
     document.addEventListener("copy", e => {
         e.preventDefault()
@@ -156,6 +157,7 @@ export const run = () => { // called DOMContentLoaded
             scrollable.scroll_to_bottom()
             layout_and_render().then(() => {
                 model.run(c.id) // slowest
+                load_timestamp = util.timestamp
             })
         })
     }
@@ -219,6 +221,7 @@ export const run = () => { // called DOMContentLoaded
         suggestions.show()
         placeholder()
         layout_and_render().then(() => model.run('+' + id))
+        load_timestamp = util.timestamp
     }
     
     const recent = () => { // most recent chat -> current
@@ -237,6 +240,7 @@ export const run = () => { // called DOMContentLoaded
             current = most_recent.id
             chat = history.load_chat(most_recent.id)
             model.run(most_recent.id)
+            load_timestamp = util.timestamp
             messages.innerHTML = ""
             render_messages()
             rebuild_list()
@@ -368,10 +372,10 @@ export const run = () => { // called DOMContentLoaded
                     "Fatal Error", 5000)
         setTimeout(() => { model.quit() }, 5100)
     }
-    
+
     const ask = t => { // 't': text
         if (!current || !t) { return }
-        if (!model.is_running()) oops()
+        if (!model.is_running()) { oops() }
         chat.messages.push({ sender: "user", text: t })
         chat.messages.push({ sender: "bot",  text: "" })
         history.save_chat(chat)
@@ -414,7 +418,10 @@ export const run = () => { // called DOMContentLoaded
     send.onclick = e => {
         e.preventDefault()
         let s = input.innerText.trim()
-        if (!model.is_answering() && s !== "") {
+        // if we did not achive running state in 10 seconds since load time
+        let since = util.timestamp() - load_timestamp // ms
+        if (!model.is_running() && since > 10000) { oops() }
+        if (model.is_running() && !model.is_answering() && s !== "") {
             ui.hide(carry, clear)
             interrupted = false
             input.innerHTML = ""
