@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B30518582D1CE9470009362D /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B30518572D1CE9470009362D /* WebKit.framework */; };
 		B30D38DB2D458C4E00B8196B /* llama-adapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38B72D458C4E00B8196B /* llama-adapter.cpp */; };
 		B30D38DC2D458C4E00B8196B /* llama-grammar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38C32D458C4E00B8196B /* llama-grammar.cpp */; };
 		B30D38DD2D458C4E00B8196B /* unicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38D72D458C4E00B8196B /* unicode.cpp */; };
@@ -36,16 +35,7 @@
 		B30D39102D458CDF00B8196B /* sampling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39042D458CDF00B8196B /* sampling.cpp */; };
 		B30D39172D458DA600B8196B /* llama-if.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39162D458DA600B8196B /* llama-if.cpp */; };
 		B30D39182D458DA600B8196B /* llama-build.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39142D458DA600B8196B /* llama-build.cpp */; };
-		B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D39212D458EFA00B8196B /* tokenizer_config.json */; };
-		B30D39252D458EFA00B8196B /* added_tokens.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D39192D458EFA00B8196B /* added_tokens.json */; };
-		B30D39262D458EFA00B8196B /* merges.txt in Resources */ = {isa = PBXBuildFile; fileRef = B30D391D2D458EFA00B8196B /* merges.txt */; };
-		B30D39272D458EFA00B8196B /* tokenizer.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D39202D458EFA00B8196B /* tokenizer.json */; };
-		B30D39282D458EFA00B8196B /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D391A2D458EFA00B8196B /* config.json */; };
 		B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */ = {isa = PBXBuildFile; fileRef = B30D391C2D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */; };
-		B30D392A2D458EFA00B8196B /* vocab.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D39222D458EFA00B8196B /* vocab.json */; };
-		B30D392B2D458EFA00B8196B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B30D391E2D458EFA00B8196B /* README.md */; };
-		B30D392C2D458EFA00B8196B /* generation_config.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D391B2D458EFA00B8196B /* generation_config.json */; };
-		B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */ = {isa = PBXBuildFile; fileRef = B30D391F2D458EFA00B8196B /* special_tokens_map.json */; };
 		B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A02D4826E400155A33 /* ggml-metal.m */; };
 		B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A12D4826E400155A33 /* ggml-metal.metal */; };
 		B33026C52DA1F40C0082BBB5 /* app3.js in Resources */ = {isa = PBXBuildFile; fileRef = B33026C42DA1F40C0082BBB5 /* app3.js */; };
@@ -70,7 +60,6 @@
 		B361EBE22D92101100B45B70 /* ui.js in Resources */ = {isa = PBXBuildFile; fileRef = B361EBE12D92101100B45B70 /* ui.js */; };
 		B363D0A42D7DD32600993F90 /* markdown.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A22D7DD32600993F90 /* markdown.js */; };
 		B363D0A52D7DD32600993F90 /* mdw.js in Resources */ = {isa = PBXBuildFile; fileRef = B363D0A32D7DD32600993F90 /* mdw.js */; };
-		B36EBB452D275258005972FF /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B36EBB442D275258005972FF /* Network.framework */; };
 		B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B3756DE82D41D43100BCF111 /* Assets.xcassets */; };
 		B375A6A92D946AC8001F9286 /* app2.css in Resources */ = {isa = PBXBuildFile; fileRef = B375A6A82D946AC8001F9286 /* app2.css */; };
 		B375A6AB2D946ADB001F9286 /* app2.js in Resources */ = {isa = PBXBuildFile; fileRef = B375A6AA2D946ADB001F9286 /* app2.js */; };
@@ -83,6 +72,10 @@
 		B3A3D8392D67E455000A5839 /* suggestions.js in Resources */ = {isa = PBXBuildFile; fileRef = B3A3D8382D67E455000A5839 /* suggestions.js */; };
 		B3A482972D5035DC00FCE4A5 /* Gyptix.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */; };
 		B3A482982D5035DC00FCE4A5 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A482922D5035DC00FCE4A5 /* WebView.swift */; };
+		B3AA963C2DAF31DC00D676BD /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AA963B2DAF31DC00D676BD /* Metal.framework */; };
+		B3AA963E2DAF31ED00D676BD /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AA963D2DAF31ED00D676BD /* MetalKit.framework */; };
+		B3AA96402DAF31FF00D676BD /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AA963F2DAF31FF00D676BD /* Network.framework */; };
+		B3AA96422DAF320700D676BD /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AA96412DAF320700D676BD /* WebKit.framework */; };
 		B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* logo-256x256.png */; };
 		B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F92D4AB3C300A2D406 /* eula.md */; };
 		B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FB2D4AB3C300A2D406 /* licenses.md */; };
@@ -91,8 +84,6 @@
 		B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F82D4AB3C300A2D406 /* app.js */; };
 		B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F72D4AB3C300A2D406 /* app.css */; };
 		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
-		B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C72D482F3400C5D9B1 /* Metal.framework */; };
-		B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D480C92D482F4000C5D9B1 /* MetalKit.framework */; };
 		B3D7EDF02D955A86003AF38F /* app3.html in Resources */ = {isa = PBXBuildFile; fileRef = B3D7EDEF2D955A86003AF38F /* app3.html */; };
 		B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E04BD02D84816800C6C67B /* Dispatch.swift */; };
 		B3E2499B2D6162110048A24F /* model.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499A2D6162110048A24F /* model.js */; };
@@ -105,7 +96,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B30518572D1CE9470009362D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
 		B30D38B62D458C4E00B8196B /* llama-adapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-adapter.h"; sourceTree = "<group>"; };
 		B30D38B72D458C4E00B8196B /* llama-adapter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "llama-adapter.cpp"; sourceTree = "<group>"; };
 		B30D38B82D458C4E00B8196B /* llama-arch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-arch.h"; sourceTree = "<group>"; };
@@ -166,16 +156,7 @@
 		B30D39142D458DA600B8196B /* llama-build.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-build.cpp"; path = "../src/llama-build.cpp"; sourceTree = SOURCE_ROOT; };
 		B30D39152D458DA600B8196B /* llama-if.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-if.h"; path = "../src/llama-if.h"; sourceTree = SOURCE_ROOT; };
 		B30D39162D458DA600B8196B /* llama-if.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-if.cpp"; path = "../src/llama-if.cpp"; sourceTree = SOURCE_ROOT; };
-		B30D39192D458EFA00B8196B /* added_tokens.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = added_tokens.json; sourceTree = "<group>"; };
-		B30D391A2D458EFA00B8196B /* config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = config.json; sourceTree = "<group>"; };
-		B30D391B2D458EFA00B8196B /* generation_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = generation_config.json; sourceTree = "<group>"; };
 		B30D391C2D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"; sourceTree = "<group>"; };
-		B30D391D2D458EFA00B8196B /* merges.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = merges.txt; sourceTree = "<group>"; };
-		B30D391E2D458EFA00B8196B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		B30D391F2D458EFA00B8196B /* special_tokens_map.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = special_tokens_map.json; sourceTree = "<group>"; };
-		B30D39202D458EFA00B8196B /* tokenizer.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tokenizer.json; sourceTree = "<group>"; };
-		B30D39212D458EFA00B8196B /* tokenizer_config.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tokenizer_config.json; sourceTree = "<group>"; };
-		B30D39222D458EFA00B8196B /* vocab.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = vocab.json; sourceTree = "<group>"; };
 		B313D3A02D4826E400155A33 /* ggml-metal.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ggml-metal.m"; sourceTree = "<group>"; };
 		B313D3A12D4826E400155A33 /* ggml-metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "ggml-metal.metal"; sourceTree = "<group>"; };
 		B313D3A22D4826E400155A33 /* ggml-metal-impl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-metal-impl.h"; sourceTree = "<group>"; };
@@ -220,7 +201,6 @@
 		B361EBE12D92101100B45B70 /* ui.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ui.js; sourceTree = "<group>"; };
 		B363D0A22D7DD32600993F90 /* markdown.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = markdown.js; sourceTree = "<group>"; };
 		B363D0A32D7DD32600993F90 /* mdw.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = mdw.js; sourceTree = "<group>"; };
-		B36EBB442D275258005972FF /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 		B3756DE82D41D43100BCF111 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B375A6A82D946AC8001F9286 /* app2.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app2.css; sourceTree = "<group>"; };
 		B375A6AA2D946ADB001F9286 /* app2.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app2.js; sourceTree = "<group>"; };
@@ -237,6 +217,10 @@
 		B3A3D8382D67E455000A5839 /* suggestions.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = suggestions.js; sourceTree = "<group>"; };
 		B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Gyptix.swift; path = ../src/swift/Gyptix.swift; sourceTree = SOURCE_ROOT; };
 		B3A482922D5035DC00FCE4A5 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = ../src/swift/WebView.swift; sourceTree = SOURCE_ROOT; };
+		B3AA963B2DAF31DC00D676BD /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
+		B3AA963D2DAF31ED00D676BD /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		B3AA963F2DAF31FF00D676BD /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
+		B3AA96412DAF320700D676BD /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
 		B3B29CA82D4E8E57006F04CE /* logo-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-256x256.png"; sourceTree = "<group>"; };
 		B3B3F3F62D4AB3C300A2D406 /* about.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = about.md; sourceTree = "<group>"; };
 		B3B3F3F72D4AB3C300A2D406 /* app.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app.css; sourceTree = "<group>"; };
@@ -245,8 +229,6 @@
 		B3B3F3FB2D4AB3C300A2D406 /* licenses.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = licenses.md; sourceTree = "<group>"; };
 		B3B3F3FC2D4AB3C300A2D406 /* prompts.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prompts.js; sourceTree = "<group>"; };
 		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
-		B3D480C72D482F3400C5D9B1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
-		B3D480C92D482F4000C5D9B1 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.2.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
 		B3D7EDEF2D955A86003AF38F /* app3.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app3.html; sourceTree = "<group>"; };
 		B3E04BD02D84816800C6C67B /* Dispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = ../src/swift/Dispatch.swift; sourceTree = SOURCE_ROOT; };
 		B3E2499A2D6162110048A24F /* model.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = model.js; sourceTree = "<group>"; };
@@ -264,27 +246,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B36EBB452D275258005972FF /* Network.framework in Frameworks */,
-				B3D480CA2D482F4000C5D9B1 /* MetalKit.framework in Frameworks */,
-				B3D480C82D482F3400C5D9B1 /* Metal.framework in Frameworks */,
-				B30518582D1CE9470009362D /* WebKit.framework in Frameworks */,
+				B3AA963C2DAF31DC00D676BD /* Metal.framework in Frameworks */,
+				B3AA963E2DAF31ED00D676BD /* MetalKit.framework in Frameworks */,
+				B3AA96422DAF320700D676BD /* WebKit.framework in Frameworks */,
+				B3AA96402DAF31FF00D676BD /* Network.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		B30518562D1CE9470009362D /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				B3D480C92D482F4000C5D9B1 /* MetalKit.framework */,
-				B3D480C72D482F3400C5D9B1 /* Metal.framework */,
-				B36EBB442D275258005972FF /* Network.framework */,
-				B30518572D1CE9470009362D /* WebKit.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		B30D38DA2D458C4E00B8196B /* src */ = {
 			isa = PBXGroup;
 			children = (
@@ -364,16 +335,7 @@
 		B30D39232D458EFA00B8196B /* granite-3.1-1b-a400m-instruct */ = {
 			isa = PBXGroup;
 			children = (
-				B30D39192D458EFA00B8196B /* added_tokens.json */,
-				B30D391A2D458EFA00B8196B /* config.json */,
-				B30D391B2D458EFA00B8196B /* generation_config.json */,
 				B30D391C2D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */,
-				B30D391D2D458EFA00B8196B /* merges.txt */,
-				B30D391E2D458EFA00B8196B /* README.md */,
-				B30D391F2D458EFA00B8196B /* special_tokens_map.json */,
-				B30D39202D458EFA00B8196B /* tokenizer.json */,
-				B30D39212D458EFA00B8196B /* tokenizer_config.json */,
-				B30D39222D458EFA00B8196B /* vocab.json */,
 			);
 			name = "granite-3.1-1b-a400m-instruct";
 			path = "../models/granite-3.1-1b-a400m-instruct";
@@ -408,8 +370,8 @@
 				B33E9D0E2D4B262E005FEE9B /* GyPTix.entitlements */,
 				B33E9D0F2D4B262E005FEE9B /* GyPTixDebug.entitlements */,
 				B323E3642D1CDAB2007BA38C /* Products */,
-				B30518562D1CE9470009362D /* Frameworks */,
 				B30D39232D458EFA00B8196B /* granite-3.1-1b-a400m-instruct */,
+				B3AA963A2DAF31DC00D676BD /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -428,8 +390,9 @@
 				B30D38DA2D458C4E00B8196B /* src */,
 				B30D39082D458CDF00B8196B /* common */,
 			);
-			path = llama.cpp;
-			sourceTree = "<group>";
+			name = llama.cpp;
+			path = ../llama.cpp;
+			sourceTree = SOURCE_ROOT;
 		};
 		B34A02722D458A880010D066 /* include */ = {
 			isa = PBXGroup;
@@ -502,8 +465,20 @@
 				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
 				B3A482922D5035DC00FCE4A5 /* WebView.swift */,
 			);
-			path = swift;
+			name = swift;
+			path = ../src/swift;
 			sourceTree = SOURCE_ROOT;
+		};
+		B3AA963A2DAF31DC00D676BD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B3AA96412DAF320700D676BD /* WebKit.framework */,
+				B3AA963F2DAF31FF00D676BD /* Network.framework */,
+				B3AA963D2DAF31ED00D676BD /* MetalKit.framework */,
+				B3AA963B2DAF31DC00D676BD /* Metal.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
 		};
 		B3B3F3FE2D4AB3C300A2D406 /* javascript */ = {
 			isa = PBXGroup;
@@ -612,20 +587,13 @@
 				B375A6AB2D946ADB001F9286 /* app2.js in Resources */,
 				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
 				B33026C52DA1F40C0082BBB5 /* app3.js in Resources */,
-				B30D39242D458EFA00B8196B /* tokenizer_config.json in Resources */,
 				B3E2499B2D6162110048A24F /* model.js in Resources */,
-				B30D39252D458EFA00B8196B /* added_tokens.json in Resources */,
 				B33026C72DA1F46B0082BBB5 /* app3.css in Resources */,
 				B3F5905A2D6A848C008B5B7D /* modal.js in Resources */,
-				B30D39262D458EFA00B8196B /* merges.txt in Resources */,
-				B30D39272D458EFA00B8196B /* tokenizer.json in Resources */,
 				B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */,
 				B39546CB2DA7007B00E35252 /* app1.html in Resources */,
-				B30D39282D458EFA00B8196B /* config.json in Resources */,
 				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B375A6AD2D946B0E001F9286 /* app2.html in Resources */,
-				B30D392A2D458EFA00B8196B /* vocab.json in Resources */,
-				B30D392B2D458EFA00B8196B /* README.md in Resources */,
 				B3A3D8392D67E455000A5839 /* suggestions.js in Resources */,
 				B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */,
 				B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */,
@@ -639,9 +607,7 @@
 				B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */,
 				B3E2499F2D617B780048A24F /* app.html in Resources */,
 				B39546CD2DA7012800E35252 /* app1.js in Resources */,
-				B30D392C2D458EFA00B8196B /* generation_config.json in Resources */,
 				B39546C92DA5ABE300E35252 /* history.js in Resources */,
-				B30D392D2D458EFA00B8196B /* special_tokens_map.json in Resources */,
 				B3F590562D6A7294008B5B7D /* detect.js in Resources */,
 				B375A6A92D946AC8001F9286 /* app2.css in Resources */,
 			);
