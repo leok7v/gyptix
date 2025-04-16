@@ -72,7 +72,9 @@ export const run = () => { // called DOMContentLoaded
     
     let scrollable = scroll.scroll_create_wrapper(messages,
                                                   model.is_answering, false)
-    
+
+    const is_input_focused = () => document.activeElement === input
+
     document.addEventListener("copy", e => {
         e.preventDefault()
         const s = window.getSelection().toString()
@@ -415,7 +417,7 @@ export const run = () => { // called DOMContentLoaded
         util.toggle_theme()
     }
     
-    send.onclick = e => {
+    send.addEventListener("touchstart", (e) => {
         e.preventDefault()
         let s = input.innerText.trim()
         // if we did not achive running state in 10 seconds since load time
@@ -432,8 +434,8 @@ export const run = () => { // called DOMContentLoaded
             input.blur()
             layout_and_render().then( () => ask(s) )
         }
-    }
-    
+    }, { passive: false })
+
     stop.onclick = e => {
         e.preventDefault()
         let s = input.innerText.trim()
@@ -446,15 +448,18 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    clear.onclick = e => {
+    clear.addEventListener("touchstart", (e) => {
         e.preventDefault()
         input.innerText = ""
         placeholder()
         layout_and_render().then(() => {
-            if (chat.messages.length === 0) { suggestions.show() }
+            clear_selection()
+            if (chat.messages.length === 0 && !is_input_focused()) {
+                suggestions.show()
+            }
         })
-    }
-    
+    }, { passive: false })
+
     carry.onclick = e => {
         e.preventDefault()
         interrupted = false
@@ -509,7 +514,7 @@ export const run = () => { // called DOMContentLoaded
     const expanded = () => {
         if (!model.is_answering() && !is_expanded) {
             modal.modal_on()
-            if (document.activeElement === input) {
+            if (is_input_focused()) {
                 input.blur()
                 setTimeout(() => {
                     is_expanded = true
@@ -522,7 +527,7 @@ export const run = () => { // called DOMContentLoaded
             setTimeout(() => {
                 ui.show(tools)
                 ui.hide(title)
-            }, 333)
+            }, 150)
         }
     }
     
@@ -540,9 +545,36 @@ export const run = () => { // called DOMContentLoaded
         return h
     }
     
+    let inset_bottom = null
+    
+    const safe_area_inset_bottom = () => {
+        if (inset_bottom === null) {
+            const root = document.documentElement
+            const value = getComputedStyle(root)
+                .getPropertyValue('--data-safe-area-inset-bottom')
+                .trim()
+//          console.log(`--data-safe-area-inset-bottom: ${value}`)
+            inset_bottom = parseFloat(value) || 0 // '34px'
+//          console.log(`inset_bottom: ${inset_bottom}`)
+        }
+        return inset_bottom
+    }
+    
     const set_box_top = () => {
         const top = (window.visualViewport.height - height_with_margins(box))
         box.style.setProperty('--data-top', `${top}px`);
+//      console.log(`box.style.setProperty('--data-top', ${top}px)`);
+        if (is_input_focused()) {
+            const bh = height_with_margins(box)
+            const kh = window.innerHeight - window.visualViewport.height
+            const ib = safe_area_inset_bottom()
+            const m = bh + kh - ib // box height + keyboard height - inset bottom
+            talk.style.marginBottom = `${m}px`
+//          console.log(`talk.style.marginBottom = ${m}px`)
+        } else {
+            talk.style.marginBottom = talk.dataset.marginBottom
+//          console.log(`talk.style.marginBottom = ${talk.dataset.marginBottom}`)
+        }
     }
 
     let move_box = false
@@ -555,24 +587,46 @@ export const run = () => { // called DOMContentLoaded
         }
         input.contentEditable = "false"
         talk.style.marginBottom = talk.dataset.marginBottom
+//      console.log(`talk.style.marginBottom = ${talk.dataset.marginBottom}`)
+    }
+
+    function dump() {
+        const root = document.documentElement
+        const body = document.body
+        const vv = window.visualViewport
+        console.log('window.visualViewport.offsetTop: ' + vv.offsetTop)
+        console.log('window.visualViewport.height: ' + vv.height)
+        console.log('document.documentElement.offsetTop: ' + root.offsetTop)
+        console.log('document.documentElement.style.height: ' + root.style.height)
+        console.log('document.documentElement.offsetHeight: ' + root.offsetHeight)
+        console.log('document.documentElement.scrollHeight: ' + root.scrollHeight)
+        console.log('document.documentElement.scrollTop: '    + root.scrollTop)
+        console.log('document.body.offsetTop: '    + body.offsetTop)
+        console.log('document.body.style.height: ' + body.style.height)
+        console.log('document.body.offsetHeight: ' + body.offsetHeight)
+        console.log('document.body.scrollHeight: ' + body.scrollHeight)
+        console.log('document.body.scrollTop: '    + body.scrollTop)
+        console.log('content.offsetHeight: '       + content.offsetHeight)
+        console.log('content.scrollHeight: '       + content.scrollHeight);
+        console.log('window.innerHeight: '         + window.innerHeight);
+        console.log('window.outerHeight: '         + window.outerHeight);
     }
 
     const viewport = (e) => {
         if (!move_box) { return }
 //      console.log("e.type: " + e.type)
+//      dump()
         set_box_top()
         box.style.opacity = "1"
-        talk.style.marginBottom = `${height_with_margins(box)}px`
     }
 
     window.visualViewport.addEventListener('resize', viewport);
     window.visualViewport.addEventListener('scroll', viewport);
 
     input.onclick = () => {
-        if (document.activeElement === input) { return }
+        if (is_input_focused()) { return }
         if (detect.macOS) { return }
 //      suggestions.hide()
-        talk.dataset.marginBottom = `${getComputedStyle(talk).marginBottom}`
         collapsed()
         box.style.opacity = "0"
         move_box = true
@@ -580,28 +634,40 @@ export const run = () => { // called DOMContentLoaded
         input.focus()
     }
 
+    // save initial marginBottom
+    talk.dataset.marginBottom = `${getComputedStyle(talk).marginBottom}`
+    console.log(`talk.dataset.marginBottom = ${getComputedStyle(talk).marginBottom}`)
+
     input.onfocus = () => suggestions.hide()
 
     if (detect.macOS) {
         input.contentEditable = "plaintext-only"
     }
 
-    input.oninput = () => {
+    const show_hide_input_buttons = () => {
         const answering = model.is_answering()
         let s = input.innerText
         if (s === '\n') { s = "" } // empty div has '\n'
-        if (s !== "") { suggestions.hide() }
+        if (s !== "" || answering) { suggestions.hide() }
         const clear_and_send = s !== "" && !answering;
         ui.show_hide(clear_and_send, clear, send)
         ui.show_hide(answering,  stop)
         ui.show_hide(!clear_and_send && !interrupted, strut)
         ui.show_hide(interrupted && !answering && !clear_and_send,  carry)
-        const lines = input.innerText.split("\n").length
-        input.style.maxHeight = lines > 1 ? window.innerHeight * 0.5 + "px" : ""
+    }
+
+    input.oninput = () => {
+        show_hide_input_buttons()
+        input.style.maxHeight = `${window.innerHeight * 0.25}px`
         set_box_top()
     }
     
     let last_key_down_time = 0
+    
+    const clear_selection = () => {
+        const sel = window.getSelection()
+        if (sel) { sel.removeAllRanges() }
+    }
     
     input.onkeydown = e => {
         let s = input.innerText.trim()
@@ -610,8 +676,7 @@ export const run = () => { // called DOMContentLoaded
             input.innerHTML = ""
             ui.hide(send)
             layout_and_render().then(() => {
-                const sel = window.getSelection()
-                if (sel) { sel.removeAllRanges() }
+                clear_selection()
                 ask(s)
             })
         }
@@ -627,22 +692,18 @@ export const run = () => { // called DOMContentLoaded
         last_key_down_time = Date.now()
     }
     
-    
     const observer = new MutationObserver(input.oninput)
     
-    observer.observe(input, { childList: true, subtree: true,
-        characterData: true });
-
-    content.onclick = e => {
-        if (is_expanded) {
-            if (!e.target.closest("#menu")) {
-                hide_menu()
-            }
-            if (e.target.closest("#content") || e.target.closest("#input")) {
-                collapsed()
-            }
-            e.preventDefault()
+    observer.observe(input,
+        { childList:     true,
+          subtree:       true,
+          characterData: true
         }
+    )
+
+    messages.onclick = e => {
+        if (!e.target.closest("#menu")) { hide_menu() }
+        if (is_expanded) { collapsed() }
     }
 
     const delete_chat = () => {
@@ -855,7 +916,7 @@ export const run = () => { // called DOMContentLoaded
     showEULA()
     
     suggestions.show()
-    input.oninput()
+    show_hide_input_buttons()
 
     const test_download = false // WIP
     

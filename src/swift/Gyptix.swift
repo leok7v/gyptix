@@ -46,9 +46,7 @@ struct Gyptix: App {
             ContentView()
                 #if os(iOS)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-//              .statusBarHidden(true)
-                .ignoresSafeArea(edges: .top)
-                .safeAreaPadding(.all, 0)
+                .ignoresSafeArea(.all, edges: [.top, .bottom])
                 #else // os(macOS)
                 .frame(minWidth: Gyptix.w, minHeight: Gyptix.h)
                 #endif
