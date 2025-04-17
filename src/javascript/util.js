@@ -133,7 +133,7 @@ const stop_words = new Set([
         "were", "this", "that", "there", "which", "their", "would",
         "could", "with", "should", "about", "because", "after", "before",
         "where", "while", "again", "said", "says", "from", "into", "over",
-        "what", "when", "more", "less", "ever"
+        "what", "when", "more", "less", "ever", "your"
 ])
 
 const shorten_the_sentence = (str, limit) => {

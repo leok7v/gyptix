@@ -148,7 +148,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         log("scroll_to_top")
         scroll_to(e, 0)
         scrollable.autoscroll = false
-        console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+        log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
     }
 
     const scroll_to_bottom = (e) => {
@@ -157,7 +157,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         scroll_to(e, scroll_to_bottom_top_position(e))
         if (appending()) {
             scrollable.autoscroll = true
-            console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+            log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             show_hide(false, button_bottom)
         }
     }
@@ -171,7 +171,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         const end = e.scrollHeight - lh
         if (appending() && at_the_bottom(e) && !scrollable.autoscroll) {
             scrollable.autoscroll = true
-            console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+            log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             show_hide(false, button_bottom)
             show_hide(true,  button_top)
         }
@@ -179,7 +179,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
            !is_programmatic_scroll && appending()) {
             if (scrollable.autoscroll && !at_the_bottom(e)) {
                 scrollable.autoscroll = false
-                console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+                log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             }
         }
         requestAnimationFrame(() => update_buttons(e))
@@ -273,7 +273,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     })
 
     scrollable.autoscroll = false
-    console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+    log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
     scrollable.scroll_to_top    = () => scroll_to_top(list)
     scrollable.scroll_to_bottom = () => scroll_to_bottom(list)
     scrollable.at_the_bottom    = () => at_the_bottom(list)

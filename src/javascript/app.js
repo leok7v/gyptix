@@ -1,5 +1,6 @@
 "use strict"
 
+import * as algo        from "./algo.js"
 import * as detect      from "./detect.js"
 import * as history     from "./history.js"
 import * as markdown    from "./markdown.js"
@@ -109,11 +110,44 @@ export const run = () => { // called DOMContentLoaded
         // this is optimization because markdown rendering is slow
         let i = 0
         chat.messages.forEach(msg => {
-            if (i > messages.childNodes.length - 1) {
+            if (i > messages.childNodes.length - 1 && !msg.hidden) {
                 messages.appendChild(render_message(msg))
             }
             i++;
         })
+    }
+
+    const interrupt = () => {
+        interrupted = true
+        model.interrupt()
+        placeholder()
+        ui.hide(stop)
+        carry.style.display = "inline"
+    }
+
+    const count_dups = (s, d) => {
+        let n = 0;
+        for (let i = s.indexOf(d); i !== -1; i = s.indexOf(d, i + d.length)) {
+            n++
+        }
+        return n
+    }
+
+    let check_for_repeatitions_count = 0
+
+    const check_for_repetitions_and_stop = () => {
+        if (chat.messages.length < 1) { return }
+        const s = chat.messages[chat.messages.length - 1].text
+        if (s.length < 1024) { return } // start checking at 1KB
+        check_for_repeatitions_count++
+        // check after 128 appends
+        if (check_for_repeatitions_count % 128 != 0) { return }
+        const d = algo.longest_duplicate_substring(s)
+        if (d.length > 48) {
+            const c = count_dups(s, d)
+//          console.log(`duplicate string found: (${c}) ${d.length}:"${d}"`)
+            if (c > 2 || d.length > 64) { requestAnimationFrame(interrupt) }
+        }
     }
     
     const render_last = (chunk) => {
@@ -319,9 +353,29 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
+    const trim_interrupted = () => {
+        const last_index = chat.messages.length - 1
+        const last_msg = chat.messages[last_index]
+        let i = last_msg.text.lastIndexOf('.')
+        if (i != -1 && i > last_msg.text.length - 256) {
+            const is_digit       = (ch) => ch >= '0' && ch <= '9';
+            const is_whitespace  = (ch) => /\s/.test(ch);
+            while (i > 0 && i > last_msg.text.length - 256) {
+                const ch = last_msg.text[i - 1];
+                if (!(is_digit(ch) || is_whitespace(ch))) { break; }
+                i--;
+            }
+            last_msg.text = last_msg.text.slice(0, i + 1)
+//          console.log(`last_msg.text: ${last_msg.text}`)
+            const html = marked.parse(last_msg.text)
+            messages.lastElementChild.innerHTML = html
+        }
+        scrollable.scroll_to_bottom()
+    }
+
     const done = () => {
         scrollable.autoscroll = false
-        console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+//      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
         input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
@@ -330,10 +384,9 @@ export const run = () => { // called DOMContentLoaded
         history.save_chat(chat)
         rebuild_list()
         stop.classList.remove("pulsing")
-        const last_index = chat.messages.length - 1
-        const last_msg = chat.messages[last_index]
         placeholder()
         ui.show(expand, spawn)
+        if (interrupted) { setTimeout(trim_interrupted, 250) }
     }
     
     const poll = (context) => {
@@ -346,6 +399,7 @@ export const run = () => { // called DOMContentLoaded
                 done()
             } else if (chunk !== "") {
                 render_last(chunk)
+                check_for_repetitions_and_stop()
             }
         }
         if (util.timestamp() - context.last > 1500) {
@@ -379,17 +433,19 @@ export const run = () => { // called DOMContentLoaded
         setTimeout(() => { model.quit() }, 5100)
     }
 
-    const ask = t => { // 't': text
+    const ask = (t, hidden) => { // 't': text
+        interrupted = false
+        ui.hide(carry, clear)
         if (!current || !t) { return }
         if (!model.is_running()) { oops() }
-        chat.messages.push({ sender: "user", text: t })
-        chat.messages.push({ sender: "bot",  text: "" })
+        let h = hidden ? hidden : false
+        chat.messages.push({ sender: "user", text: t, hidden: h })
+        chat.messages.push({ sender: "bot",  text: "", hidden: false })
         history.save_chat(chat)
         render_messages()
-        scrollable.scroll_to_bottom()
+        setTimeout(scrollable.scroll_to_bottom, 500)
         layout_and_render().then(() => { // render before asking
             let error = model.ask(t)
-            ui.hide(clear)
             if (!error) {
                 polling()
             } else {
@@ -429,8 +485,8 @@ export const run = () => { // called DOMContentLoaded
         let since = util.timestamp() - load_timestamp // ms
         if (!model.is_running() && since > 10000) { oops() }
         if (model.is_running() && !model.is_answering() && s !== "") {
+            collapsed()
             ui.hide(carry, clear)
-            interrupted = false
             input.innerHTML = ""
             ui.hide(send)
             input.style.setProperty("--placeholder", '""')
@@ -464,21 +520,13 @@ export const run = () => { // called DOMContentLoaded
     stop.onclick = e => {
         e.preventDefault()
         let s = input.innerText.trim()
-        if (model.is_answering()) {
-            interrupted = true
-            model.interrupt()
-            placeholder()
-            ui.hide(stop)
-            carry.style.display = "inline"
-        }
+        if (model.is_answering()) { interrupt() }
     }
-    
 
     carry.onclick = e => {
         e.preventDefault()
-        interrupted = false
         ui.hide(carry)
-        ask("carry on")
+        ask("carry on", true) // hidden
     }
     
     spawn.onclick = e => {
@@ -640,10 +688,9 @@ export const run = () => { // called DOMContentLoaded
     window.visualViewport.addEventListener('scroll', viewport);
 
     input.onclick = () => {
+        collapsed()
         if (is_input_focused()) { return }
         if (detect.macOS) { return }
-//      suggestions.hide()
-        collapsed()
         box.style.opacity = "0"
         move_box = true
         input.contentEditable = "plaintext-only"

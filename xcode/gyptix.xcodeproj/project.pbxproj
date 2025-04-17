@@ -55,6 +55,7 @@
 		B34A04712D458A880010D066 /* ggml-cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02992D458A880010D066 /* ggml-cpu.cpp */; };
 		B34A04732D458A880010D066 /* gguf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A04382D458A880010D066 /* gguf.cpp */; };
 		B34A04762D458A880010D066 /* cpu-feats-x86.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B34A02972D458A880010D066 /* cpu-feats-x86.cpp */; };
+		B34C1FBF2DB18C43004E8B2C /* algo.js in Resources */ = {isa = PBXBuildFile; fileRef = B34C1FBE2DB18C43004E8B2C /* algo.js */; };
 		B35FDE042DAB91A80068738F /* Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35FDE032DAB91A80068738F /* Downloads.swift */; };
 		B361EBE02D8FD06500B45B70 /* app1.css in Resources */ = {isa = PBXBuildFile; fileRef = B361EBDF2D8FD06500B45B70 /* app1.css */; };
 		B361EBE22D92101100B45B70 /* ui.js in Resources */ = {isa = PBXBuildFile; fileRef = B361EBE12D92101100B45B70 /* ui.js */; };
@@ -196,6 +197,7 @@
 		B34A04362D458A880010D066 /* ggml-threading.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-threading.h"; sourceTree = "<group>"; };
 		B34A04372D458A880010D066 /* ggml-threading.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "ggml-threading.cpp"; sourceTree = "<group>"; };
 		B34A04382D458A880010D066 /* gguf.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gguf.cpp; sourceTree = "<group>"; };
+		B34C1FBE2DB18C43004E8B2C /* algo.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = algo.js; sourceTree = "<group>"; };
 		B35FDE032DAB91A80068738F /* Downloads.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; name = Downloads.swift; path = ../src/swift/Downloads.swift; sourceTree = SOURCE_ROOT; };
 		B361EBDF2D8FD06500B45B70 /* app1.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app1.css; sourceTree = "<group>"; };
 		B361EBE12D92101100B45B70 /* ui.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ui.js; sourceTree = "<group>"; };
@@ -496,6 +498,7 @@
 				B39546CC2DA7012800E35252 /* app1.js */,
 				B375A6AA2D946ADB001F9286 /* app2.js */,
 				B33026C42DA1F40C0082BBB5 /* app3.js */,
+				B34C1FBE2DB18C43004E8B2C /* algo.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B39546C82DA5ABE300E35252 /* history.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
@@ -600,6 +603,7 @@
 				B3B3F4062D4AB3C300A2D406 /* prompts.js in Resources */,
 				B3B3F4092D4AB3C300A2D406 /* about.md in Resources */,
 				B3994E822DA882F5002906B5 /* scroll.js in Resources */,
+				B34C1FBF2DB18C43004E8B2C /* algo.js in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,
 				B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */,
 				B3D7EDF02D955A86003AF38F /* app3.html in Resources */,

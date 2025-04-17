@@ -189,7 +189,7 @@ html:not([data-macos]) #navigation:focus-within {
 #input {
     flex: 0 0;
     min-height: 1em;
-    line-height: 1; /* instead of default 1.2 */
+    line-height: 1.1; /* instead of default 1.2 */
     padding: 0.25rem;
     outline: none;
     overflow-y: auto;

@@ -117,7 +117,9 @@ const crafting = [
     "What makes resin crafting hazardous?",
     "Why do quilting traditions vary culturally?",
     "How to preserve handmade paper?",
-    "What safety precautions apply to woodworking?",
+//  Next prompt is prone to repeatition penalty especially when
+//  it has follow up "Generate much longer list." ...
+//  "What safety precautions apply to woodworking?",
     "Why do embroidery patterns carry symbolism?",
     "How does candle-making balance art and science?",
     "What defines a 'maker' culture?",
