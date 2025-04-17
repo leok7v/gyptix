@@ -119,16 +119,6 @@ export const increase_font_size = () => {
     localStorage.setItem("settings.font-size", font_size);
 }
 
-export const shorten_the_sentence = (str, limit) => {
-    const words = str.split(/\s+/).filter(Boolean) // Remove empty words
-    let result = ""
-    for (let word of words) {
-        if ((result.length + word.length + (result ? 1 : 0)) > limit) break
-        result += (result ? " " : "") + word
-    }
-    return result
-}
-
 export const timestamp_label = (timestamp) => {
     const d = new Date(timestamp)
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -142,8 +132,19 @@ export const timestamp_label = (timestamp) => {
 const stop_words = new Set([
         "were", "this", "that", "there", "which", "their", "would",
         "could", "with", "should", "about", "because", "after", "before",
-        "where", "while", "again"
+        "where", "while", "again", "said", "says", "from", "into", "over",
+        "what", "when", "more", "less", "ever"
 ])
+
+const shorten_the_sentence = (str, limit) => {
+    const words = str.split(/\s+/).filter(Boolean) // Remove empty words
+    let result = ""
+    for (let word of words) {
+        if ((result.length + word.length + (result ? 1 : 0)) > limit) break
+        result += (result ? " " : "") + word
+    }
+    return result
+}
 
 export const summarize = (str) => {
     // three most frequent words
@@ -163,6 +164,16 @@ export const summarize = (str) => {
         }
         map.set(word, (map.get(word) || 0) + 1)
     }
+    
+    const sorted = [...map.entries()]
+        .sort((a, b) => b[1] - a[1] ||
+                       a[0].localeCompare(b[0]))
+    for (let i = 0; i < sorted.length; i++) {
+        let [w, c] = sorted[i] // `w` word, `c` count
+        if (c < 3) break
+        console.log(`${w} ${c}`)
+    }
+        
     let s = [...map.entries()]
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
         .slice(0, 3)

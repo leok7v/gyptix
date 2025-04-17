@@ -29,6 +29,9 @@ const art = [
     "Why did abstract art emerge as a dominant form?",
     "Why do certain artworks become iconic (e.g., Mona Lisa)?",
     "Why do some artists gain fame posthumously (e.g., Van Gogh)?",
+    "Can AI translate images into text?",
+    "Can AI create portraits of real people?",
+    "Can AI create music based on specific notes or scales?"
 ]
 
 const astronomy = [
@@ -150,7 +153,10 @@ const cooking = [
     "Why does wine pairing enhance meals?",
     "What causes oil to smoke at high temps?",
     "How does cooking affect vitamin content?",
-    "Why do chefs rest meat after cooking?"
+    "Why do chefs rest meat after cooking?",
+    "What are the healthiest foods to eat if you're trying to lose weight?",
+    "Can I use a pressure cooker instead of a stove to cook my meals?",
+    "How can I make my dishes taste better without using any ingredients?"
 ]
 
 const culture = [
@@ -354,7 +360,11 @@ const gardening = [
     "What pests can be controlled naturally?",
     "Why do compost teas boost soil health?",
     "Why do heirloom seeds matter?",
-    "Why do some plants thrive in shade?"
+    "Why do some plants thrive in shade?",
+    "How to grow herbs indoors without sunlight?",
+    "What are the best plants for beginners in a pot?",
+    "How to propagate rose bushes from cuttings?",
+    "What are the best plants for a sunny patio?"
 ]
 
 const geography = [
@@ -646,7 +656,9 @@ const physics = [
     "What secrets do neutrino oscillations hold?",
     "Why does time dilate at high speeds?",
     "Why is the speed of light a cosmic limit?",
-    "Will we ever unify all physics theories?"
+    "Will we ever unify all physics theories?",
+    "How does gravity affect the behavior of subatomic particles?",
+    "How does the theory of relativity affect our understanding of time and space?"
 ]
 
 const productivity = [
@@ -710,7 +722,10 @@ const robotics = [
     "Why are robotic pets therapeutic?",
     "Why are swarm robots more efficient?",
     "Why do humanoid robots unsettle people?",
-    "Why is soft robotics gaining traction?"
+    "Why is soft robotics gaining traction?",
+    "How to make a robot that can learn and adapt like a pet?",
+    "Can a robot be programmed to understand and respond to emotions?",
+    "What are the limits of human-robot collaboration?"
 ]
 
 const science = [
@@ -834,7 +849,8 @@ const transportation = [
     "Why are micro-mobility scooters controversial?",
     "Why do high-speed rails succeed in some countries?",
     "Why do public transit systems struggle financially?",
-    "Will hyperloop systems replace trains?"
+    "Will hyperloop systems replace trains?",
+    "Can we use AI to optimize traffic flow in real-time?"
 ]
 
 const travel = [
@@ -850,7 +866,8 @@ const travel = [
     "Why do language barriers enrich journeys?",
     "Why do travel diaries enhance experiences?",
     "Why do travel scams target foreigners?",
-    "Why do 'hidden gem' destinations stay underrated?"
+    "Why do 'hidden gem' destinations stay underrated?",
+    "Can AI be used to create personalized travel itineraries?"
 ]
 
 const writing = [
@@ -866,7 +883,8 @@ const writing = [
     "What role does editing play in quality?",
     "Why are writing prompts effective tools?",
     "Why do authors write pseudonymously?",
-    "Why do certain genres dominate specific eras?"
+    "Why do certain genres dominate specific eras?",
+    "Can AI be used to generate plot summaries for my writing?"
 ]
 
 export const data = [

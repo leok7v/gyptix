@@ -83,6 +83,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     }
     
     const at_the_bottom = (e) => {
+        if (e.children.length == 0) { return true }
         const lh = line_height(e)
         const bottom = e.scrollTop + e.clientHeight
         const end = e.scrollHeight - lh
@@ -143,21 +144,26 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         e.scrollHeight - e.clientHeight
 
     const scroll_to_top = (e) => {
+        if (e.children.length == 0) { return }
         log("scroll_to_top")
         scroll_to(e, 0)
         scrollable.autoscroll = false
+        console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
     }
 
     const scroll_to_bottom = (e) => {
+        if (e.children.length == 0) { return }
         log("scroll_to_bottom")
         scroll_to(e, scroll_to_bottom_top_position(e))
         if (appending()) {
             scrollable.autoscroll = true
+            console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             show_hide(false, button_bottom)
         }
     }
 
     const scroll = (e) => {
+        if (e.children.length == 0) { return }
         log("scroll() .scrollTop: " + e.scrollTop +
             " user_interacting: " + user_interacting)
         const lh = line_height(e)
@@ -165,6 +171,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         const end = e.scrollHeight - lh
         if (appending() && at_the_bottom(e) && !scrollable.autoscroll) {
             scrollable.autoscroll = true
+            console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             show_hide(false, button_bottom)
             show_hide(true,  button_top)
         }
@@ -172,6 +179,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
            !is_programmatic_scroll && appending()) {
             if (scrollable.autoscroll && !at_the_bottom(e)) {
                 scrollable.autoscroll = false
+                console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             }
         }
         requestAnimationFrame(() => update_buttons(e))
@@ -188,13 +196,16 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     }
 
     const touch_move = (e) => {
+        if (e.children.length == 0) { return }
         log("user_interacting: " + user_interacting)
         force_layout(e)
-        scrollable.autoscroll = false
+        scrollable.autoscroll = at_the_bottom(e)
+        log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
         update_buttons_later(e)
     }
 
     const scroll_end = (e) => {
+        if (e.children.length == 0) { return }
         log("user_interacting: " + user_interacting)
         if (later) clearTimeout(later)
         later = setTimeout(() => {
@@ -262,6 +273,7 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     })
 
     scrollable.autoscroll = false
+    console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
     scrollable.scroll_to_top    = () => scroll_to_top(list)
     scrollable.scroll_to_bottom = () => scroll_to_bottom(list)
     scrollable.at_the_bottom    = () => at_the_bottom(list)

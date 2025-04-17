@@ -194,6 +194,7 @@ export const run = () => { // called DOMContentLoaded
     const rebuild_list = () => history.generate(list, search, list_item)
     
     const spawn_new_conversation = () => {
+        suggestions.show()
         // already have new empty chat?
         if (chat && chat.messages && chat.messages.length === 0) {
             suggestions.cycle()
@@ -320,7 +321,7 @@ export const run = () => { // called DOMContentLoaded
     
     const done = () => {
         scrollable.autoscroll = false
-//      console.log("autoscroll := " + scrollable.autoscroll)
+        console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
         input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
@@ -336,10 +337,12 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const poll = (context) => {
-        if (!markdown.processing) {
+        if (!markdown.processing && context.interval) {
             const chunk = model.poll()
             if (chunk === "<--done-->") {
+                console.log("chunk: " + chunk)
                 clearInterval(context.interval)
+                context.interval = null
                 done()
             } else if (chunk !== "") {
                 render_last(chunk)
@@ -353,20 +356,21 @@ export const run = () => { // called DOMContentLoaded
     
     const polling = () => {
         scrollable.autoscroll = true
-//      console.log("autoscroll := " + scrollable.autoscroll)
+        console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
         ui.show(stop)
         ui.hide(send, expand, spawn)
         stop.classList.add("pulsing")
         markdown.start()
         cycle_titles(0)
-        let context = { interval: null, last: util.timestamp(), count: 1 }
-        const interval = setInterval(() => {
-            layout_and_render().then(() => {
-                context.interval = interval
-                poll(context)
-            })
-        }, 20) // 50 times per second
         placeholder()
+        let context = {
+            interval: null,
+            last: util.timestamp(),
+            count: 1
+        }
+        context.interval = setInterval(() => {
+            layout_and_render().then( () => poll(context) )
+        }, 33) // 33 times per second
     }
     
     const oops = () => {
@@ -478,6 +482,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     spawn.onclick = e => {
+        console.log(`model.is_running(): ${model.is_running()} model.is_answering(): ${model.is_answering()}`)
         e.preventDefault()
         if (model.is_running() && !model.is_answering()) {
             spawn_new_conversation()
@@ -657,10 +662,11 @@ export const run = () => { // called DOMContentLoaded
 
     const show_hide_input_buttons = () => {
         const answering = model.is_answering()
+        const running   = model.is_running()
         let s = input.innerText
         if (s === '\n') { s = "" } // empty div has '\n'
         if (s !== "" || answering) { suggestions.hide() }
-        const clear_and_send = s !== "" && !answering;
+        const clear_and_send = s !== "" && !answering && running;
         ui.show_hide(clear_and_send, clear, send)
         ui.show_hide(answering,  stop)
         ui.show_hide(!clear_and_send && !interrupted, strut)
@@ -1001,87 +1007,3 @@ window.app = { run: run, inactive: inactive,
 
 model.initialized()
 
-// https://huggingface.co/ibm-research/granite-3.2-8b-instruct-GGUF/tree/main
-// https://huggingface.co/ibm-research/granite-3.2-8b-instruct-GGUF/resolve/main/granite-3.2-8b-instruct-f16.gguf
-// 8.68GB
-
-// https://huggingface.co/ibm-research/granite-3.2-2b-instruct-GGUF/tree/main
-// https://huggingface.co/ibm-research/granite-3.2-2b-instruct-GGUF/resolve/main/granite-3.2-2b-instruct-Q8_0.gguf
-// 2.69GB
-
-// Multimodal (images understanding and generation)
-// https://huggingface.co/deepseek-ai/Janus-Pro-1B
-// https://huggingface.co/mradermacher/Janus-Pro-1B-LM-GGUF
-// https://huggingface.co/mradermacher/Janus-Pro-1B-LM-GGUF/resolve/main/Janus-Pro-1B-LM.Q8_0.gguf
-// 1.76GB
-
-// DeepSeek R1 (All Versions)
-// https://huggingface.co/collections/unsloth/deepseek-r1-all-versions-678e1c48f5d2fce87892ace5
-
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-1.5B-Q8_0.gguf
-// 1.89GB
-
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q8_0.gguf
-// 8.1GB
-
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-GGUF
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-GGUF/resolve/main/DeepSeek-R1-Distill-Llama-8B-Q8_0.gguf
-// 8.54GB
-
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-14B-GGUF
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-14B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-14B-Q8_0.gguf
-// 15.7GB
-
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B-GGUF/tree/main
-// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-32B-Q8_0.gguf
-// 34.8GB
-
-// Gemma 3
-// https://huggingface.co/collections/unsloth/gemma-3-67d12b7e8816ec6efa7e4e5b
-
-// https://huggingface.co/unsloth/gemma-3-1b-it-GGUF
-// https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q8_0.gguf
-// 1.05GB
-
-// https://huggingface.co/unsloth/gemma-3-4b-it-GGUF
-// https://huggingface.co/unsloth/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q8_0.gguf
-// 4.0GB
-
-// https://huggingface.co/unsloth/gemma-3-12b-it-GGUF
-// https://huggingface.co/unsloth/gemma-3-12b-it-GGUF/resolve/main/gemma-3-12b-it-Q8_0.gguf
-// 11.9GB
-
-// https://huggingface.co/unsloth/gemma-3-27b-it-GGUF
-// https://huggingface.co/unsloth/gemma-3-27b-it-GGUF/resolve/main/gemma-3-27b-it-Q8_0.gguf
-// 27.7GB
-
-/*
-
-TODO: investigate
-
-Claude 3 Model Family:
-Claude 3 Haiku:
-    Optimized for speed and affordability,
-    making it suitable for lightweight tasks.
-Claude 3 Sonnet:
-    Balances capability and performance, well-suited for enterprise
-    tasks and large-scale deployments.
-Claude 3 Opus:
-    The most powerful model, designed for complex reasoning tasks and
-    demonstrating enhanced abilities in areas like mathematics, programming,
-    and logical reasoning
-
-*/
-
-/*
-   R&D:
-
-   https://github.com/rswier/c4
-   try to force coding models to extend it to full c99 language
-   and automatic .DLL .so binding
-   
-   Could be fun.
-   
-*/

@@ -34,6 +34,24 @@
 #pragma warning(disable: 4244 4267) // possible loss of data
 #endif
 
+static double trace_start_time = 0.0;
+
+#define trace(format, ...) do {                                     \
+    if (trace_start_time == 0.0) {                                  \
+        struct timespec ts;                                         \
+    clock_gettime(CLOCK_MONOTONIC, &ts);                            \
+        trace_start_time = ts.tv_sec + ts.tv_nsec / 1e9;            \
+    }                                                               \
+    const char* file = __FILE__;                                    \
+    const char* last = strrchr(file, '/');                          \
+    if (last != NULL) { file = last + 1; }                          \
+    struct timespec ts;                                             \
+    clock_gettime(CLOCK_MONOTONIC, &ts);                            \
+    double now = ts.tv_sec + ts.tv_nsec / 1e9 - trace_start_time;   \
+    fprintf(stderr, "%.6f %s:%d @%s " format, now,                  \
+        file, __LINE__, __func__, ##__VA_ARGS__);                   \
+} while (0)
+
 static const char * DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant";
 
 struct context {
@@ -70,7 +88,37 @@ struct context {
     int n_remain                {0};
     int n_consumed              {0};
     int n_session_consumed      {0};
+    double progress             {0}; // progress of processin embd_inp
+    struct  {
+        size_t embd_size            {0};
+        size_t embd_inp_size        {0};
+        size_t session_tokens_size  {0};
+        int n_past                  {0};
+        int n_remain                {0};
+        int n_consumed              {0};
+        int n_session_consumed      {0};
+    } at_readline;
 };
+
+static void save_at_readline(struct context& context) {
+    context.at_readline.embd_size           = context.embd.size();
+    context.at_readline.embd_inp_size       = context.embd_inp.size();
+    context.at_readline.session_tokens_size = context.session_tokens.size();
+    context.at_readline.n_past              = context.n_past;
+    context.at_readline.n_remain            = context.n_remain;
+    context.at_readline.n_consumed          = context.n_consumed;
+    context.at_readline.n_session_consumed  = context.n_session_consumed;
+}
+
+static void restore_at_readline(struct context& context) {
+    context.embd.resize(context.at_readline.embd_size);
+    context.embd_inp.resize(context.at_readline.embd_inp_size);
+    context.session_tokens.resize(context.at_readline.session_tokens_size);
+    context.n_past              = context.at_readline.n_past;
+    context.n_remain            = context.at_readline.n_remain;
+    context.n_consumed          = context.at_readline.n_consumed;
+    context.n_session_consumed  = context.at_readline.n_session_consumed;
+}
 
 static void print_usage(int argc, char ** argv) {
     (void) argc;
@@ -213,8 +261,8 @@ static int chat(struct context &context, const char* session, bool existing) {
     context.assistant_ss.clear();
     context.antiprompt_ids.clear();
     context.is_interacting = false;
-    context.input_echo = false;
-    context.display = false;
+    context.input_echo     = false;
+    context.display        = false;
     llama_context              * &ctx = context.ctx;
     const llama_model          * &model = context.model;
     common_sampler             * &smpl  = context.smpl;
@@ -227,12 +275,13 @@ static int chat(struct context &context, const char* session, bool existing) {
     std::ostringstream           &output_ss      = context.output_ss;
     context.is_antiprompt        = false;
     context.input_echo           = false;
-    context.display              = true;
+    context.display              = false;
     context.n_past               = 0;
     context.n_remain             = params.n_predict;
     context.n_consumed           = 0;
     context.n_session_consumed   = 0;
     params.interactive_first     = false; // it will be modified later...
+    
     // https://github.com/ggml-org/llama.cpp/issues/1790
     // https://github.com/ggml-org/llama.cpp/issues/1647
     context.params.n_keep = -1;
@@ -273,6 +322,7 @@ static int chat(struct context &context, const char* session, bool existing) {
         LOG_INF("%s\n", common_params_get_system_info(context.params).c_str());
         LOG_INF("\n");
     }
+    trace("n_ctx: %d\n", (int)n_ctx);
     std::string path_session = prompt_cache_filename(session);
     std::vector<llama_token> &session_tokens = context.session_tokens;
     if (!path_session.empty()) {
@@ -294,7 +344,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                 return 1;
             }
             session_tokens.resize(n_token_count_out);
-            printf("%s: loaded a session with prompt size of %d tokens\n",
+            trace("%s: loaded a session with prompt size of %d tokens\n",
                    __func__, (int)session_tokens.size());
         }
     }
@@ -456,7 +506,7 @@ static int chat(struct context &context, const char* session, bool existing) {
     LOG_INF("sampler seed: %u\n",     common_sampler_get_seed(smpl));
     LOG_INF("sampler params: \n%s\n", sparams.print().c_str());
     LOG_INF("sampler chain: %s\n",    common_sampler_print(smpl).c_str());
-//  printf("generate: n_ctx = %d, n_batch = %d, n_predict = %d, n_keep = %d\n",
+//  trace("generate: n_ctx = %d, n_batch = %d, n_predict = %d, n_keep = %d\n",
 //         n_ctx, params.n_batch, params.n_predict, params.n_keep);
     // group-attention state
     // number of grouped KV tokens so far (used only if params.grp_attn_n > 1)
@@ -501,7 +551,7 @@ static int chat(struct context &context, const char* session, bool existing) {
         embd_inp.clear();
         embd_inp.push_back(decoder_start_token_id);
     }
-//  printf("%s:%d context.n_remain: %d\n", __func__, __LINE__, (int)context.n_remain);
+//  trace("%s:%d context.n_remain: %d\n", __func__, __LINE__, (int)context.n_remain);
     while ((context.n_remain != 0 && !context.is_antiprompt) || params.interactive) {
         // predict
         if (!embd.empty()) {
@@ -580,42 +630,57 @@ static int chat(struct context &context, const char* session, bool existing) {
                     embd.erase(embd.begin(), embd.begin() + i);
                 }
             }
+//          trace("embd.size(): %d\n", (int) embd.size());
             for (int i = 0; i < (int) embd.size(); i += params.n_batch) {
-                int n_eval = (int) embd.size() - i;
+                int n_eval = (int)embd.size() - i;
                 if (n_eval > params.n_batch) {
                     n_eval = params.n_batch;
                 }
-//              printf("%s:%d eval: %s\n", __func__, __LINE__, string_from(ctx, embd).c_str());
                 if (llama_decode(ctx, llama_batch_get_one(&embd[i], n_eval))) {
                     LOG_ERR("%s : failed to eval\n", __func__);
                     return 1;
                 }
                 context.n_past += n_eval;
-//              printf("%s:%d n_past = %d\n", __func__, __LINE__, context.n_past);
+//              trace("context.n_past: %d params.n_batch: %d n_eval: %d to go: %.0f\n",
+//                  (int)context.n_past, (int)params.n_batch, n_eval, n_to_go);
+                if (context.n_consumed <= embd_inp.size()) { // still processing input
+//                  trace("n_consumed: %d embd_inp.size(): %d size_at_readline: %d n_past: %d\n",
+//                        (int)context.n_consumed, (int)embd_inp.size(),
+//                             context.size_at_readline, context.n_past);
+                    if (context.progress < 1.0) {
+                        double n = (context.n_consumed  - context.at_readline.embd_inp_size);
+                        double d = (embd_inp.size()     - context.at_readline.embd_inp_size);
+                        context.progress = n / d;
+                        trace("progress: %.6f\n", context.progress);
+                        if (llama.progress) { llama.progress(context.progress); }
+                    }
+                }
+//              trace("%s:%d n_past = %d\n", __func__, __LINE__, context.n_past);
                 // Display total tokens alongside total time
                 if (params.n_print > 0 && context.n_past % params.n_print == 0) {
                     LOG_DBG("\n%s:%d Tokens consumed so far = %d / %d\n",
                             __func__, __LINE__, context.n_past, n_ctx);
                 }
-//              printf("\n%s:%d Tokens consumed so far = %d / %d\n",
+//              trace("\n%s:%d Tokens consumed so far = %d / %d\n",
 //                      __func__, __LINE__, context.n_past, n_ctx);
             }
             if (!embd.empty() && !path_session.empty()) {
                 session_tokens.insert(session_tokens.end(), embd.begin(), embd.end());
                 context.n_session_consumed = session_tokens.size();
             }
+//          trace("embd.size(): %d\n", (int) embd.size());
         }
         embd.clear();
         if ((int) embd_inp.size() <= context.n_consumed && !context.is_interacting) {
             // optionally save the session on first sample (for faster prompt loading next time)
             if (!path_session.empty() && context.need_to_save_session && !params.prompt_cache_ro) {
                 context.need_to_save_session = false;
-                LOG_INF("\n%s: saving %zd tokens "
+                trace("\n%s: saving %zd tokens "
                        "to session file '%s'\n", __func__,
                        session_tokens.size(),
                        path_session.c_str());
                 llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
-                LOG_DBG("saved session to %s\n", path_session.c_str());
+                trace("saved session to %s\n", path_session.c_str());
             }
             const llama_token id = common_sampler_sample(smpl, ctx, -1);
             common_sampler_accept(smpl, id, /* accept_grammar= */ true);
@@ -717,11 +782,11 @@ static int chat(struct context &context, const char* session, bool existing) {
                     if (params.enable_chat_template) {
                         chat_add_and_format("assistant", assistant_ss.str());
                     }
+                    trace("%d: <--done--> llama_vocab_is_eog()\n", __LINE__);
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
                     if (!path_session.empty()) {
-                        LOG_INF("\n%s: saving %zd tokens "
-                               "to session file '%s'\n", __func__,
+                        trace("saving %zd tokens to session file '%s'\n",
                                session_tokens.size(),
                                path_session.c_str());
                         llama_state_save_file(ctx, path_session.c_str(),
@@ -736,6 +801,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                 assistant_ss << common_token_to_piece(ctx, id, false);
             }
             if (interrupted) {
+                trace("%d: <--done--> interrupted\n", __LINE__);
                 llama.output_text("<--done-->");
                 context.is_interacting = true;
             }
@@ -757,19 +823,28 @@ static int chat(struct context &context, const char* session, bool existing) {
                 context.display = params.display_prompt;
                 const char* line = llama.read_line();
                 if (!line) {
+                    trace("<--done--> line == null\n");
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-//                  printf("%s <--done--> because line == null\n", __func__);
-                    break;
+                    trace("<--done--> because line == null\n");
+                    trace("ENDS RUNNING THE MODEL\n");
+                    break; // ENDS RUNNING THE MODEL
                 }
                 buffer += line;
                 free((void*)line);
-//              printf("%s buff: %s\n", __func__, buffer.c_str());
+//              trace("%s buff: %s\n", __func__, buffer.c_str());
                 if (buffer == "<--end-->") {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-//                  printf("%s <--done--> because line == <--end-->\n", __func__);
-                    break;
+                    trace("%s <--done--> because line == <--end-->\n", __func__);
+                    trace("ENDS RUNNING THE MODEL\n");
+                    break; // ENDS RUNNING THE MODEL
+                } else if (buffer == "<--otr-->") { // off the record
+                    buffer = "";
+                    restore_at_readline(context);
+                    context.is_interacting = true;
+                    llama.output_text("<--done-->");
+                    trace("%s <--done--> because line == <--end-->\n", __func__);
                 }
                 // done taking input, reset color
                 console::set_display(console::reset);
@@ -783,14 +858,19 @@ static int chat(struct context &context, const char* session, bool existing) {
                         LOG("%s", params.input_suffix.c_str());
                     }
                     LOG_DBG("buffer: '%s'\n", buffer.c_str());
-                    const size_t original_size = embd_inp.size();
+                    save_at_readline(context);
+                    context.progress = 0;
+                    trace("at_readline.embd_inp_size: %d\n", (int)context.at_readline.embd_inp_size);
                     if (params.escape) {
                         string_process_escapes(buffer);
                     }
                     bool format_chat = params.conversation_mode && params.enable_chat_template;
                     std::string user_inp = format_chat
-                    ? chat_add_and_format("user", std::move(buffer))
-                    : std::move(buffer);
+                        ? chat_add_and_format("user", std::move(buffer))
+                        : std::move(buffer);
+                    // user_inp: something like:
+                    // "\n<|start_of_role|>user<|end_of_role|>buffer<|end_of_text|>\n
+                    //    <|start_of_role|>assistant<|end_of_role|>\n"
                     // TODO: one inconvenient of current chat template
                     // implementation is that we can't distinguish between
                     // user input and special tokens (prefix/postfix)
@@ -807,7 +887,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     embd_inp.insert(embd_inp.end(), line_pfx.begin(), line_pfx.end());
                     embd_inp.insert(embd_inp.end(), line_inp.begin(), line_inp.end());
                     embd_inp.insert(embd_inp.end(), line_sfx.begin(), line_sfx.end());
-                    for (size_t i = original_size; i < embd_inp.size(); ++i) {
+                    for (size_t i = context.at_readline.embd_inp_size; i < embd_inp.size(); ++i) {
                         const llama_token token = embd_inp[i];
                         output_tokens.push_back(token);
                         output_ss << common_token_to_piece(ctx, token);
@@ -815,7 +895,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     // reset assistant message
                     assistant_ss.str("");
                     context.n_remain -= line_inp.size();
-                    LOG_DBG("n_remain: %d\n", context.n_remain);
+                    trace("n_remain: %d embd_inp: %d\n", context.n_remain, (int)embd_inp.size());
                 } else {
                     LOG_DBG("empty line, passing control back\n");
                 }
@@ -831,6 +911,7 @@ static int chat(struct context &context, const char* session, bool existing) {
         // end of generation
         if (!embd.empty() && llama_vocab_is_eog(context.vocab, embd.back()) && !(params.interactive)) {
             LOG(" [end of text]\n");
+            trace(" [end of text]\n");
             break;
         }
         // In interactive mode, respect the maximum number of tokens and drop back to user input when reached.
@@ -839,10 +920,11 @@ static int chat(struct context &context, const char* session, bool existing) {
             context.n_remain = params.n_predict;
             context.is_interacting = true;
             llama.output_text("<--done-->");
+            trace("%d: <--done--> context.n_remain <= 0\n", __LINE__);
         }
     }
     if (!path_session.empty()) {
-        LOG_INF("\n%s: saving final output %zd tokens "
+        trace("\n%s: saving final output %zd tokens "
                "to session file '%s'\n", __func__,
                session_tokens.size(),
                path_session.c_str());
@@ -905,7 +987,8 @@ struct llama_if llama = {
     .load = llama_load,
     .run  = llama_run,
     .fini = llama_fini,
-    .read_line = 0,
+    .read_line   = 0,
     .output_text = 0,
+    .progress    = 0,
 };
 

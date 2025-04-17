@@ -1,0 +1,85 @@
+// https://huggingface.co/ibm-research/granite-3.2-8b-instruct-GGUF/tree/main
+// https://huggingface.co/ibm-research/granite-3.2-8b-instruct-GGUF/resolve/main/granite-3.2-8b-instruct-f16.gguf
+// 8.68GB
+
+// https://huggingface.co/ibm-research/granite-3.2-2b-instruct-GGUF/tree/main
+// https://huggingface.co/ibm-research/granite-3.2-2b-instruct-GGUF/resolve/main/granite-3.2-2b-instruct-Q8_0.gguf
+// 2.69GB
+
+// Multimodal (images understanding and generation)
+// https://huggingface.co/deepseek-ai/Janus-Pro-1B
+// https://huggingface.co/mradermacher/Janus-Pro-1B-LM-GGUF
+// https://huggingface.co/mradermacher/Janus-Pro-1B-LM-GGUF/resolve/main/Janus-Pro-1B-LM.Q8_0.gguf
+// 1.76GB
+
+// DeepSeek R1 (All Versions)
+// https://huggingface.co/collections/unsloth/deepseek-r1-all-versions-678e1c48f5d2fce87892ace5
+
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-1.5B-Q8_0.gguf
+// 1.89GB
+
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q8_0.gguf
+// 8.1GB
+
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-GGUF
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-GGUF/resolve/main/DeepSeek-R1-Distill-Llama-8B-Q8_0.gguf
+// 8.54GB
+
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-14B-GGUF
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-14B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-14B-Q8_0.gguf
+// 15.7GB
+
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B-GGUF/tree/main
+// https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-32B-Q8_0.gguf
+// 34.8GB
+
+// Gemma 3
+// https://huggingface.co/collections/unsloth/gemma-3-67d12b7e8816ec6efa7e4e5b
+
+// https://huggingface.co/unsloth/gemma-3-1b-it-GGUF
+// https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q8_0.gguf
+// 1.05GB
+
+// https://huggingface.co/unsloth/gemma-3-4b-it-GGUF
+// https://huggingface.co/unsloth/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q8_0.gguf
+// 4.0GB
+
+// https://huggingface.co/unsloth/gemma-3-12b-it-GGUF
+// https://huggingface.co/unsloth/gemma-3-12b-it-GGUF/resolve/main/gemma-3-12b-it-Q8_0.gguf
+// 11.9GB
+
+// https://huggingface.co/unsloth/gemma-3-27b-it-GGUF
+// https://huggingface.co/unsloth/gemma-3-27b-it-GGUF/resolve/main/gemma-3-27b-it-Q8_0.gguf
+// 27.7GB
+
+/*
+
+TODO: investigate
+
+Claude 3 Model Family:
+Claude 3 Haiku:
+    Optimized for speed and affordability,
+    making it suitable for lightweight tasks.
+Claude 3 Sonnet:
+    Balances capability and performance, well-suited for enterprise
+    tasks and large-scale deployments.
+Claude 3 Opus:
+    The most powerful model, designed for complex reasoning tasks and
+    demonstrating enhanced abilities in areas like mathematics, programming,
+    and logical reasoning
+
+*/
+
+/*
+   R&D:
+
+   https://github.com/rswier/c4
+   try to force coding models to extend it to full c99 language
+   and automatic .DLL .so binding
+   
+   Could be fun.
+   
+*/
+

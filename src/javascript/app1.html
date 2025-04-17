@@ -168,12 +168,14 @@
             generate_interval = null
             generating = false
             scrollable.autoscroll = false
+            console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
         }
 
         const generate = (e) => {
             if (generating) return
             generating = true
             scrollable.autoscroll = true
+            console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             const paragraphs = random_int(10, 20)
             let added = 0
             let last = e.lastElementChild || append_paragraph(e, '')

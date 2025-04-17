@@ -252,6 +252,15 @@ static void load_model(const char* model) {
     argv[argc++] = (char*)"--no-warmup";
     argv[argc++] = (char*)"--no-perf";
     argv[argc++] = (char*)"--log-disable";
+    argv[argc++] = (char*)"--ctx-size"; // default: 4096 (too small)
+    argv[argc++] = (char*)"0"; // from training 128K for granite
+    argv[argc++] = (char*)"--batch-size"; // default: 2048 (too big)
+    argv[argc++] = (char*)"128";
+    argv[argc++] = (char*)"--predict";
+    argv[argc++] = (char*)"-2";           // stop when context if full
+//  priority has no effect on macOS
+//  argv[argc++] = (char*)"--prio";
+//  argv[argc++] = (char*)"2"; // 0-normal, 1-medium, 2-high, 3-realtime
 #if !defined(__aarch64__) && !defined(__arm64__)
     // do not use Metal/GPU on x64 platforms
     argv[argc++] = (char*)"--device";
