@@ -15,11 +15,13 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
     
     const create_buttton = (id, content) => {
         const b = document.createElement('button')
-        b.style.position = 'absolute'
-        b.style.display = 'block'
         b.id = id
-        b.className = 'scroll-button'
-        b.textContent = content
+        b.className           = 'scroll-button'
+        b.style.position      = 'absolute'
+        b.style.display       = 'block'
+        b.textContent         = content
+        b.style.marginTop     = '0.5rem'
+        b.style.marginBottom  = '0.5rem'
         return b
     }
     
@@ -30,8 +32,10 @@ export const scroll_create_wrapper = (list, appending, verbose) => {
         const right = detect.masOS ? '0.75rem' : '0'
         button_top.style.top       = right
         button_top.style.right     = '0.125rem'
+        button_top.title = "Scroll to the Top"
         button_bottom.style.bottom = right
         button_bottom.style.right  = '0.125rem'
+        button_bottom.title = "Scroll to the End"
     }
     list.parentElement.appendChild(button_top)
     list.parentElement.appendChild(button_bottom)

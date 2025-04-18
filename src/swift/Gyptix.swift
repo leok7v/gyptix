@@ -1,5 +1,7 @@
-import SwiftUI
+import Darwin
+import Metal
 import SwiftData
+import SwiftUI
 import WebKit
 #if os(iOS)
 import StoreKit
@@ -29,10 +31,7 @@ struct Gyptix: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #endif
 
-    init() {
-        UserDefaults.standard.set(is_debugger_attached() || is_debug_build(),
-                                  forKey: "WebKitDeveloperExtras")
-    }
+    init() { startup() }
 
     var model: ModelContainer = {
         let s = Schema([])
@@ -414,5 +413,87 @@ func gyptix_stop() {
     let e = DispatchTime.now().uptimeNanoseconds
     if timing && is_debugger_attached() {
         print("gyptix.stop(): \((e - s) / 1_000_000)ms")
+    }
+}
+
+private func memory_stats() -> (total: UInt64, free: UInt64) {
+    let total = ProcessInfo.processInfo.physicalMemory
+    var s = vm_statistics64()
+    var n = mach_msg_type_number_t(
+        MemoryLayout.size(ofValue: s) /
+        MemoryLayout<integer_t>.size)
+    var pg: vm_size_t = 0
+    host_page_size(mach_host_self(), &pg)
+    _ = withUnsafeMutablePointer(to: &s) {
+        $0.withMemoryRebound(to: integer_t.self, capacity: Int(n)) {
+            host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &n)
+        }
+    }
+    let free = UInt64(s.free_count) * UInt64(pg)
+    return (total, free)
+}
+
+private func free_storage() -> UInt64 {
+    let path = NSHomeDirectory()
+    let attr = try? FileManager.default
+        .attributesOfFileSystem(forPath: path)
+    let v = attr?[.systemFreeSize] as? NSNumber
+    return v?.uint64Value ?? 0
+}
+
+func startup() {
+    UserDefaults.standard.set(is_debugger_attached() || is_debug_build(),
+                              forKey: "WebKitDeveloperExtras")
+    #if os(macOS)
+        gyptix.set_platform("macOS");
+    #else
+        var p = ""
+        if #available(iOS 14, *) {
+            /* .ipa on Mac  ➜  isiOSAppOnMac  */
+            if ProcessInfo.processInfo.isiOSAppOnMac {
+                p = "macOS"
+                gyptix.startup.is_iOS_app_on_mac = 1
+            }
+            if ProcessInfo.processInfo.isMacCatalystApp {
+                p = "macOS"
+                gyptix.startup.is_mac_catalyst_app = 1
+            }
+        }
+        if (p == "") {
+            switch UIDevice.current.userInterfaceIdiom {
+                case .pad:   p = "iPad"
+                case .phone: p = "iPhone"
+                default:     p = "iPhone"
+            }
+        }
+        gyptix.set_platform(p)
+    #endif
+    if #available(iOS 14, *) {
+        gyptix.startup.cpu = Int32(ProcessInfo.processInfo.processorCount)
+        gyptix.startup.active_cpu =
+            Int32(ProcessInfo.processInfo.activeProcessorCount)
+    }
+    let ram = memory_stats()
+    let storage = free_storage()
+    let MB = 1024.0 * 1024.0
+    let GB = MB * 1024.0
+    print("RAM.total: \(String(format: "%8.3f", Double(ram.total) / GB)) GB")
+    print("RAM.free : \(String(format: "%8.3f", Double(ram.free)  / MB)) MB")
+    print("Storage  : \(String(format: "%8.3f", Double(storage)   / GB)) GB")
+    print("CPUs     : \(gyptix.startup.cpu) active: \(gyptix.startup.active_cpu)")
+    gyptix.startup.ram     = Double(ram.total)
+    gyptix.startup.storage = Double(storage)
+    if let device = MTLCreateSystemDefaultDevice() {
+        if #available(macOS 10.15, iOS 13.0, *) {
+            gyptix.startup.gpu.recommended_max_working_set_size =
+                Double(device.recommendedMaxWorkingSetSize)
+            gyptix.startup.gpu.has_unified_memory =
+                device.hasUnifiedMemory ? 1 : 0
+            let wss = Double(gyptix.startup.gpu.recommended_max_working_set_size);
+            print("GPU w.s.s: \(String(format: "%8.3f", wss / GB)) GB")
+            if device.hasUnifiedMemory {
+                print("GPU has unified memory")
+            }
+        }
     }
 }

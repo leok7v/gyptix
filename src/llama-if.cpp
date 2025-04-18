@@ -250,7 +250,6 @@ static std::string prompt_cache_filename(const char* session) {
 }
 
 static int chat(struct context &context, const char* session, bool existing) {
-    llama_kv_cache_clear(context.ctx);
     context.chat_msgs.clear();
     context.embd.clear();
     context.embd_inp.clear();
@@ -280,11 +279,11 @@ static int chat(struct context &context, const char* session, bool existing) {
     context.n_remain             = params.n_predict;
     context.n_consumed           = 0;
     context.n_session_consumed   = 0;
+    context.params.n_keep = -1;
     params.interactive_first     = false; // it will be modified later...
-    
     // https://github.com/ggml-org/llama.cpp/issues/1790
     // https://github.com/ggml-org/llama.cpp/issues/1647
-    context.params.n_keep = -1;
+    llama_kv_cache_clear(context.ctx);
     int &n_ctx = context.n_ctx;
     n_ctx = llama_n_ctx(ctx);
     int &n_ctx_train = context.n_ctx_train;

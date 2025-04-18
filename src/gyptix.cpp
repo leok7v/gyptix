@@ -252,12 +252,19 @@ static void load_model(const char* model) {
     argv[argc++] = (char*)"--no-warmup";
     argv[argc++] = (char*)"--no-perf";
     argv[argc++] = (char*)"--log-disable";
-    argv[argc++] = (char*)"--ctx-size"; // default: 4096 (too small)
-    argv[argc++] = (char*)"0"; // from training 128K for granite
     argv[argc++] = (char*)"--batch-size"; // default: 2048 (too big)
     argv[argc++] = (char*)"128";
     argv[argc++] = (char*)"--predict";
     argv[argc++] = (char*)"-2";           // stop when context if full
+    if (strcmp(gyptix.startup.platform, "macOS") == 0) {
+        argv[argc++] = (char*)"--ctx-size"; // default: 4096 (too small)
+        argv[argc++] = (char*)"0"; // from training 128K for granite
+    } else {
+        // iPhone and iPad
+        // 16384 crashes iPhone GPU hard
+        argv[argc++] = (char*)"--ctx-size"; // default: 4096
+        argv[argc++] = (char*)"8192"; // 4096, 8192, 16384
+    }
 //  priority has no effect on macOS
 //  argv[argc++] = (char*)"--prio";
 //  argv[argc++] = (char*)"2"; // 0-normal, 1-medium, 2-high, 3-realtime
@@ -270,8 +277,12 @@ static void load_model(const char* model) {
     argv[argc++] = (char*)sp.c_str();
 //  printf("%s\n", sp.c_str());
     try {
-        llama.load(argc, argv);
-//      printf("llama.load() done\n");
+        int r = llama.load(argc, argv);
+        printf("llama.load() %s\n", r == 0 ? "done" : "failed");
+        if (r != 0) {
+            running = false;
+            return;
+        }
         for (;;) {
             pthread_mutex_lock(&lock);
             while (!event) { pthread_cond_wait(&cond, &lock); }
@@ -459,7 +470,13 @@ static void stop(void) {
     }
 }
 
+static void set_platform(const char* p) {
+    snprintf(gyptix.startup.platform, countof(gyptix.startup.platform) - 1,
+             "%s", p);
+}
+
 struct gyptix gyptix = {
+    .set_platform = set_platform,
     .load = load,
     .run = run,
     .ask = ask,
@@ -469,7 +486,7 @@ struct gyptix gyptix = {
     .remove = remove_chat,
     .erase = erase,
     .stop = stop,
-    .inactive = inactive,
+    .inactive = inactive
 };
 
 }
