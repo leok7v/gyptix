@@ -522,21 +522,23 @@ button.square { font-weight: bold; }
 .item button {
     display: inline-flex;
     flex-shrink: 0;
+    color: var(--system-blue);
+    font-weight:     bolder;
     align-items:     center;
     justify-content: center;
-    margin-left:  0.25rem;
-    font-size:    0.75rem !important;
-    line-height:  1;
-    width:        auto;
-    min-width:    4rem;
-    overflow:     visible;
-    border:       none;
-    background:   transparent;
+    margin-left:     0.5rem;
+    margin-right:    1.25rem;
+    line-height:     1;
+    overflow:        visible;
+    border:          none;
+    background:      transparent;
 }
 
 .item:hover { color: var(--system-blue); }
 
 button:hover { background-color: var(--background-button-hover); }
+
+.item button:hover { background-color: transparent; }
 
 #info, #shred {
     position: relative;

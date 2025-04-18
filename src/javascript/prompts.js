@@ -88,8 +88,6 @@ const books = [
     "Why is 'Discworld' by Terry Pratchett iconic?",
     "My child loves 'Lord of the Rings', what to read next?",
     "My child loves 'Harry Potter', what to read next?",
-    "Best Stephen King books without violence?",
-    "What are some books like Stephen King but lighter?"
 ]
 
 const business = [

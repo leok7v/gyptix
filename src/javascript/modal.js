@@ -13,6 +13,14 @@ const app_modal = new CustomEvent('app_modal', {
       cancelable: false
 })
 
+const select_element = (e) => {
+    const range = document.createRange()
+    range.selectNodeContents(e)
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+}
+
 export const modal_on = () => {
     modality++
     window.dispatchEvent(app_modal)
@@ -85,11 +93,7 @@ const error_box = (content, markdown, html) => {
         content.readOnly = false
         content.classList.add("error_content")
         content.dataset.markdown = markdown
-        const range = document.createRange()
-        range.selectNodeContents(content)
-        const selection = window.getSelection()
-        selection.removeAllRanges()
-        selection.addRange(range)
+        select_element(content)
     }
 }
 
@@ -198,11 +202,6 @@ const scroll_into_view_later = (span) => {
     window.visualViewport.addEventListener('resize',() => {
         setTimeout(() => {
             span.scrollIntoView({ behavior: "smooth", block: "center" })
-            const range = document.createRange()
-            range.selectNodeContents(span)
-            const sel = window.getSelection()
-            sel.removeAllRanges()
-            sel.addRange(range)
         }, 333)
     }, { once: true })
 }
@@ -240,6 +239,7 @@ export const rename_in_place = (span, freeze, unfreeze) => {
             }
         }, { once: true })
         span.contentEditable = "plaintext-only"
+        select_element(span)
         span.focus()
     })
 }

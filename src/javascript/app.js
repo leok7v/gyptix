@@ -221,7 +221,7 @@ export const run = () => { // called DOMContentLoaded
             show_menu(e.pageX / 2, e.pageY)
             search.innerText = ""
         }
-        dots.style.marginRight = "0.5rem"
+        dots.title = "Menu"
         div.append(span, dots)
         list.appendChild(div)
     }
@@ -854,10 +854,13 @@ export const run = () => { // called DOMContentLoaded
     
     get("font-increase").onclick = e => {
         e.preventDefault()
+        hide_menu()
         util.increase_font_size()
     }
+
     get("font-decrease").onclick = e => {
         e.preventDefault()
+        hide_menu()
         util.decrease_font_size()
     }
     
