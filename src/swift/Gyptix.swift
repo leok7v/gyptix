@@ -389,7 +389,6 @@ func inactive() {
     let r = call_js("app.inactive()", sync: true)
     var e = DispatchTime.now().uptimeNanoseconds
 //  if is_debugger_attached() { print("app.inactive() -> \(r)") }
-    print("timing \(timing)")
     if timing && is_debugger_attached() {
         print("app.inactive(): \((e - s) / 1_000_000)ms -> \(r)")
     }
