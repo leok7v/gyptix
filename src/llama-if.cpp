@@ -321,7 +321,7 @@ static int chat(struct context &context, const char* session, bool existing) {
         LOG_INF("%s\n", common_params_get_system_info(context.params).c_str());
         LOG_INF("\n");
     }
-    trace("n_ctx: %d\n", (int)n_ctx);
+//  trace("n_ctx: %d\n", (int)n_ctx);
     std::string path_session = prompt_cache_filename(session);
     std::vector<llama_token> &session_tokens = context.session_tokens;
     if (!path_session.empty()) {
@@ -674,12 +674,9 @@ static int chat(struct context &context, const char* session, bool existing) {
             // optionally save the session on first sample (for faster prompt loading next time)
             if (!path_session.empty() && context.need_to_save_session && !params.prompt_cache_ro) {
                 context.need_to_save_session = false;
-                trace("\n%s: saving %zd tokens "
-                       "to session file '%s'\n", __func__,
-                       session_tokens.size(),
-                       path_session.c_str());
+//              trace("saving %d tokens to '%s'\n", (int)session_tokens.size(), path_session.c_str());
                 llama_state_save_file(ctx, path_session.c_str(), session_tokens.data(), session_tokens.size());
-                trace("saved session to %s\n", path_session.c_str());
+//              trace("saved session to %s\n", path_session.c_str());
             }
             const llama_token id = common_sampler_sample(smpl, ctx, -1);
             common_sampler_accept(smpl, id, /* accept_grammar= */ true);
@@ -781,13 +778,12 @@ static int chat(struct context &context, const char* session, bool existing) {
                     if (params.enable_chat_template) {
                         chat_add_and_format("assistant", assistant_ss.str());
                     }
-                    trace("%d: <--done--> llama_vocab_is_eog()\n", __LINE__);
+//                  trace("<--done--> llama_vocab_is_eog()\n");
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
                     if (!path_session.empty()) {
-                        trace("saving %zd tokens to session file '%s'\n",
-                               session_tokens.size(),
-                               path_session.c_str());
+                        trace("saving %d tokens to '%s'\n",
+                               (int)session_tokens.size(), path_session.c_str());
                         llama_state_save_file(ctx, path_session.c_str(),
                                               session_tokens.data(), session_tokens.size());
                     }
@@ -822,11 +818,11 @@ static int chat(struct context &context, const char* session, bool existing) {
                 context.display = params.display_prompt;
                 const char* line = llama.read_line();
                 if (!line) {
-                    trace("<--done--> line == null\n");
+//                  trace("<--done--> line == null\n");
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-                    trace("<--done--> because line == null\n");
-                    trace("ENDS RUNNING THE MODEL\n");
+//                  trace("<--done--> because line == null\n");
+//                  trace("ENDS RUNNING THE MODEL\n");
                     break; // ENDS RUNNING THE MODEL
                 }
                 buffer += line;
@@ -835,15 +831,15 @@ static int chat(struct context &context, const char* session, bool existing) {
                 if (buffer == "<--end-->") {
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-                    trace("%s <--done--> because line == <--end-->\n", __func__);
-                    trace("ENDS RUNNING THE MODEL\n");
+//                  trace("<--done--> because line == <--end-->\n");
+//                  trace("ENDS RUNNING THE MODEL\n");
                     break; // ENDS RUNNING THE MODEL
                 } else if (buffer == "<--otr-->") { // off the record
                     buffer = "";
                     restore_at_readline(context);
                     context.is_interacting = true;
                     llama.output_text("<--done-->");
-                    trace("%s <--done--> because line == <--end-->\n", __func__);
+//                  trace("<--done--> because line == <--otr-->\n");
                 }
                 // done taking input, reset color
                 console::set_display(console::reset);
@@ -859,7 +855,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     LOG_DBG("buffer: '%s'\n", buffer.c_str());
                     save_at_readline(context);
                     context.progress = 0;
-                    trace("at_readline.embd_inp_size: %d\n", (int)context.at_readline.embd_inp_size);
+//                  trace("at_readline.embd_inp_size: %d\n", (int)context.at_readline.embd_inp_size);
                     if (params.escape) {
                         string_process_escapes(buffer);
                     }
@@ -894,7 +890,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     // reset assistant message
                     assistant_ss.str("");
                     context.n_remain -= line_inp.size();
-                    trace("n_remain: %d embd_inp: %d\n", context.n_remain, (int)embd_inp.size());
+//                  trace("n_remain: %d embd_inp: %d\n", context.n_remain, (int)embd_inp.size());
                 } else {
                     LOG_DBG("empty line, passing control back\n");
                 }
@@ -923,10 +919,8 @@ static int chat(struct context &context, const char* session, bool existing) {
         }
     }
     if (!path_session.empty()) {
-        trace("\n%s: saving final output %zd tokens "
-               "to session file '%s'\n", __func__,
-               session_tokens.size(),
-               path_session.c_str());
+        trace("saving final output %d tokens to '%s'\n",
+               (int)session_tokens.size(), path_session.c_str());
         llama_state_save_file(ctx, path_session.c_str(),
                               session_tokens.data(), session_tokens.size());
     }

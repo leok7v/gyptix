@@ -221,6 +221,7 @@ export const run = () => { // called DOMContentLoaded
             show_menu(e.pageX / 2, e.pageY)
             search.innerText = ""
         }
+        dots.style.marginRight = "0.5rem"
         div.append(span, dots)
         list.appendChild(div)
     }
@@ -344,12 +345,14 @@ export const run = () => { // called DOMContentLoaded
         return (count + 1) % thinking.length
     }
     
-    const summarize_to_title = () => {
-        // Poor man summarization. TODO: use AI for that
+    const generate_title = () => {
         if (chat.messages.length == 2) {
-            chat.title = util.summarize(chat.messages[0].text + " " +
-                                        chat.messages[1].text)
-            title.textContent = chat.title
+            chat.title = model.title()
+            if (title === "") {
+                chat.title = util.summarize(chat.messages[0].text + " " +
+                                            chat.messages[1].text)
+            }
+            title.innerHTML = chat.title
         }
     }
     
@@ -379,7 +382,7 @@ export const run = () => { // called DOMContentLoaded
         input.oninput()
         chat.timestamp = util.timestamp()
         title.innerHTML = ""
-        summarize_to_title()
+        generate_title()
         set_chat_title(chat.title)
         history.save_chat(chat)
         rebuild_list()
@@ -393,24 +396,24 @@ export const run = () => { // called DOMContentLoaded
         if (!markdown.processing && context.interval) {
             const chunk = model.poll()
             if (chunk === "<--done-->") {
-                console.log("chunk: " + chunk)
+//              console.log("chunk: " + chunk)
                 clearInterval(context.interval)
                 context.interval = null
                 done()
             } else if (chunk !== "") {
+                if (util.timestamp() - context.last > 1500) {
+                    context.count = cycle_titles(context.count)
+                    context.last = util.timestamp()
+                }
                 render_last(chunk)
                 check_for_repetitions_and_stop()
             }
-        }
-        if (util.timestamp() - context.last > 1500) {
-            context.count = cycle_titles(context.count)
-            context.last = util.timestamp()
         }
     }
     
     const polling = () => {
         scrollable.autoscroll = true
-        console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+//      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
         ui.show(stop)
         ui.hide(send, expand, spawn)
         stop.classList.add("pulsing")
@@ -530,7 +533,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     spawn.onclick = e => {
-        console.log(`model.is_running(): ${model.is_running()} model.is_answering(): ${model.is_answering()}`)
+//      console.log(`model.is_running(): ${model.is_running()} model.is_answering(): ${model.is_answering()}`)
         e.preventDefault()
         if (model.is_running() && !model.is_answering()) {
             spawn_new_conversation()
@@ -654,32 +657,8 @@ export const run = () => { // called DOMContentLoaded
 //      console.log(`talk.style.marginBottom = ${talk.dataset.marginBottom}`)
     }
 
-    function dump() {
-        const root = document.documentElement
-        const body = document.body
-        const vv = window.visualViewport
-        console.log('window.visualViewport.offsetTop: ' + vv.offsetTop)
-        console.log('window.visualViewport.height: ' + vv.height)
-        console.log('document.documentElement.offsetTop: ' + root.offsetTop)
-        console.log('document.documentElement.style.height: ' + root.style.height)
-        console.log('document.documentElement.offsetHeight: ' + root.offsetHeight)
-        console.log('document.documentElement.scrollHeight: ' + root.scrollHeight)
-        console.log('document.documentElement.scrollTop: '    + root.scrollTop)
-        console.log('document.body.offsetTop: '    + body.offsetTop)
-        console.log('document.body.style.height: ' + body.style.height)
-        console.log('document.body.offsetHeight: ' + body.offsetHeight)
-        console.log('document.body.scrollHeight: ' + body.scrollHeight)
-        console.log('document.body.scrollTop: '    + body.scrollTop)
-        console.log('content.offsetHeight: '       + content.offsetHeight)
-        console.log('content.scrollHeight: '       + content.scrollHeight);
-        console.log('window.innerHeight: '         + window.innerHeight);
-        console.log('window.outerHeight: '         + window.outerHeight);
-    }
-
     const viewport = (e) => {
         if (!move_box || detect.macOS) { return }
-//      console.log("e.type: " + e.type)
-//      dump()
         set_box_top()
         box.style.opacity = "1"
     }
@@ -707,6 +686,24 @@ export const run = () => { // called DOMContentLoaded
         input.contentEditable = "plaintext-only"
     }
 
+    let polling_running = null
+
+    const poll_running = () => {
+        clearTimeout(polling_running)
+        polling_running = null
+        if (model.is_running()) {
+            show_hide_input_buttons()
+        } else {
+            let since = util.timestamp() - load_timestamp // ms
+            if (since > 10000) {
+                oops()
+            } else {
+                polling_running = setTimeout(poll_running, 100)
+            }
+        }
+        polling_running = setTimeout(poll_running, 100)
+    }
+
     const show_hide_input_buttons = () => {
         const answering = model.is_answering()
         const running   = model.is_running()
@@ -718,6 +715,10 @@ export const run = () => { // called DOMContentLoaded
         ui.show_hide(answering,  stop)
         ui.show_hide(!clear_and_send && !interrupted, strut)
         ui.show_hide(interrupted && !answering && !clear_and_send,  carry)
+        if (!running) {
+            clearTimeout(polling_running)
+            polling_running = setTimeout(poll_running, 100)
+        }
     }
 
     input.oninput = () => {

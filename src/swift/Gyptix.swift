@@ -20,7 +20,7 @@ let gguf = "granite-3.1-1b-a400m-instruct-Q8_0.gguf" // model
 var js_ready = false
 var web_view: WKWebView?
 var keyboard: CGRect = .zero // keyboard frame
-let timing = true
+let timing = false
 
 @main
 struct Gyptix: App {
@@ -388,9 +388,10 @@ func inactive() {
     var s = DispatchTime.now().uptimeNanoseconds
     let r = call_js("app.inactive()", sync: true)
     var e = DispatchTime.now().uptimeNanoseconds
-    if is_debugger_attached() { print("app.inactive() -> \(r)") }
+//  if is_debugger_attached() { print("app.inactive() -> \(r)") }
+    print("timing \(timing)")
     if timing && is_debugger_attached() {
-        print("app.inactive(): \((e - s) / 1_000_000)ms")
+        print("app.inactive(): \((e - s) / 1_000_000)ms -> \(r)")
     }
     s = DispatchTime.now().uptimeNanoseconds
     gyptix.inactive()

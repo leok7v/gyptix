@@ -45,20 +45,22 @@
     --background-code:         color-mix(in srgb, var(--background-color) 94%, var(--color)  6%);
 }
 
-[data-iPhone="true"] {
-    --font-size: 130%;
-}
-
-[data-iPad="true"] {
-    --font-size: 160%;
-}
 
 @media screen and (-webkit-dynamic-type: large) {
-    html { font-size: 120%; } /* Increase size when large text is set */
+    --font-size: 120%; /* Increase size when large text is set */
 }
 
 @media screen and (-webkit-dynamic-type: accessibility) {
-    html { font-size: 140%; } /* Increase for accessibility settings */
+    --font-size: 140%; /* Increase for accessibility settings */
+}
+
+html[data-iPhone="true"] {
+    --font-size: 130%;
+}
+
+html[data-ipad="true"] {
+    font-size: 150% !important;  /* rem baseline */
+    --font-size: 100%;           /* used by body { font-size: var(--font-size) } */
 }
 
 * {
