@@ -6,7 +6,7 @@ import * as history     from "./history.js"
 import * as markdown    from "./markdown.js"
 import * as marked      from "./marked.js"
 import * as modal       from "./modal.js"
-import * as model       from "./model.js"
+import * as backend       from "./backend.js"
 import * as prompts     from "./prompts.js"
 import * as scroll      from "./scroll.js"
 import * as suggestions from "./suggestions.js"
@@ -72,7 +72,7 @@ export const run = () => { // called DOMContentLoaded
     let selected_item = null // item in chats list
     
     let scrollable = scroll.scroll_create_wrapper(messages,
-                                                  model.is_answering, false)
+                                                  backend.is_answering, false)
 
     const is_input_focused = () => document.activeElement === input
 
@@ -119,7 +119,7 @@ export const run = () => { // called DOMContentLoaded
 
     const interrupt = () => {
         interrupted = true
-        model.interrupt()
+        backend.interrupt()
         placeholder()
         ui.hide(stop)
         carry.style.display = "inline"
@@ -192,7 +192,7 @@ export const run = () => { // called DOMContentLoaded
             rebuild_list()
             scrollable.scroll_to_bottom()
             layout_and_render().then(() => {
-                model.run(c.id) // slowest
+                backend.run(c.id) // slowest
                 load_timestamp = util.timestamp
             })
         })
@@ -258,7 +258,7 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
         suggestions.show()
         placeholder()
-        layout_and_render().then(() => model.run('+' + id))
+        layout_and_render().then(() => backend.run('+' + id))
         load_timestamp = util.timestamp
     }
     
@@ -277,7 +277,7 @@ export const run = () => { // called DOMContentLoaded
             const most_recent = valid_chats[0]
             current = most_recent.id
             chat = history.load_chat(most_recent.id)
-            model.run(most_recent.id)
+            backend.run(most_recent.id)
             load_timestamp = util.timestamp
             messages.innerHTML = ""
             render_messages()
@@ -299,7 +299,7 @@ export const run = () => { // called DOMContentLoaded
     
     const placeholder = () => {
         let ph = ""
-        if (model.is_answering()) {
+        if (backend.is_answering()) {
             ph = "▣ stop"
         } else if (chat.messages.length > 0) {
             ph = followup[util.random_int(0, followup.length - 1)]
@@ -347,7 +347,7 @@ export const run = () => { // called DOMContentLoaded
     
     const generate_title = () => {
         if (chat.messages.length == 2) {
-            chat.title = model.title()
+            chat.title = backend.title()
             if (title === "") {
                 chat.title = util.summarize(chat.messages[0].text + " " +
                                             chat.messages[1].text)
@@ -394,7 +394,7 @@ export const run = () => { // called DOMContentLoaded
     
     const poll = (context) => {
         if (!markdown.processing && context.interval) {
-            const chunk = model.poll()
+            const chunk = backend.poll()
             if (chunk === "<--done-->") {
 //              console.log("chunk: " + chunk)
                 clearInterval(context.interval)
@@ -433,14 +433,14 @@ export const run = () => { // called DOMContentLoaded
     const oops = () => {
         modal.toast("<p>Oops<br>" +
                     "Fatal Error", 5000)
-        setTimeout(() => { model.quit() }, 5100)
+        setTimeout(() => { backend.quit() }, 5100)
     }
 
     const ask = (t, hidden) => { // 't': text
         interrupted = false
         ui.hide(carry, clear)
         if (!current || !t) { return }
-        if (!model.is_running()) { oops() }
+        if (!backend.is_running()) { oops() }
         let h = hidden ? hidden : false
         chat.messages.push({ sender: "user", text: t, hidden: h })
         chat.messages.push({ sender: "bot",  text: "", hidden: false })
@@ -448,7 +448,7 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
         setTimeout(scrollable.scroll_to_bottom, 500)
         layout_and_render().then(() => { // render before asking
-            let error = model.ask(t)
+            let error = backend.ask(t)
             if (!error) {
                 polling()
             } else {
@@ -486,8 +486,8 @@ export const run = () => { // called DOMContentLoaded
         let s = input.innerText.trim()
         // if we did not achive running state in 10 seconds since load time
         let since = util.timestamp() - load_timestamp // ms
-        if (!model.is_running() && since > 10000) { oops() }
-        if (model.is_running() && !model.is_answering() && s !== "") {
+        if (!backend.is_running() && since > 10000) { oops() }
+        if (backend.is_running() && !backend.is_answering() && s !== "") {
             collapsed()
             ui.hide(carry, clear)
             input.innerHTML = ""
@@ -523,7 +523,7 @@ export const run = () => { // called DOMContentLoaded
     stop.onclick = e => {
         e.preventDefault()
         let s = input.innerText.trim()
-        if (model.is_answering()) { interrupt() }
+        if (backend.is_answering()) { interrupt() }
     }
 
     carry.onclick = e => {
@@ -533,9 +533,9 @@ export const run = () => { // called DOMContentLoaded
     }
     
     spawn.onclick = e => {
-//      console.log(`model.is_running(): ${model.is_running()} model.is_answering(): ${model.is_answering()}`)
+//      console.log(`backend.is_running(): ${backend.is_running()} backend.is_answering(): ${backend.is_answering()}`)
         e.preventDefault()
-        if (model.is_running() && !model.is_answering()) {
+        if (backend.is_running() && !backend.is_answering()) {
             spawn_new_conversation()
         }
     }
@@ -544,7 +544,7 @@ export const run = () => { // called DOMContentLoaded
         collapsed()
         const keys = Object.keys(localStorage).filter(k => k.startsWith("chat."))
         keys.forEach(k => localStorage.removeItem(k))
-        model.erase()
+        backend.erase()
         current = null
         rebuild_list()
         spawn_new_conversation()
@@ -578,7 +578,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const expanded = () => {
-        if (!model.is_answering() && !is_expanded) {
+        if (!backend.is_answering() && !is_expanded) {
             modal.modal_on()
             if (is_input_focused()) {
                 input.blur()
@@ -691,7 +691,7 @@ export const run = () => { // called DOMContentLoaded
     const poll_running = () => {
         clearTimeout(polling_running)
         polling_running = null
-        if (model.is_running()) {
+        if (backend.is_running()) {
             show_hide_input_buttons()
         } else {
             let since = util.timestamp() - load_timestamp // ms
@@ -705,8 +705,8 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const show_hide_input_buttons = () => {
-        const answering = model.is_answering()
-        const running   = model.is_running()
+        const answering = backend.is_answering()
+        const running   = backend.is_running()
         let s = input.innerText
         if (s === '\n') { s = "" } // empty div has '\n'
         if (s !== "" || answering) { suggestions.hide() }
@@ -775,7 +775,7 @@ export const run = () => { // called DOMContentLoaded
         if (!selected) { return }
         localStorage.removeItem("chat.id." + selected)
         localStorage.removeItem("chat." + selected)
-        model.remove(selected)
+        backend.remove(selected)
         if (current === selected) {
             current = null
             recent()
@@ -941,7 +941,7 @@ export const run = () => { // called DOMContentLoaded
             modal.show(util.load("./eula.md"), (action) => {
                 if (action === "Disagree") {
                     localStorage.removeItem("app.eula")
-                    model.quit()
+                    backend.quit()
                 } else {
                     localStorage.setItem("app.eula", "true")
                     localStorage.setItem("version.data", version_data)
@@ -1022,7 +1022,7 @@ export const download = (url, file, percent, error, done, json) => {
 //  console.log("json: " + json)
     if (error && error !== "") {
         console.log("failed. removing...")
-        model.download_remove(url)
+        backend.download_remove(url)
         console.log("removed.")
     }
     const a = JSON.parse(json)
@@ -1037,7 +1037,7 @@ export const download = (url, file, percent, error, done, json) => {
         div.textContent = `📂 ${file}\n🌐 ${url}`
         document.body.appendChild(div)
         */
-        model.download_remove(url) // temporarely: not to grow the table
+        backend.download_remove(url) // temporarely: not to grow the table
     }
 }
 
@@ -1048,13 +1048,13 @@ export const download = (url, file, percent, error, done, json) => {
 const download_testing = () => {
     const origin = "https://github.com/leok7v/gyptix/releases/download/2025-01-25/"
     const file  = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"
-    const r = model.download(origin + file)
-    console.log("model.download(): " + r)
+    const r = backend.download(origin + file)
+    console.log("backend.download(): " + r)
 }
 
 window.app = { run: run, inactive: inactive,
                debugger_attached: debugger_attached,
                download: download }
 
-model.initialized()
+backend.initialized()
 

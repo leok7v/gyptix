@@ -87,7 +87,7 @@
 		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
 		B3D7EDF02D955A86003AF38F /* app3.html in Resources */ = {isa = PBXBuildFile; fileRef = B3D7EDEF2D955A86003AF38F /* app3.html */; };
 		B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E04BD02D84816800C6C67B /* Dispatch.swift */; };
-		B3E2499B2D6162110048A24F /* model.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499A2D6162110048A24F /* model.js */; };
+		B3E2499B2D6162110048A24F /* backend.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499A2D6162110048A24F /* backend.js */; };
 		B3E2499D2D61621C0048A24F /* util.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499C2D61621C0048A24F /* util.js */; };
 		B3E2499F2D617B780048A24F /* app.html in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499E2D617B780048A24F /* app.html */; };
 		B3E249A12D617E300048A24F /* marked.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E249A02D617E300048A24F /* marked.js */; };
@@ -233,7 +233,7 @@
 		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
 		B3D7EDEF2D955A86003AF38F /* app3.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app3.html; sourceTree = "<group>"; };
 		B3E04BD02D84816800C6C67B /* Dispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = ../src/swift/Dispatch.swift; sourceTree = SOURCE_ROOT; };
-		B3E2499A2D6162110048A24F /* model.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = model.js; sourceTree = "<group>"; };
+		B3E2499A2D6162110048A24F /* backend.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = backend.js; sourceTree = "<group>"; };
 		B3E2499C2D61621C0048A24F /* util.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = util.js; sourceTree = "<group>"; };
 		B3E2499E2D617B780048A24F /* app.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app.html; sourceTree = "<group>"; };
 		B3E249A02D617E300048A24F /* marked.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = marked.js; sourceTree = "<group>"; };
@@ -499,13 +499,13 @@
 				B375A6AA2D946ADB001F9286 /* app2.js */,
 				B33026C42DA1F40C0082BBB5 /* app3.js */,
 				B34C1FBE2DB18C43004E8B2C /* algo.js */,
+				B3E2499A2D6162110048A24F /* backend.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B39546C82DA5ABE300E35252 /* history.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
 				B363D0A22D7DD32600993F90 /* markdown.js */,
 				B363D0A32D7DD32600993F90 /* mdw.js */,
 				B3F590592D6A848C008B5B7D /* modal.js */,
-				B3E2499A2D6162110048A24F /* model.js */,
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
 				B3994E812DA882F5002906B5 /* scroll.js */,
 				B3A3D8382D67E455000A5839 /* suggestions.js */,
@@ -590,7 +590,7 @@
 				B375A6AB2D946ADB001F9286 /* app2.js in Resources */,
 				B3756DE92D41D43100BCF111 /* Assets.xcassets in Resources */,
 				B33026C52DA1F40C0082BBB5 /* app3.js in Resources */,
-				B3E2499B2D6162110048A24F /* model.js in Resources */,
+				B3E2499B2D6162110048A24F /* backend.js in Resources */,
 				B33026C72DA1F46B0082BBB5 /* app3.css in Resources */,
 				B3F5905A2D6A848C008B5B7D /* modal.js in Resources */,
 				B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */,
@@ -716,7 +716,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 250415;
+				CURRENT_PROJECT_VERSION = 250419;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -768,7 +768,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 25.04.15;
+				MARKETING_VERSION = 25.04.19;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -799,7 +799,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 250415;
+				CURRENT_PROJECT_VERSION = 250419;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -845,7 +845,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 25.04.15;
+				MARKETING_VERSION = 25.04.19;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";

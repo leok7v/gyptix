@@ -72,7 +72,6 @@
         }
     </style>
     <script type="module">
-        import * as model from "./model.js";
         import * as app   from "./app2.js";
         document.addEventListener("DOMContentLoaded", () => { app.run() });
     </script>
@@ -84,7 +83,6 @@
         <div id="input" contenteditable="true"></div>
     </div>
     <script type="module">
-        import * as model from "./model.js";
         const get = (s) => document.querySelector(s)
         
         const report = () => {

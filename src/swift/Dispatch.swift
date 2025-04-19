@@ -72,7 +72,7 @@ func quit() -> String {
         close_all_windows()
     #endif
     // Intentionaly do NOT send response because JavaScript
-    // trets model.quit() as NO RETURN fatal
+    // trets backend.quit() as NO RETURN fatal
     return ""
 }
 

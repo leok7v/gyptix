@@ -1,7 +1,7 @@
 "use strict"
 
 import * as detect      from "./detect.js"
-import * as model       from "./model.js"
+import * as backend       from "./backend.js"
 import * as util        from "./util.js"
 
 export const run = () => {
@@ -27,4 +27,4 @@ window.app = { run: run, inactive: inactive, debugger_attached: debugger_attache
 
 console.log("initialized")
 
-model.initialized()
+backend.initialized()
