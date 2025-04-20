@@ -14,6 +14,14 @@ export const timestamp = () => Date.now() // UTC timestamp in milliseconds
 export const random_int = (min, max) =>
     Math.floor(Math.random() * (max - min + 1)) + min
 
+export const word_count = s => s.trim().split(/\s+/).filter(Boolean).length
+
+export const capitalize = (s) => {
+    const cp = s.codePointAt(0)
+    const fc = String.fromCodePoint(cp)
+    return fc.toLocaleUpperCase() + s.slice(fc.length)
+}
+
 const http = (url, method, req = "", done = null) => {
     let error = null
     let text = `Failed to load ${url}`

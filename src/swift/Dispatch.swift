@@ -58,13 +58,6 @@ func initialized() -> String {
     return ""
 }
 
-func keyboard_frame() -> String {
-    let s = String(format: "%f,%f,%f,%f",
-                   keyboard.origin.x, keyboard.origin.y,
-                   keyboard.size.height, keyboard.size.width)
-    return s
-}
-
 func quit() -> String {
     #if os(iOS)
         DispatchQueue.main.async{ fatalError("Quit") }
@@ -128,7 +121,6 @@ func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
         case "remove":          check(path); s = call(remove(r))
         case "download":        check(path); s = call(download(r))
         case "download_remove": check(path); s = call(download_remove(r))
-        case "keyboard_frame":  check(path); s = call(keyboard_frame())
         default:                dispatched = false
     }
     if dispatched { send_response(u, t, s) }

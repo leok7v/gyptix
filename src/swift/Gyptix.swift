@@ -19,7 +19,7 @@ let gguf = "granite-3.1-1b-a400m-instruct-Q8_0.gguf" // model
 
 var js_ready = false
 var web_view: WKWebView?
-var keyboard: CGRect = .zero // keyboard frame
+//var keyboard: CGRect = .zero // keyboard frame
 let timing = false
 
 @main

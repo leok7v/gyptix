@@ -174,10 +174,11 @@ export const show = (markdown, done, ...actions) => {
 }
 
 export const toast = (s, to) => {
+    if (!s) { return }
     if (!s.includes("<") && !s.includes(">")) s = `<p>${s}</p>`
     const div = document.createElement("div")
     div.style.position        = "fixed"
-    div.style.top             = "10px"
+    div.style.top             = "5rem"
     div.style.left            = "50%"
     div.style.transform       = "translateX(-50%)"
     div.style.color           = "white"

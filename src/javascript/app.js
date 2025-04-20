@@ -1,12 +1,13 @@
 "use strict"
 
 import * as algo        from "./algo.js"
+import * as backend     from "./backend.js"
+import * as chats       from "./chats.js"
 import * as detect      from "./detect.js"
 import * as history     from "./history.js"
 import * as markdown    from "./markdown.js"
 import * as marked      from "./marked.js"
 import * as modal       from "./modal.js"
-import * as backend       from "./backend.js"
 import * as prompts     from "./prompts.js"
 import * as scroll      from "./scroll.js"
 import * as suggestions from "./suggestions.js"
@@ -314,13 +315,13 @@ export const run = () => { // called DOMContentLoaded
     
     const set_title = (s) => {
         const classes = s === '' ? 'logo-container rainbow' :
-        'logo-container shimmering'
+                                   'logo-container shimmering'
         const t = s === '' ? (detect.macOS ? '' : 'GyPTix') : s
         const c = t === '' ? '' : `<span class='logo-content'>${t}</span>`
         title.innerHTML =
-        `<div class='${classes}' >` +
-        "<span class='logo'></span>" + c +
-        "</div>"
+            `<div class='${classes}' >` +
+            "<span class='logo'></span>" + c +
+            "</div>"
     }
     
     const set_chat_title = (s) => {
@@ -345,17 +346,6 @@ export const run = () => { // called DOMContentLoaded
         return (count + 1) % thinking.length
     }
     
-    const generate_title = () => {
-        if (chat.messages.length == 2) {
-            chat.title = backend.title()
-            if (title === "") {
-                chat.title = util.summarize(chat.messages[0].text + " " +
-                                            chat.messages[1].text)
-            }
-            title.innerHTML = chat.title
-        }
-    }
-    
     const trim_interrupted = () => {
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
@@ -376,20 +366,106 @@ export const run = () => { // called DOMContentLoaded
         scrollable.scroll_to_bottom()
     }
 
-    const done = () => {
-        scrollable.autoscroll = false
-//      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+    const skip_short_lines = (s) => {
+        let r = ""
+        const lines = s.trim().split("\n")
+        for (let i = 0; i < lines.length; i++) {
+            const s = lines[i].trim().replace(/[".]/g, "")
+            if (s.length >= 4) {
+                r = s
+                break
+            }
+        }
+        return r
+    }
+    
+    const punctuation = ':,;-–—' // hyphen (-), en dash (–), and em dash (—)
+
+    const shorten_title = (s) => {
+        let r = skip_short_lines(s)
+        for (let i = 0; i < punctuation.length; i++) {
+            const ix = r.indexOf(punctuation.charAt(i))
+            if (ix >= 0) { r = r.slice(0, ix).trim() }
+        }
+        return r
+    }
+
+    const otr = (state, title, done) => { // off the record
+        console.log("<--otr-->")
+        let start = performance.now()
+        chats.ask(state, "<--otr-->", 128)
+            .then(() => {
+                console.log(`${performance.now() - start} milliseconds`)
+                done(title)
+            })
+            .catch(error => {
+                console.log(`${performance.now() - start} milliseconds`)
+                console.error("Error:", error)
+                done(title)
+            })
+    }
+
+    const generate_title = (done) => {
+        let start = performance.now()
+        const prompt =
+            "Generate a concise title for the preceding conversation.\n" +
+            "Output only the title text with no extra words or punctuation.\n"
+        const state = chats.create()
+        chats.start(state, prompt,
+            state => { // per-token callback
+                let text = state.result.join('')
+//              console.log(`state.tokens: "${state.tokens}" text: "${text}":${text.length}`)
+                let title = skip_short_lines(text)
+//              console.log(`state.tokens: ${title}`)
+                if ([...punctuation].some(ch => title.includes(ch))) {
+                    state.interrupt(state)
+                }
+            },
+            state => { // completion callback
+                console.log(`${performance.now() - start} milliseconds`)
+                let text = state.result.join('')
+                let title = shorten_title(text)
+                if (state.error) {
+                    console.error(state.error)
+                } else {
+                    console.log(`.cps ${state.cps} .result: ${state.result.join("")}`)
+                }
+                otr(state, title, done)
+            },
+            128 // max characters
+        )
+    }
+    
+    const complete = () => {
         input.oninput()
         chat.timestamp = util.timestamp()
-        title.innerHTML = ""
-        generate_title()
-        set_chat_title(chat.title)
-        history.save_chat(chat)
-        rebuild_list()
         stop.classList.remove("pulsing")
         placeholder()
         ui.show(expand, spawn)
+        title.innerHTML = chat.title
+    }
+
+    const end_of_generation = () => {
+        scrollable.autoscroll = false
+//      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
         if (interrupted) { setTimeout(trim_interrupted, 250) }
+        if (chat.messages.length != 2) {
+            complete()
+        } else {
+            generate_title((s) => {
+                title.innerHTML = ""
+                chat.title = s
+                if (chat.title === "") {
+                    chat.title = util.summarize(chat.messages[0].text + " " +
+                                                chat.messages[1].text)
+                }
+                title.innerHTML = chat.title
+                set_chat_title(chat.title)
+                history.save_chat(chat)
+                rebuild_list()
+                complete()
+            })
+        }
     }
     
     const poll = (context) => {
@@ -399,7 +475,7 @@ export const run = () => { // called DOMContentLoaded
 //              console.log("chunk: " + chunk)
                 clearInterval(context.interval)
                 context.interval = null
-                done()
+                end_of_generation()
             } else if (chunk !== "") {
                 if (util.timestamp() - context.last > 1500) {
                     context.count = cycle_titles(context.count)
@@ -425,9 +501,7 @@ export const run = () => { // called DOMContentLoaded
             last: util.timestamp(),
             count: 1
         }
-        context.interval = setInterval(() => {
-            layout_and_render().then( () => poll(context) )
-        }, 33) // 33 times per second
+        context.interval = setInterval(() => poll(context), 10) // 100Hz
     }
     
     const oops = () => {
@@ -452,7 +526,7 @@ export const run = () => { // called DOMContentLoaded
             if (!error) {
                 polling()
             } else {
-                modal.toast(error, 5000)
+                modal.toast(`${error.name}: ${error.message}`, 5000)
             }
         })
     }

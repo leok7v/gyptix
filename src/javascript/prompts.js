@@ -48,7 +48,7 @@ const astronomy = [
     "What mysteries does dark energy hold?",
     "Why are some moons geologically active?",
     "Why is dark matter undetectable?",
-    "Why is Jupiter called Earth's 'shield'?"
+//  "Why is Jupiter called Earth's 'shield'?" // Does NOT know the answer
 ]
 
 const biology = [

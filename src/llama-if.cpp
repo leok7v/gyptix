@@ -68,7 +68,6 @@ struct context {
     std::vector<common_chat_msg> chat_msgs;
     std::vector<llama_token>     embd;
     std::vector<llama_token>     embd_inp;
-    std::string                  path_session;
     std::vector<llama_token>     session_tokens;
     std::vector<llama_token>     input_tokens;
     std::vector<llama_token>     output_tokens;
@@ -259,9 +258,24 @@ static int chat(struct context &context, const char* session, bool existing) {
     context.output_ss.clear();
     context.assistant_ss.clear();
     context.antiprompt_ids.clear();
-    context.is_interacting = false;
-    context.input_echo     = false;
-    context.display        = false;
+    context.is_interacting       = false;
+    context.input_echo           = false;
+    context.display              = false;
+    context.n_ctx_train          = 0;
+    context.n_ctx                = 0;
+    context.has_chat_template    = false;
+    context.is_interacting       = false;
+    context.need_insert_eot      = false;
+    context.is_antiprompt        = false;
+    context.input_echo           = false;
+    context.display              = false;
+    context.need_to_save_session = false;
+    context.n_past               = 0;
+    context.n_remain             = 0;
+    context.n_consumed           = 0;
+    context.n_session_consumed   = 0;
+    context.progress             = 0; // progress of processing embd_inp
+    context.at_readline          = {0};
     llama_context              * &ctx = context.ctx;
     const llama_model          * &model = context.model;
     common_sampler             * &smpl  = context.smpl;
@@ -279,8 +293,8 @@ static int chat(struct context &context, const char* session, bool existing) {
     context.n_remain             = params.n_predict;
     context.n_consumed           = 0;
     context.n_session_consumed   = 0;
-    context.params.n_keep = -1;
-    params.interactive_first     = false; // it will be modified later...
+    context.params.n_keep        = -1;
+//  params.interactive_first     = false; // it will be modified later...
     // https://github.com/ggml-org/llama.cpp/issues/1790
     // https://github.com/ggml-org/llama.cpp/issues/1647
     llama_kv_cache_clear(context.ctx);
@@ -411,15 +425,15 @@ static int chat(struct context &context, const char* session, bool existing) {
             n_matching_session_tokens++;
         }
         if (params.prompt.empty() && n_matching_session_tokens == embd_inp.size()) {
-            LOG_INF("%s: using full prompt from session file\n", __func__);
+            trace("using full prompt from session file\n");
         } else if (n_matching_session_tokens >= embd_inp.size()) {
-            LOG_INF("%s: session file has exact match for prompt!\n", __func__);
+            trace("session file has exact match for prompt\n");
         } else if (n_matching_session_tokens < (embd_inp.size() / 2)) {
-            LOG_WRN("%s: session file has low similarity to prompt (%zu / %zu tokens); will mostly be reevaluated\n",
-                    __func__, n_matching_session_tokens, embd_inp.size());
+            trace("session file has low similarity to prompt (%zu / %zu tokens); will mostly be reevaluated\n",
+                   n_matching_session_tokens, embd_inp.size());
         } else {
-            LOG_INF("%s: session file matches %zu / %zu tokens of prompt\n",
-                    __func__, n_matching_session_tokens, embd_inp.size());
+            trace("session file matches %zu / %zu tokens of prompt\n",
+                    n_matching_session_tokens, embd_inp.size());
         }
         // remove any "future" tokens that we might have inherited from the previous session
         llama_kv_cache_seq_rm(ctx, -1, n_matching_session_tokens, -1);
@@ -550,7 +564,7 @@ static int chat(struct context &context, const char* session, bool existing) {
         embd_inp.clear();
         embd_inp.push_back(decoder_start_token_id);
     }
-//  trace("%s:%d context.n_remain: %d\n", __func__, __LINE__, (int)context.n_remain);
+    trace("context.n_remain: %d\n", (int)context.n_remain);
     while ((context.n_remain != 0 && !context.is_antiprompt) || params.interactive) {
         // predict
         if (!embd.empty()) {
@@ -610,6 +624,8 @@ static int chat(struct context &context, const char* session, bool existing) {
                 }
             }
             // try to reuse a matching prefix from the loaded session instead of re-eval (via n_past)
+//          trace("try to reuse a matching prefix from the loaded session instead of re-eval (via n_past)\n");
+//          trace("n_session_consumed: %d session_tokens.size(): %d\n", context.n_session_consumed, (int)session_tokens.size());
             if (context.n_session_consumed < (int) session_tokens.size()) {
                 size_t i = 0;
                 for ( ; i < embd.size(); i++) {
@@ -626,6 +642,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     }
                 }
                 if (i > 0) {
+                    trace("embd.erase(%d)\n", (int)i);
                     embd.erase(embd.begin(), embd.begin() + i);
                 }
             }
@@ -696,9 +713,11 @@ static int chat(struct context &context, const char* session, bool existing) {
                 // for the prompt, we don't apply grammar rules
                 common_sampler_accept(smpl, embd_inp[context.n_consumed], /* accept_grammar= */ false);
                 ++context.n_consumed;
+/* XXX: This is WRONG!
                 if ((int) embd.size() >= params.n_batch) {
                     break;
                 }
+*/
             }
         }
         bool interrupted = false;
@@ -745,6 +764,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     if (last_output.find(antiprompt, search_start_pos) != std::string::npos) {
                         if (params.interactive) {
                             context.is_interacting = true;
+                            trace("context.is_interacting = true;\n");
                         }
                         context.is_antiprompt = true;
                         break;
@@ -756,6 +776,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     if (ids.size() == 1 && last_token == ids[0]) {
                         if (params.interactive) {
                             context.is_interacting = true;
+                            trace("context.is_interacting = true;\n");
                         }
                         context.is_antiprompt = true;
                         break;
@@ -765,9 +786,17 @@ static int chat(struct context &context, const char* session, bool existing) {
                     LOG_DBG("found antiprompt: %s\n", last_output.c_str());
                 }
             }
+            // XXX ignore EOG inside loaded broken sessions
+            bool eog = llama_vocab_is_eog(context.vocab, common_sampler_last(smpl));
+            bool is_eog = context.n_session_consumed == (int)context.session_tokens.size() ?
+                eog : false;
+            if (eog && !is_eog) {
+                trace("IGNORE: found an EOG token inside loaded session\n");
+            }
             // deal with end of generation tokens in interactive mode
-            if (llama_vocab_is_eog(context.vocab, common_sampler_last(smpl))) {
+            if (is_eog) {
                 LOG_DBG("found an EOG token\n");
+                trace("found an EOG token embd.size(): %d\n", (int)embd.size());
                 if (params.interactive) {
                     if (!params.antiprompt.empty()) {
                         // tokenize and inject first reverse prompt
@@ -778,9 +807,12 @@ static int chat(struct context &context, const char* session, bool existing) {
                     if (params.enable_chat_template) {
                         chat_add_and_format("assistant", assistant_ss.str());
                     }
-//                  trace("<--done--> llama_vocab_is_eog()\n");
+                    trace("<--done--> llama_vocab_is_eog()\n");
                     context.is_interacting = true;
+                    trace("context.is_interacting = true;\n");
                     llama.output_text("<--done-->");
+                    assert(embd.size() <= 1); // and it is EOG
+                    embd.clear();
                     if (!path_session.empty()) {
                         trace("saving %d tokens to '%s'\n",
                                (int)session_tokens.size(), path_session.c_str());
@@ -796,12 +828,15 @@ static int chat(struct context &context, const char* session, bool existing) {
                 assistant_ss << common_token_to_piece(ctx, id, false);
             }
             if (interrupted) {
-                trace("%d: <--done--> interrupted\n", __LINE__);
+                trace("<--done--> interrupted\n");
                 llama.output_text("<--done-->");
                 context.is_interacting = true;
+                trace("context.is_interacting = true;\n");
             }
             if (context.n_past > 0 && context.is_interacting) {
                 LOG_DBG("waiting for user input\n");
+                trace("embd.size(): %d\n", (int)embd.size());
+                trace("waiting for user input\n");
                 if (params.conversation_mode) {
                     LOG("\n> ");
                 }
@@ -816,10 +851,13 @@ static int chat(struct context &context, const char* session, bool existing) {
                 }
                 console::set_display(console::user_input);
                 context.display = params.display_prompt;
+                assert(embd.size() <= 1); // and it is EOG
+                embd.clear();
                 const char* line = llama.read_line();
                 if (!line) {
 //                  trace("<--done--> line == null\n");
                     context.is_interacting = true;
+                    trace("context.is_interacting = true;\n");
                     llama.output_text("<--done-->");
 //                  trace("<--done--> because line == null\n");
 //                  trace("ENDS RUNNING THE MODEL\n");
@@ -830,6 +868,7 @@ static int chat(struct context &context, const char* session, bool existing) {
 //              trace("%s buff: %s\n", __func__, buffer.c_str());
                 if (buffer == "<--end-->") {
                     context.is_interacting = true;
+                    trace("context.is_interacting = true;\n");
                     llama.output_text("<--done-->");
 //                  trace("<--done--> because line == <--end-->\n");
 //                  trace("ENDS RUNNING THE MODEL\n");
@@ -837,9 +876,12 @@ static int chat(struct context &context, const char* session, bool existing) {
                 } else if (buffer == "<--otr-->") { // off the record
                     buffer = "";
                     restore_at_readline(context);
-                    context.is_interacting = true;
+                    context.is_interacting = false;
+                    trace("context.is_interacting = false;\n");
+                    trace("embd.size(): %d\n", (int)embd.size());
+                    trace("embd_inp.size(): %d\n", (int)embd_inp.size());
                     llama.output_text("<--done-->");
-//                  trace("<--done--> because line == <--otr-->\n");
+                    trace("<--done--> because line == <--otr-->\n");
                 }
                 // done taking input, reset color
                 console::set_display(console::reset);
@@ -901,6 +943,7 @@ static int chat(struct context &context, const char* session, bool existing) {
                     common_sampler_reset(smpl);
                 }
                 context.is_interacting = false;
+//              trace("context.is_interacting = false;\n");
             }
         }
         // end of generation
@@ -914,6 +957,7 @@ static int chat(struct context &context, const char* session, bool existing) {
         if (params.interactive && context.n_remain <= 0 && params.n_predict >= 0) {
             context.n_remain = params.n_predict;
             context.is_interacting = true;
+            trace("context.is_interacting = true;\n");
             llama.output_text("<--done-->");
             trace("%d: <--done--> context.n_remain <= 0\n", __LINE__);
         }
