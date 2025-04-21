@@ -15,8 +15,8 @@ struct gyptix_startup {
     } gpu;
     int    is_iOS_app_on_mac;   // bool
     int    is_mac_catalyst_app; // bool
-    int    cpu;         // processors count
-    int    active_cpu;  // active processors count
+    int    cpu;             // processors count
+    int    active_cpu;      // active processors count
 };
 
 struct gyptix {

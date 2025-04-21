@@ -222,6 +222,45 @@ static void list() {
     closedir(dir);
 }
 
+static int load_and_run(int argc, char** argv) {
+    int r = llama.load(argc, argv);
+    printf("llama.load() %s\n", r == 0 ? "done" : "failed");
+    if (r != 0) {
+        running = false;
+        return 1;
+    }
+    for (;;) {
+        pthread_mutex_lock(&lock);
+        while (!event) { pthread_cond_wait(&cond, &lock); }
+        event = 0;
+        char* id = nullptr;
+        if (session_id != nullptr) {
+            id = strdup(session_id);
+            session_id = nullptr;
+            free(session_id);
+        }
+        pthread_mutex_unlock(&lock);
+        question = nullptr;
+        if (quit || id == nullptr) { break; }
+        running = true;
+//      fprintf(stderr, "running = true\n");
+//      list();
+        int r = llama.run(id, existing);
+        free(id);
+        running = false;
+//      fprintf(stderr, "running = false\n");
+        if (r != 0) { break; }
+        if (quit) {
+            break;
+        }
+    }
+    pthread_mutex_lock(&lock);
+    llama.fini();
+    pthread_mutex_unlock(&lock);
+    return 0;
+}
+
+
 static void load_model(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
     static char arg0[1024];
@@ -269,45 +308,18 @@ static void load_model(const char* model) {
     argv[argc++] = (char*)"-p";
     argv[argc++] = (char*)sp.c_str();
 //  printf("%s\n", sp.c_str());
-    try {
-        int r = llama.load(argc, argv);
-        printf("llama.load() %s\n", r == 0 ? "done" : "failed");
-        if (r != 0) {
+    #if DEBUG // do not catch exception in DEBUG
+        int r = load_and_run(argc, argv);
+        printf("load_and_run() %s\n", r == 0 ? "done" : "failed");
+    #else
+        try {
+            int r = load_and_run(argc, argv);
+            printf("load_and_run() %s\n", r == 0 ? "done" : "failed");
+        } catch (...) {
             running = false;
-            return;
+            fprintf(stderr, "Exception in run()\n");
         }
-        for (;;) {
-            pthread_mutex_lock(&lock);
-            while (!event) { pthread_cond_wait(&cond, &lock); }
-            event = 0;
-            char* id = nullptr;
-            if (session_id != nullptr) {
-                id = strdup(session_id);
-                session_id = nullptr;
-                free(session_id);
-            }
-            pthread_mutex_unlock(&lock);
-            question = nullptr;
-            if (quit || id == nullptr) { break; }
-            running = true;
-//          fprintf(stderr, "running = true\n");
-//          list();
-            int r = llama.run(id, existing);
-            free(id);
-            running = false;
-//          fprintf(stderr, "running = false\n");
-            if (r != 0) { break; }
-            if (quit) {
-                break;
-            }
-        }
-        pthread_mutex_lock(&lock);
-        llama.fini();
-        pthread_mutex_unlock(&lock);
-    } catch (...) {
-        running = false;
-        fprintf(stderr, "Exception in run()\n");
-    }
+    #endif
 }
 
 static void remove_chat(const char* id) {

@@ -70,6 +70,7 @@ export const run = () => { // called DOMContentLoaded
     let selected = null // selected chat id
     let is_expanded = false  // navigation pane expanded
     let selected_item = null // item in chats list
+    let model = chats.create()
     
     let scrollable = scroll.scroll_create_wrapper(messages,
                                                   backend.is_answering, false)
@@ -118,7 +119,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const interrupt = () => {
-        model.interrupt()
+        chats.interrupt(model)
         placeholder()
         ui.hide(stop)
         carry.style.display = "inline"
@@ -368,7 +369,10 @@ export const run = () => { // called DOMContentLoaded
         let r = ""
         const lines = s.trim().split("\n")
         for (let i = 0; i < lines.length; i++) {
-            const s = lines[i].trim().replace(/[".]/g, "")
+            let s = lines[i].trim().replace(/[".]/g, "")
+            // "Title: AI Translators: Capturing Nuance, Albeit Limitations"
+            // remove "title" or "Title:" case-insensitive
+            s = s.replace(/title(:)?/i, '').trim()
             if (s.length >= 4) {
                 r = s
                 break
@@ -377,62 +381,54 @@ export const run = () => { // called DOMContentLoaded
         return r
     }
 
-    let model = chats.create()
-
     // en_dash: '\u2013' == '–'
     // em_dash: '\u2014' == '—'
     const punctuation = ':;\u2013\u2014'
 
-    const shorten_title = (s) => {
+    const shorten_title = (s, maximum) => {
         let r = skip_short_lines(s)
         for (let i = 0; i < punctuation.length; i++) {
             const ix = r.indexOf(punctuation.charAt(i))
             if (ix >= 4) { r = r.slice(0, ix).trim() }
         }
-        return r
+        const words = r.split(/\s+/);
+        let out = '';
+        for (let i = 0; i < words.length; i++) {
+            const w = words[i];
+            if (out === '') {
+                if (w.length <= maximum) {
+                    out = w;
+                } else {
+                    out = w.slice(0, maximum);
+                    break;
+                }
+            } else if (out.length + 1 + w.length <= maximum) {
+                out += ' ' + w;
+            } else {
+                break;
+            }
+        }
+        return out
     }
-
-    const otr = (model, title, done) => { // off the record
-        console.log("<--otr-->")
-        let start = performance.now()
-        chats.ask(model, "<--otr-->", 128)
-            .then(() => {
-                console.log(`otr: ${(performance.now() - start).toFixed(1)} ms`)
-                done(title)
-            })
-            .catch(error => {
-                console.log(`otr: ${(performance.now() - start).toFixed(1)} ms`)
-                console.error("Error:", error)
-                done(title)
-            })
-    }
-
 
     const generate_title = (done) => {
         let start = performance.now()
         const prompt =
-            "Generate a concise title for the preceding conversation.\n" +
-            "Output only the title text with no extra words or punctuation.\n"
+            "[otr:32]Generate shortest concise title " +
+            "for the preceding conversation.\n" +
+            "Output only the title text.\n[/otr]"
         chats.start(model, prompt,
-            model => { // per-token callback
-                let text = model.result.join('')
-//              console.log(`model.tokens: "${model.tokens}" text: "${text}":${text.length}`)
-                let title = skip_short_lines(text)
-//              console.log(`model.tokens: ${title}`)
-                if ([...punctuation].some(ch => title.includes(ch))) {
-                    model.interrupt(model)
-                }
-            },
+            model => { }, // per-token callback
             model => { // completion callback
                 console.log(`generate_title: ${(performance.now() - start).toFixed(1)} ms`)
                 let text = model.result.join('')
-                let title = shorten_title(text)
+                let title = shorten_title(text, 32)
                 if (model.error) {
                     console.error(model.error)
                 } else {
                     console.log(`generate_title: .cps ${model.cps.toFixed(1)} .title: ${model.result.join("")}`)
                 }
-                otr(model, title, done)
+                done(title)
             },
             128 // max characters
         )
