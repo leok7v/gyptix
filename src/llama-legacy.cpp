@@ -1,3 +1,4 @@
+#if 0 // LEGACY code: keepng around for reference only
 #include "arg.h"
 #include "common.h"
 #include "console.h"
@@ -1733,3 +1734,4 @@ static int chat_legacy(struct state &state, const char* session, bool existing) 
     common_sampler_free(smpl);
     return 0;
 }
+#endif

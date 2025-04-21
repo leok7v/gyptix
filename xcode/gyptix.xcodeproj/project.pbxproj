@@ -86,6 +86,7 @@
 		B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F82D4AB3C300A2D406 /* app.js */; };
 		B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F72D4AB3C300A2D406 /* app.css */; };
 		B3B4F66A2DB61EA200EEE9F7 /* trace.c in Sources */ = {isa = PBXBuildFile; fileRef = B3B4F6692DB61EA200EEE9F7 /* trace.c */; };
+		B3B76A512DB6C30A003799D6 /* llama-legacy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3B76A502DB6C30A003799D6 /* llama-legacy.cpp */; };
 		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
 		B3D7EDF02D955A86003AF38F /* app3.html in Resources */ = {isa = PBXBuildFile; fileRef = B3D7EDEF2D955A86003AF38F /* app3.html */; };
 		B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E04BD02D84816800C6C67B /* Dispatch.swift */; };
@@ -235,6 +236,7 @@
 		B3B3F3FC2D4AB3C300A2D406 /* prompts.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prompts.js; sourceTree = "<group>"; };
 		B3B4F6682DB61EA200EEE9F7 /* trace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = trace.h; path = ../src/trace.h; sourceTree = SOURCE_ROOT; };
 		B3B4F6692DB61EA200EEE9F7 /* trace.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = trace.c; path = ../src/trace.c; sourceTree = SOURCE_ROOT; };
+		B3B76A502DB6C30A003799D6 /* llama-legacy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-legacy.cpp"; path = "../src/llama-legacy.cpp"; sourceTree = SOURCE_ROOT; };
 		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
 		B3D7EDEF2D955A86003AF38F /* app3.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app3.html; sourceTree = "<group>"; };
 		B3E04BD02D84816800C6C67B /* Dispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = ../src/swift/Dispatch.swift; sourceTree = SOURCE_ROOT; };
@@ -374,6 +376,7 @@
 				B30D39142D458DA600B8196B /* llama-build.cpp */,
 				B30D39152D458DA600B8196B /* llama-if.h */,
 				B30D39162D458DA600B8196B /* llama-if.cpp */,
+				B3B76A502DB6C30A003799D6 /* llama-legacy.cpp */,
 				B3B4F6682DB61EA200EEE9F7 /* trace.h */,
 				B3B4F6692DB61EA200EEE9F7 /* trace.c */,
 				B323E3642D1CDAB2007BA38C /* Products */,
@@ -696,6 +699,7 @@
 				B3B4F66A2DB61EA200EEE9F7 /* trace.c in Sources */,
 				B34A04642D458A880010D066 /* ggml-cpu-aarch64.cpp in Sources */,
 				B34A04682D458A880010D066 /* ggml-opt.cpp in Sources */,
+				B3B76A512DB6C30A003799D6 /* llama-legacy.cpp in Sources */,
 				B34A046F2D458A880010D066 /* ggml.c in Sources */,
 				B34A04702D458A880010D066 /* ggml-alloc.c in Sources */,
 				B34A04712D458A880010D066 /* ggml-cpu.cpp in Sources */,
