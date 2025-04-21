@@ -11,7 +11,7 @@ struct llama_if {
     void  (*fini)(void);
     char* (*read_line)(void); // returns malloc()ed string
     bool  (*output_text)(const char* s); // returns false on stop interruption
-    void  (*    progress)(double progress);  // input decoding progress 0..1
+    void  (*progress)(double progress);  // input decoding progress 0..1
 };
 
 extern struct llama_if llama;
