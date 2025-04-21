@@ -85,6 +85,7 @@
 		B3B3F4092D4AB3C300A2D406 /* about.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F62D4AB3C300A2D406 /* about.md */; };
 		B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F82D4AB3C300A2D406 /* app.js */; };
 		B3B3F40C2D4AB3C300A2D406 /* app.css in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F72D4AB3C300A2D406 /* app.css */; };
+		B3B4F66A2DB61EA200EEE9F7 /* trace.c in Sources */ = {isa = PBXBuildFile; fileRef = B3B4F6692DB61EA200EEE9F7 /* trace.c */; };
 		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
 		B3D7EDF02D955A86003AF38F /* app3.html in Resources */ = {isa = PBXBuildFile; fileRef = B3D7EDEF2D955A86003AF38F /* app3.html */; };
 		B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E04BD02D84816800C6C67B /* Dispatch.swift */; };
@@ -167,8 +168,6 @@
 		B33026C42DA1F40C0082BBB5 /* app3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app3.js; sourceTree = "<group>"; };
 		B33026C62DA1F46B0082BBB5 /* app3.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app3.css; sourceTree = "<group>"; };
 		B33E9D012D4B21FA005FEE9B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
-		B33E9D0E2D4B262E005FEE9B /* GyPTix.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTix.entitlements; sourceTree = "<group>"; };
-		B33E9D0F2D4B262E005FEE9B /* GyPTixDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTixDebug.entitlements; sourceTree = "<group>"; };
 		B34A02622D458A880010D066 /* ggml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ggml.h; sourceTree = "<group>"; };
 		B34A02632D458A880010D066 /* ggml-alloc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-alloc.h"; sourceTree = "<group>"; };
 		B34A02642D458A880010D066 /* ggml-backend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-backend.h"; sourceTree = "<group>"; };
@@ -209,11 +208,13 @@
 		B375A6A82D946AC8001F9286 /* app2.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app2.css; sourceTree = "<group>"; };
 		B375A6AA2D946ADB001F9286 /* app2.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app2.js; sourceTree = "<group>"; };
 		B375A6AC2D946B0E001F9286 /* app2.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app2.html; sourceTree = "<group>"; };
-		B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = "<group>"; };
 		B37754A92D41E38900B7B4C5 /* gyptix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = gyptix.h; path = ../src/gyptix.h; sourceTree = SOURCE_ROOT; };
 		B37754AA2D41E38900B7B4C5 /* gyptix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = gyptix.cpp; path = ../src/gyptix.cpp; sourceTree = SOURCE_ROOT; };
 		B37AB35B2D8C2FC300199E85 /* llama.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = llama.h; path = ../llama.cpp/include/llama.h; sourceTree = SOURCE_ROOT; };
 		B37AB35C2D8C2FC300199E85 /* llama-cpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-cpp.h"; path = "../llama.cpp/include/llama-cpp.h"; sourceTree = SOURCE_ROOT; };
+		B38DB5632DB623AB00425998 /* GyPTix.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTix.entitlements; sourceTree = SOURCE_ROOT; };
+		B38DB5642DB623AB00425998 /* gyptix-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gyptix-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
+		B38DB5652DB623AB00425998 /* GyPTixDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GyPTixDebug.entitlements; sourceTree = SOURCE_ROOT; };
 		B39546C82DA5ABE300E35252 /* history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = history.js; sourceTree = "<group>"; };
 		B39546CA2DA7007B00E35252 /* app1.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app1.html; sourceTree = "<group>"; };
 		B39546CC2DA7012800E35252 /* app1.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = app1.js; sourceTree = "<group>"; };
@@ -232,6 +233,8 @@
 		B3B3F3F92D4AB3C300A2D406 /* eula.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = eula.md; sourceTree = "<group>"; };
 		B3B3F3FB2D4AB3C300A2D406 /* licenses.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = licenses.md; sourceTree = "<group>"; };
 		B3B3F3FC2D4AB3C300A2D406 /* prompts.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prompts.js; sourceTree = "<group>"; };
+		B3B4F6682DB61EA200EEE9F7 /* trace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = trace.h; path = ../src/trace.h; sourceTree = SOURCE_ROOT; };
+		B3B4F6692DB61EA200EEE9F7 /* trace.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = trace.c; path = ../src/trace.c; sourceTree = SOURCE_ROOT; };
 		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
 		B3D7EDEF2D955A86003AF38F /* app3.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app3.html; sourceTree = "<group>"; };
 		B3E04BD02D84816800C6C67B /* Dispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = ../src/swift/Dispatch.swift; sourceTree = SOURCE_ROOT; };
@@ -363,16 +366,16 @@
 				B34A02612D458A480010D066 /* llama.cpp */,
 				B3B3F3FE2D4AB3C300A2D406 /* javascript */,
 				B37F0C212DAB31CB00CE7669 /* swift */,
-				B37754A92D41E38900B7B4C5 /* gyptix.h */,
-				B377547C2D41E0BE00B7B4C5 /* gyptix-Bridging-Header.h */,
-				B30D39142D458DA600B8196B /* llama-build.cpp */,
-				B37754AA2D41E38900B7B4C5 /* gyptix.cpp */,
-				B30D39152D458DA600B8196B /* llama-if.h */,
-				B30D39162D458DA600B8196B /* llama-if.cpp */,
+				B38DB5622DB6234400425998 /* xcode */,
 				B3F590522D69E7C5008B5B7D /* getcwd.h */,
 				B3F590532D69E7C5008B5B7D /* getcwd.m */,
-				B33E9D0E2D4B262E005FEE9B /* GyPTix.entitlements */,
-				B33E9D0F2D4B262E005FEE9B /* GyPTixDebug.entitlements */,
+				B37754A92D41E38900B7B4C5 /* gyptix.h */,
+				B37754AA2D41E38900B7B4C5 /* gyptix.cpp */,
+				B30D39142D458DA600B8196B /* llama-build.cpp */,
+				B30D39152D458DA600B8196B /* llama-if.h */,
+				B30D39162D458DA600B8196B /* llama-if.cpp */,
+				B3B4F6682DB61EA200EEE9F7 /* trace.h */,
+				B3B4F6692DB61EA200EEE9F7 /* trace.c */,
 				B323E3642D1CDAB2007BA38C /* Products */,
 				B30D39232D458EFA00B8196B /* granite-3.1-1b-a400m-instruct */,
 				B3AA963A2DAF31DC00D676BD /* Frameworks */,
@@ -471,6 +474,16 @@
 			);
 			name = swift;
 			path = ../src/swift;
+			sourceTree = SOURCE_ROOT;
+		};
+		B38DB5622DB6234400425998 /* xcode */ = {
+			isa = PBXGroup;
+			children = (
+				B38DB5642DB623AB00425998 /* gyptix-Bridging-Header.h */,
+				B38DB5632DB623AB00425998 /* GyPTix.entitlements */,
+				B38DB5652DB623AB00425998 /* GyPTixDebug.entitlements */,
+			);
+			name = xcode;
 			sourceTree = SOURCE_ROOT;
 		};
 		B3AA963A2DAF31DC00D676BD /* Frameworks */ = {
@@ -680,6 +693,7 @@
 				B34A04582D458A880010D066 /* ggml-cpu-quants.c in Sources */,
 				B34A04612D458A880010D066 /* ggml-backend-reg.cpp in Sources */,
 				B34A04622D458A880010D066 /* ggml-cpu-traits.cpp in Sources */,
+				B3B4F66A2DB61EA200EEE9F7 /* trace.c in Sources */,
 				B34A04642D458A880010D066 /* ggml-cpu-aarch64.cpp in Sources */,
 				B34A04682D458A880010D066 /* ggml-opt.cpp in Sources */,
 				B34A046F2D458A880010D066 /* ggml.c in Sources */,

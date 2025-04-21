@@ -6,6 +6,7 @@
 #include "llama-cpp.h"
 #include "llama-if.h"
 #include "getcwd.h"
+#include "trace.h"
 #include <sys/stat.h>
 #include "chat-template.hpp"
 
@@ -33,24 +34,6 @@
 #if defined(_MSC_VER)
 #pragma warning(disable: 4244 4267) // possible loss of data
 #endif
-
-static double trace_start_time = 0.0;
-
-#define trace(format, ...) do {                                     \
-    if (trace_start_time == 0.0) {                                  \
-        struct timespec ts;                                         \
-    clock_gettime(CLOCK_MONOTONIC, &ts);                            \
-        trace_start_time = ts.tv_sec + ts.tv_nsec / 1e9;            \
-    }                                                               \
-    const char* file = __FILE__;                                    \
-    const char* last = strrchr(file, '/');                          \
-    if (last != NULL) { file = last + 1; }                          \
-    struct timespec ts;                                             \
-    clock_gettime(CLOCK_MONOTONIC, &ts);                            \
-    double now = ts.tv_sec + ts.tv_nsec / 1e9 - trace_start_time;   \
-    fprintf(stderr, "%.6f %s:%d @%s " format, now,                  \
-        file, __LINE__, __func__, ##__VA_ARGS__);                   \
-} while (0)
 
 static const char * DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant";
 
