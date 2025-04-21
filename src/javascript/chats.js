@@ -7,16 +7,31 @@ const interrupt = (state) => {
     state.interrupted = true
 }
 
+const averages = (state) => {
+    const seconds   = (state.completed - state.start) / 1000;
+    state.cps       = seconds === 0 ? 0 : state.generated / seconds
+    if (state.ewma === 0) {
+        state.ewma  = state.cps
+    } else {
+        const alpha = 1.0 / 8.0
+        state.ewma  = state.ewma * (1 - alpha) + state.cps * alpha
+    }
+    console.log(`.cps: ${state.cps.toFixed(1)} ` +
+                `.ewma: ${state.ewma.toFixed(3)} ` +
+                `.tma: ${state.tma.toFixed(3)}`)
+}
+
 const completed = (state) => {
+    console.log("completed")
     const done = state.done
     state.polling   = null
     state.completed = performance.now()
-    const seconds   = (state.completed - state.start) / 1000;
-    state.cps       = seconds == 0 ? 0 : state.generated / seconds
     state.done      = null
     state.response  = null
     state.progress  = null
     state.maximum   = undefined
+    // only calculate .cps and averages for long enough runs:
+    if (state.generated > 256) { averages(state) }
     done(state)
 }
 
@@ -33,6 +48,8 @@ const poll = (state) => {
         clearInterval(state.polling)
         completed(state)
     } else if (tokens && tokens.length > 0) {
+        const alpha = 1.0 / 64.0
+        state.tma = state.tma * (1 - alpha) + tokens.length * alpha
         state.tokens = tokens
         state.generated += tokens.length
         state.result.push(tokens)
@@ -44,7 +61,7 @@ const poll = (state) => {
 }
 
 export const create = () => {
-    // token is one UTF-16 character
+    console.log("create")
     return {
         start:       0,         // performance.now() at chat() call
         error:       null,      // Error object
@@ -63,6 +80,8 @@ export const create = () => {
         polling:     undefined, // defined between chat() and done() calls
         completed:   0,         // performance.now() of done() call
         cps:         0,         // characters per second
+        ewma:        0,         // exponentially weighted moving average of cps
+        tma:         0,         // token length moving average
     }
 }
 
@@ -92,7 +111,14 @@ export const start = (state, prompt, response, done) => {
     if (state.error) {
         completed(state)
     } else {
-        const interval = state.interval ?? 10 // default: 100Hz
+        const Hz = state.tma == 0 ? 0 : state.ewma / state.tma
+        const i = Hz == 0 ? 33 : (1000 / Hz) // default interval 33Hz
+        const interval = state.interval ?? i
+        console.log(`.cps: ${state.cps.toFixed(1)} ` +
+                    `.ewma: ${state.ewma.toFixed(3)} ` +
+                    `.tma: ${state.tma.toFixed(3)}`)
+        console.log(`.Hz: ${Hz.toFixed(3)} .i: ${i.toFixed(3)} ` +
+                    `.interval: ${interval.toFixed(3)}`)
         state.polling = setInterval(() => poll(state), interval)
     }
 }

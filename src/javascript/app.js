@@ -68,7 +68,6 @@ export const run = () => { // called DOMContentLoaded
     let load_timestamp = util.timestamp()
     let current  = null // current  chat id
     let selected = null // selected chat id
-    let interrupted = false  // output was interrupted
     let is_expanded = false  // navigation pane expanded
     let selected_item = null // item in chats list
     
@@ -119,8 +118,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const interrupt = () => {
-        interrupted = true
-        backend.interrupt()
+        model.interrupt()
         placeholder()
         ui.hide(stop)
         carry.style.display = "inline"
@@ -378,59 +376,63 @@ export const run = () => { // called DOMContentLoaded
         }
         return r
     }
-    
-    const punctuation = ':,;-–—' // hyphen (-), en dash (–), and em dash (—)
+
+    let model = chats.create()
+
+    // en_dash: '\u2013' == '–'
+    // em_dash: '\u2014' == '—'
+    const punctuation = ':;\u2013\u2014'
 
     const shorten_title = (s) => {
         let r = skip_short_lines(s)
         for (let i = 0; i < punctuation.length; i++) {
             const ix = r.indexOf(punctuation.charAt(i))
-            if (ix >= 0) { r = r.slice(0, ix).trim() }
+            if (ix >= 4) { r = r.slice(0, ix).trim() }
         }
         return r
     }
 
-    const otr = (state, title, done) => { // off the record
+    const otr = (model, title, done) => { // off the record
         console.log("<--otr-->")
         let start = performance.now()
-        chats.ask(state, "<--otr-->", 128)
+        chats.ask(model, "<--otr-->", 128)
             .then(() => {
-                console.log(`${performance.now() - start} milliseconds`)
+                console.log(`otr: ${(performance.now() - start).toFixed(1)} ms`)
                 done(title)
             })
             .catch(error => {
-                console.log(`${performance.now() - start} milliseconds`)
+                console.log(`otr: ${(performance.now() - start).toFixed(1)} ms`)
                 console.error("Error:", error)
                 done(title)
             })
     }
+
 
     const generate_title = (done) => {
         let start = performance.now()
         const prompt =
             "Generate a concise title for the preceding conversation.\n" +
             "Output only the title text with no extra words or punctuation.\n"
-        const state = chats.create()
-        chats.start(state, prompt,
-            state => { // per-token callback
-                let text = state.result.join('')
-//              console.log(`state.tokens: "${state.tokens}" text: "${text}":${text.length}`)
+        chats.start(model, prompt,
+            model => { // per-token callback
+                let text = model.result.join('')
+//              console.log(`model.tokens: "${model.tokens}" text: "${text}":${text.length}`)
                 let title = skip_short_lines(text)
-//              console.log(`state.tokens: ${title}`)
+//              console.log(`model.tokens: ${title}`)
                 if ([...punctuation].some(ch => title.includes(ch))) {
-                    state.interrupt(state)
+                    model.interrupt(model)
                 }
             },
-            state => { // completion callback
-                console.log(`${performance.now() - start} milliseconds`)
-                let text = state.result.join('')
+            model => { // completion callback
+                console.log(`generate_title: ${(performance.now() - start).toFixed(1)} ms`)
+                let text = model.result.join('')
                 let title = shorten_title(text)
-                if (state.error) {
-                    console.error(state.error)
+                if (model.error) {
+                    console.error(model.error)
                 } else {
-                    console.log(`.cps ${state.cps} .result: ${state.result.join("")}`)
+                    console.log(`generate_title: .cps ${model.cps.toFixed(1)} .title: ${model.result.join("")}`)
                 }
-                otr(state, title, done)
+                otr(model, title, done)
             },
             128 // max characters
         )
@@ -448,7 +450,7 @@ export const run = () => { // called DOMContentLoaded
     const end_of_generation = () => {
         scrollable.autoscroll = false
 //      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
-        if (interrupted) { setTimeout(trim_interrupted, 250) }
+        if (model.interrupted) { setTimeout(trim_interrupted, 250) }
         if (chat.messages.length != 2) {
             complete()
         } else {
@@ -468,50 +470,25 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    const poll = (context) => {
-        if (!markdown.processing && context.interval) {
-            const chunk = backend.poll()
-            if (chunk === "<--done-->") {
-//              console.log("chunk: " + chunk)
-                clearInterval(context.interval)
-                context.interval = null
-                end_of_generation()
-            } else if (chunk !== "") {
-                if (util.timestamp() - context.last > 1500) {
-                    context.count = cycle_titles(context.count)
-                    context.last = util.timestamp()
-                }
-                render_last(chunk)
-                check_for_repetitions_and_stop()
-            }
-        }
-    }
-    
-    const polling = () => {
-        scrollable.autoscroll = true
-//      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
-        ui.show(stop)
-        ui.hide(send, expand, spawn)
-        stop.classList.add("pulsing")
-        markdown.start()
-        cycle_titles(0)
-        placeholder()
-        let context = {
-            interval: null,
-            last: util.timestamp(),
-            count: 1
-        }
-        context.interval = setInterval(() => poll(context), 10) // 100Hz
-    }
-    
     const oops = () => {
         modal.toast("<p>Oops<br>" +
                     "Fatal Error", 5000)
         setTimeout(() => { backend.quit() }, 5100)
     }
 
+    const poll = (model, context) => {
+        if (!markdown.processing) {
+            if (util.timestamp() - context.last > 1500) {
+                context.count = cycle_titles(context.count)
+                context.last = util.timestamp()
+            }
+            render_last(model.tokens)
+            check_for_repetitions_and_stop()
+        }
+    }
+
     const ask = (t, hidden) => { // 't': text
-        interrupted = false
+        model.interrupted = false
         ui.hide(carry, clear)
         if (!current || !t) { return }
         if (!backend.is_running()) { oops() }
@@ -522,12 +499,34 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
         setTimeout(scrollable.scroll_to_bottom, 500)
         layout_and_render().then(() => { // render before asking
-            let error = backend.ask(t)
-            if (!error) {
-                polling()
-            } else {
-                modal.toast(`${error.name}: ${error.message}`, 5000)
+            scrollable.autoscroll = true
+    //      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+            ui.show(stop)
+            ui.hide(send, expand, spawn)
+            stop.classList.add("pulsing")
+            markdown.start()
+            cycle_titles(0)
+            placeholder()
+            let context = {
+                last: util.timestamp(),
+                count: 1
             }
+            chats.start(model, t,
+                model => {
+//                  console.log(model.tokens)
+                    poll(model, context)
+                },
+                model => { // completion callback
+//                  console.log(`.cps ${model.cps} .result: ${model.result.join("")}`)
+                    end_of_generation()
+                    if (model.error) {
+                        console.error(model.error)
+                        let s = `${model.error.name}:\n${model.error.message}`
+                        modal.mbx(s, () => {}, "Dismiss")
+//                  } else {
+//                      console.log(`.cps: ${model.cps} .ewma: ${model.ewma}`)
+                    }
+                })
         })
     }
 
@@ -787,8 +786,8 @@ export const run = () => { // called DOMContentLoaded
         const clear_and_send = s !== "" && !answering && running;
         ui.show_hide(clear_and_send, clear, send)
         ui.show_hide(answering,  stop)
-        ui.show_hide(!clear_and_send && !interrupted, strut)
-        ui.show_hide(interrupted && !answering && !clear_and_send,  carry)
+        ui.show_hide(!clear_and_send && !model.interrupted, strut)
+        ui.show_hide(model.interrupted && !answering && !clear_and_send,  carry)
         if (!running) {
             clearTimeout(polling_running)
             polling_running = setTimeout(poll_running, 100)
@@ -961,7 +960,7 @@ export const run = () => { // called DOMContentLoaded
     suggest.innerHTML = suggestions.init({
         data: prompts.data,
         callback: s => {
-            interrupted = false;
+            model.interrupted = false;
             input.innerText = s.prompt
             input.oninput()
             suggestions.hide()

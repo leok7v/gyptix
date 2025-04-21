@@ -383,6 +383,7 @@ const char* poll(const char* i) {
     }
     char* s = NULL;
     if (output.length() == 0 && (!answering || !running)) {
+        printf("output.length() == 0 && answering: %d\n", answering);
         s = strdup("<--done-->");
     } else if (output.length() > 0 && validUTF8(output)) {
         s = strdup(output.c_str());

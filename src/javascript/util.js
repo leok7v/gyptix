@@ -191,14 +191,30 @@ export const summarize = (str) => {
     return s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s
 }
 
-export const substitutions = (s) => {
+export const substitutions = (text) => {
+    // `text` input string
     const now = new Date()
     const replacements = {
-        "[insert current date]": now.toLocaleDateString(),
-        "[insert day of the week]": now.toLocaleDateString(undefined, { weekday: "long" }),
-        "[insert current time]": now.toLocaleTimeString()
+        '[explanation]': '',
+        '[/explanation]': '',
+        '[answer]': '',
+        '[/answer]': '',
+        '[solution]': '',
+        '[/solution]': '',
+        '[end of solution]': '',
+        '[insert current date]': now.toLocaleDateString(),
+        '[insert day of the week]': now.toLocaleDateString(undefined, {
+            weekday: 'long'
+        }),
+        '[insert current time]': now.toLocaleTimeString()
     }
-    return s.replace(/\[insert (current date|day of the week|current time)\]/gi, (match) => {
-        return replacements[match.toLowerCase()] || match
-    })
+    const pattern = new RegExp(
+        Object.keys(replacements)
+            .map(k => k.replace(/[\[\]]/g, '\\$&'))
+            .join('|'),
+        'gi'
+    )
+    return text.replace(pattern,
+                        match => replacements[match.toLowerCase()] || match)
 }
+

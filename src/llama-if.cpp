@@ -876,12 +876,12 @@ static int chat(struct context &context, const char* session, bool existing) {
                 } else if (buffer == "<--otr-->") { // off the record
                     buffer = "";
                     restore_at_readline(context);
-                    context.is_interacting = false;
-                    trace("context.is_interacting = false;\n");
-                    trace("embd.size(): %d\n", (int)embd.size());
-                    trace("embd_inp.size(): %d\n", (int)embd_inp.size());
                     llama.output_text("<--done-->");
                     trace("<--done--> because line == <--otr-->\n");
+                    context.is_interacting = true;
+                    trace("context.is_interacting = true;\n");
+                    trace("embd.size(): %d\n", (int)embd.size());
+                    trace("embd_inp.size(): %d\n", (int)embd_inp.size());
                 }
                 // done taking input, reset color
                 console::set_display(console::reset);
