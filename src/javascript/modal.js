@@ -162,7 +162,8 @@ export const show = (markdown, done, ...actions) => {
     content.style.padding = "0"
     content.style.width  = "100%"
     content.style.height = "100%"
-    content.innerHTML = marked.parse(markdown)
+    content.innerHTML = html
+console.log(`markdown:\n${markdown}\nhtml:\n${html}\n`)
     panel.appendChild(content)
     panel.appendChild(buttons(actions, done))
     const modal = get("modal")

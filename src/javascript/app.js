@@ -372,7 +372,7 @@ export const run = () => { // called DOMContentLoaded
             let s = lines[i].trim().replace(/[".]/g, "")
             // "Title: AI Translators: Capturing Nuance, Albeit Limitations"
             // remove "title" or "Title:" case-insensitive
-            s = s.replace(/title(:)?/i, '').trim()
+            s = s.replace(/^\.?title:?\s*/i, '').trim()
             if (s.length >= 4) {
                 r = s
                 break

@@ -16,6 +16,7 @@
 #include "gyptix.h"
 #include "getcwd.h"
 #include "llama-if.h"
+#include "trace.h"
 
 extern "C" {
 
@@ -35,10 +36,13 @@ enum {
 static int event = 0;
 
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-static pthread_t thread;
-static char* question;
-static std::string output;
+static pthread_cond_t  cond = PTHREAD_COND_INITIALIZER;
+static pthread_t       thread;
+
+static char*       question;
+static std::string answer;
+static std::string message; // last error message
+
 static bool answering   = false;
 static bool running     = false;
 static bool existing    = false;
@@ -379,8 +383,6 @@ static void ask(const char* s) {
         while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
         if (question == NULL) {
             answering = true;
-//          printf("%s: %s\n", __func__, s);
-//          printf("%s: answering = true;\n", __func__);
         }
     }
 }
@@ -388,18 +390,28 @@ static void ask(const char* s) {
 static int is_answering() { return (int)answering; }
 static int is_running()   { return (int)running; }
 
-const char* poll(const char* i) {
+static void error(const char* text) {
+    pthread_mutex_lock(&lock);
+    message = text;
+    pthread_mutex_unlock(&lock);
+}
+
+static const char* poll(const char* i) {
     pthread_mutex_lock(&lock);
     if (strcmp(i, "<--interrupt-->") == 0) {
         interrupted = true;
     }
     char* s = NULL;
-    if (output.length() == 0 && (!answering || !running)) {
+    if (message.length() > 0) {
+        auto t = "<--error-->" + message + "</--error-->";
+        s = strdup(t.c_str());
+        message = "";
+    } else if (answer.length() == 0 && (!answering || !running)) {
         printf("output.length() == 0 && answering: %d\n", answering);
         s = strdup("<--done-->");
-    } else if (output.length() > 0 && validUTF8(output)) {
-        s = strdup(output.c_str());
-        output = "";
+    } else if (answer.length() > 0 && validUTF8(answer)) {
+        s = strdup(answer.c_str());
+        answer = "";
     } else {
         s = strdup("");
     }
@@ -407,7 +419,7 @@ const char* poll(const char* i) {
     return s;
 }
 
-static char* read_line(void) {
+static char* input(void) {
     char* s = NULL;
     for (;;) {
         pthread_mutex_lock(&lock);
@@ -421,27 +433,25 @@ static char* read_line(void) {
     return s;
 }
 
-static bool output_text(const char* s) {
+static bool output(const char* s) {
     pthread_mutex_lock(&lock);
     if (strcmp(s, "<--done-->") == 0) {
         answering = false;
-//      printf("%s answering = false;\n", __func__);
     } else {
-        output += s;
-//      printf("%s:%d answering:%d output: %s\n", __func__, __LINE__, answering, output.c_str());
+        answer += s;
     }
     bool result = !interrupted;
     if (interrupted) {
         interrupted = false;
-//      printf("%s interrupted = false;\n", __func__);
     }
     pthread_mutex_unlock(&lock);
     return result;
 }
 
 static void load(const char* model) {
-    llama.read_line   = read_line;
-    llama.output_text = output_text;
+    llama.input  = input;
+    llama.output = output;
+    llama.error  = error;
     if (thread == nullptr) {
         pthread_create(&thread, NULL, worker, (void*)strdup(model));
     }
@@ -450,10 +460,8 @@ static void load(const char* model) {
 static void run(const char* id, int create_new) {
     session_id = strdup(id);
     existing = !create_new;
-//  printf("session: %s\n", id);
     ask("<--end-->"); // end previous session
     answering = false; // because no one will be polling right after run
-//  printf("%s answering = false;\n", __func__);
     wakeup();
 //  printf("running: %s\n", id);
 }
@@ -463,11 +471,9 @@ static void inactive(void) {
 }
 
 static void stop(void) {
-//  printf("%s:%d\n", __func__, __LINE__);
     quit = true;
     if (thread != nullptr) {
         interrupted = true;
-//      printf("%s:%d interrupted = true;\n", __func__, __LINE__);
         wakeup();
         pthread_join(thread, NULL);
         pthread_mutex_destroy(&lock);

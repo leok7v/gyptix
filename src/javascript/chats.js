@@ -1,8 +1,9 @@
 "use strict"
 
 import * as backend from "./backend.js"
+import * as modal   from "./modal.js"
 
-const interrupt = (state) => {
+export const interrupt = (state) => {
     backend.interrupt() // next poll will get "<--done-->"
     state.interrupted = true
 }
@@ -43,7 +44,16 @@ const poll = (state) => {
     //       and backend.interrupt() should also be able to cancel long
     //       prompt processing for sizable prompts
     const tokens = backend.poll()
-    if (tokens === "<--done-->") {
+    if (tokens.startsWith('<--error-->') && tokens.endsWith('</--error-->')) {
+        const message = tokens.slice( // strip off the tags
+            '<--error-->'.length, -('</--error-->'.length)
+        )
+        const two_lines_gap = "\u00A0\u00A0\n\n\u00A0\u00A0\n\n"
+        const error = `# Fatal Error:${two_lines_gap}`+
+                      `** ${message} **${two_lines_gap}` +
+                      "Application cannot continue and will close now."
+        modal.mbx(error, () => backend.quit(), "Close")
+    } else if (tokens === "<--done-->") {
 //      console.log("<--done-->")
         clearInterval(state.polling)
         completed(state)

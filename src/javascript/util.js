@@ -195,6 +195,8 @@ export const substitutions = (text) => {
     // `text` input string
     const now = new Date()
     const replacements = {
+        '[note]': '',
+        '[end of output]': '',
         '[explanation]': '',
         '[/explanation]': '',
         '[answer]': '',
