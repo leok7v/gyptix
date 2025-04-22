@@ -48,11 +48,7 @@ const poll = (state) => {
         const message = tokens.slice( // strip off the tags
             '<--error-->'.length, -('</--error-->'.length)
         )
-        const two_lines_gap = "\u00A0\u00A0\n\n\u00A0\u00A0\n\n"
-        const error = `# Fatal Error:${two_lines_gap}`+
-                      `** ${message} **${two_lines_gap}` +
-                      "Application cannot continue and will close now."
-        modal.mbx(error, () => backend.quit(), "Close")
+        modal.fatal_error(message)
     } else if (tokens === "<--done-->") {
 //      console.log("<--done-->")
         clearInterval(state.polling)

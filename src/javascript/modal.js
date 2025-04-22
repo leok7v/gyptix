@@ -1,7 +1,8 @@
 "use strict"
 
-import * as detect from "./detect.js"
-import * as marked from "./marked.js"
+import * as backend from "./backend.js"
+import * as detect  from "./detect.js"
+import * as marked  from "./marked.js"
 
 const get = id => document.getElementById(id)
 
@@ -163,7 +164,6 @@ export const show = (markdown, done, ...actions) => {
     content.style.width  = "100%"
     content.style.height = "100%"
     content.innerHTML = html
-console.log(`markdown:\n${markdown}\nhtml:\n${html}\n`)
     panel.appendChild(content)
     panel.appendChild(buttons(actions, done))
     const modal = get("modal")
@@ -198,6 +198,14 @@ export const toast = (s, to) => {
         document.body.removeChild(div)
         modal_off()
     }, to)
+}
+
+export const fatal_error = (message) => {
+    const two_lines_gap = "\u00A0\u00A0\n\n\u00A0\u00A0\n\n"
+    const error = `# Fatal Error:${two_lines_gap}`+
+                  `** ${message} **${two_lines_gap}` +
+                  "Application cannot continue and will close now."
+    modal.mbx(error, () => backend.quit(), "Close")
 }
 
 const scroll_into_view_later = (span) => {

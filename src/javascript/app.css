@@ -693,18 +693,25 @@ span.label {
 .selected { font-weight: bold; }
 
 .pulsing {
-    border: 2px solid #888; /* Base border color */
+    border: 4px solid #888; /* Base border color */
     animation: pulse-border 0.5s infinite alternate ease-in-out;
 }
 
 @keyframes pulse-border {
-    from {
-        border-color: #666;
-    }
-    to {
-        border-color: #AAA;
-    }
+    from { border-color: #666; }
+    to { border-color: #AAA; }
 }
+
+.shadowing {
+    animation: shadowing 3s linear infinite;
+}
+
+@keyframes shadowing {
+    0%   { filter: brightness(1) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+    50%  { filter: brightness(1.5) drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)); }
+    100% { filter: brightness(1) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+}
+
 
 @keyframes rainbow-shift {
     0% { background-position: 0% 50%; }

@@ -288,14 +288,17 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const followup = [
-        "Want to dig deeper?",
+        "Want to dig deeper? Let's discuss…",
         "Need more details?",
         "Want to explore this further?",
-        "Care to dive deeper?",
-        "Shall we go further?",
-        "Want to keep talking about this?",
+        "Want to keep talking about this? Ask more questions…",
         "Let’s keep going…"
     ]
+
+    const set_input_placeholder = (s) => {
+        // double quotes improtant for css variable inside value
+        input.style.setProperty("--placeholder", `"${s}"`)
+    }
     
     const placeholder = () => {
         let ph = ""
@@ -308,8 +311,7 @@ export const run = () => { // called DOMContentLoaded
         } else {
             ph = "Ask anything... Use ⇧⏎ for line break"
         }
-        // double quotes improtant for css variable inside value
-        input.style.setProperty("--placeholder", `"${ph}"`)
+        set_input_placeholder(ph)
     }
     
     const set_title = (s) => {
@@ -321,6 +323,7 @@ export const run = () => { // called DOMContentLoaded
             `<div class='${classes}' >` +
             "<span class='logo'></span>" + c +
             "</div>"
+        placeholder()
     }
     
     const set_chat_title = (s) => {
@@ -412,6 +415,8 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const generate_title = (done) => {
+        ui.hide(stop)
+        set_input_placeholder('')
         let start = performance.now()
         const prompt =
             "[otr:32]Generate shortest concise title " +
@@ -420,13 +425,17 @@ export const run = () => { // called DOMContentLoaded
         chats.start(model, prompt,
             model => { }, // per-token callback
             model => { // completion callback
-                console.log(`generate_title: ${(performance.now() - start).toFixed(1)} ms`)
+                const dt = performance.now() - start
+//              console.log(`generate_title: ${dt.toFixed(1)} ms`)
                 let text = model.result.join('')
                 let title = shorten_title(text, 32)
                 if (model.error) {
                     console.error(model.error)
+                    let s = `${model.error.name}:\n${model.error.message}`
+                    modal.mbx(s, () => {}, "Dismiss")
                 } else {
-                    console.log(`generate_title: .cps ${model.cps.toFixed(1)} .title: ${model.result.join("")}`)
+//                  console.log(`generate_title: .cps ${model.cps.toFixed(1)} ` +
+//                              `.title: ${model.result.join("")}`)
                 }
                 done(title)
             },
@@ -437,7 +446,7 @@ export const run = () => { // called DOMContentLoaded
     const complete = () => {
         input.oninput()
         chat.timestamp = util.timestamp()
-        stop.classList.remove("pulsing")
+        stop.classList.remove("shadowing")
         placeholder()
         ui.show(expand, spawn)
         title.innerHTML = chat.title
@@ -499,7 +508,7 @@ export const run = () => { // called DOMContentLoaded
     //      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             ui.show(stop)
             ui.hide(send, expand, spawn)
-            stop.classList.add("pulsing")
+            stop.classList.add("shadowing")
             markdown.start()
             cycle_titles(0)
             placeholder()
@@ -817,8 +826,8 @@ export const run = () => { // called DOMContentLoaded
         if (s.length > 0 && last_key_down_time !== 0) {
             setTimeout(() => {
                 if (Date.now() - last_key_down_time > 2000) {
-                    send.classList.add("pulsing")
-                    setTimeout(() => send.classList.remove("pulsing"), 2000)
+                    send.classList.add("shadowing")
+                    setTimeout(() => send.classList.remove("shadowing"), 2000)
                 }
             }, 3000)
         }
