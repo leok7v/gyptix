@@ -244,7 +244,7 @@ static void clear(struct state &state) {
 static int load_session(struct state &state, const std::string &filename) {
     trace("attempting to load saved session from '%s'\n",filename.c_str());
     if (!file_exists(filename)) {
-        trace("session file does not exist, will create.\n");
+        trace("file does not exist, will create: %s\n", filename.c_str());
     } else if (file_is_empty(filename)) {
         trace("session file is empty. A new session will be initialized.\n");
     } else { // The file exists and is not empty
@@ -257,7 +257,7 @@ static int load_session(struct state &state, const std::string &filename) {
             trace("failed to load session file '%s'\n", filename.c_str());
             return 1;
         }
-        state.session_tokens.resize(n_token_count_out);
+        state.session_tokens.resize(n_token_count_out); // truncate
         trace("loaded a session with prompt size of %d tokens\n",
                (int)state.session_tokens.size());
     }
@@ -335,7 +335,9 @@ static int tokenize_prompt(struct state &state) {
         const int n = (int)state.session_tokens.size();
         trace("use session %d tokens\n", n);
         assert(state.session_tokens.size() > 0);
-        // don’t re‐tokenize, just advance the n_past counter
+        // don’t re‐tokenize, just advance the n_past counter.
+        // We still want to decode last session token, see
+        // "Last Session Token Decoding" discussion at the end of this file
         state.n_past = n - 1;
         const auto last_token = state.session_tokens[n - 1];
         common_sampler_accept(state.smpl, last_token, /*accept_grammar=*/false);
@@ -354,10 +356,10 @@ static void dump_interactive_info(const struct state &state) {
             for (const auto & antiprompt : state.params.antiprompt) {
                 trace("Reverse prompt: '%s'\n", antiprompt.c_str());
                 if (state.params.verbose_prompt) {
-                    auto tmp = common_tokenize(state.ctx, antiprompt, false, true);
-                    for (int i = 0; i < (int) tmp.size(); i++) {
-                        trace("%6d -> '%s'\n", tmp[i],
-                            common_token_to_piece(state.ctx, tmp[i]).c_str());
+                    auto t = common_tokenize(state.ctx, antiprompt, false, true);
+                    for (int i = 0; i < (int)t.size(); i++) {
+                        trace("%6d -> '%s'\n", t[i],
+                            common_token_to_piece(state.ctx, t[i]).c_str());
                     }
                 }
             }
@@ -370,7 +372,7 @@ static void dump_interactive_info(const struct state &state) {
             if (state.params.verbose_prompt) {
                 auto t = common_tokenize(state.ctx, state.params.input_prefix,
                                          true, true);
-                for (int i = 0; i < (int) t.size(); i++) {
+                for (int i = 0; i < (int)t.size(); i++) {
                     trace("%6d -> '%s'\n", t[i],
                         common_token_to_piece(state.ctx, t[i]).c_str());
                 }
@@ -381,7 +383,7 @@ static void dump_interactive_info(const struct state &state) {
             if (state.params.verbose_prompt) {
                 auto t = common_tokenize(state.ctx, state.params.input_suffix,
                                          false, true);
-                for (int i = 0; i < (int) t.size(); i++) {
+                for (int i = 0; i < (int)t.size(); i++) {
                     trace("%6d -> '%s'\n", t[i],
                         common_token_to_piece(state.ctx, t[i]).c_str());
                 }
@@ -394,7 +396,7 @@ static void dump_prompt(const struct state &state) {
     if (state.params.verbose_prompt) {
         trace("prompt: '%s'\n", state.params.prompt.c_str());
         trace("number of tokens in prompt = %u\n", (int)state.embd_inp.size());
-        for (int i = 0; i < (int) state.embd_inp.size(); i++) {
+        for (int i = 0; i < (int)state.embd_inp.size(); i++) {
             trace("%6d -> '%s'\n", state.embd_inp[i],
                   common_token_to_piece(state.ctx, state.embd_inp[i]).c_str());
         }
@@ -421,7 +423,8 @@ static int decode(struct state &state) {
         state.n_past += n_eval;
 //      trace("context.n_past: %d params.n_batch: %d n_eval: %d\n",
 //            (int)state.n_past, (int)state.params.n_batch, n_eval);
-        if (state.n_consumed <= state.embd_inp.size()) { // still processing input
+        if (state.n_consumed <= state.embd_inp.size()) {
+            // still processing input
             if (state.progress < 1.0) {
                 double n = (state.n_consumed  - state.saved.embd_inp_size);
                 double d = (state.embd_inp.size() - state.saved.embd_inp_size);
@@ -430,20 +433,129 @@ static int decode(struct state &state) {
                 if (llama.progress) { llama.progress(state.progress); }
             }
         }
-//      trace("n_past = %d\n", state.n_past);
-        // Display total tokens alongside total time
-        if (state.params.n_print > 0 && state.n_past % state.params.n_print == 0) {
-            trace("Tokens consumed so far = %d / %d\n", state.n_past, state.n_ctx);
-        }
-//      trace("Tokens consumed so far = %d / %d\n", state.n_past, state.n_ctx);
     }
     return 0;
 }
 
+/*
+    context_extension_via_self_extend()
+    Theory of operation
+    
+    When you run a model on more tokens than it was originally trained
+    for (n_ctx > n_ctx_train), you can’t simply shove all past
+    key/value pairs into one giant cache. Instead, “group attention”
+    splits the long context into ga_n interleaved groups of
+    width ga_w/ga_n.
+    
+    Each iteration here:
+    Select a window of ga_w tokens starting at ga_i.
+    Copy that window’s KV entries to the current tail of the cache (seq_add).
+
+    Divide (downsample) those entries by ga_n so that only every ga_n‑th
+    key/value pair remains (seq_div). That enforces the group‑attention
+    pattern (each head only attends within its group).
+
+    Fix alignment by a small extra shift (dd).
+
+    Discard the oldest bd tokens from the effective context (state.n_past -= bd).
+
+    By repeating this, you “slide” the attention window across the entire
+    past sequence, compressing older tokens in a grouped fashion so that
+    the model still attends locally yet can see far beyond its
+    original context size.
+*/
+
+
+static void context_extension_via_self_extend(struct state &state, int &ga_i) {
+    /*
+     ga_i   the current “group‑attention” index or offset into the past context.
+            It starts at 0 and increments by one group‑window each iteration.
+            Passed by reference so the caller can continue using the updated
+            offset.
+            
+     ga_n   the number of attention groups. If > 1, we partition long
+            contexts into ga_n interleaved streams.
+            
+     ga_w   the group‑window width, i.e. how many tokens per group before
+            we shift. Must be a multiple of ga_n (ensures even splits).
+            
+     ib     the integer block count that tells us how many whole blocks
+            of size (ga_w/ga_n) fit into the already‑shifted portion.
+            Used to scale how much KV data to copy.
+            
+     bd     the block‑discard length – how many tokens worth of KV entries
+            we’ll remove from state.n_past each iteration. It’s exactly one
+            window minus one group, so the context shrinks by that many
+            tokens after we redistribute.
+            
+     dd     the delta‑displacement, a small correction so that after the
+            two KV moves and the division, everything lines up precisely.
+    */
+    const int ga_n = state.params.grp_attn_n;
+    const int ga_w = state.params.grp_attn_w;
+    while (state.n_past >= ga_i + ga_w) {
+        const int ib = (ga_n * ga_i) / ga_w;
+        const int bd = (ga_w / ga_n) * (ga_n - 1);
+        const int dd = (ga_w / ga_n) - ib * bd - ga_w;
+        trace("shift: [%6d, %6d] + %6d -> [%6d, %6d]\n",
+                ga_i, state.n_past, ib * bd, ga_i + ib * bd,
+                state.n_past + ib * bd);
+        trace("div:   [%6d, %6d] / %6d -> [%6d, %6d]\n",
+                ga_i + ib * bd, ga_i + ib * bd + ga_w, ga_n,
+                (ga_i + ib * bd)/ga_n, (ga_i + ib * bd + ga_w)/ga_n);
+        trace("shift: [%6d, %6d] + %6d -> [%6d, %6d]\n",
+                ga_i + ib * bd + ga_w, state.n_past + ib * bd, dd,
+                ga_i + ib * bd + ga_w + dd, state.n_past + ib * bd + dd);
+        llama_kv_cache_seq_add(state.ctx, 0, ga_i, state.n_past, ib * bd);
+        // replicates ib × bd tokens’ worth of KV entries, moving them
+        // from positions [ga_i, ga_i+…] into the end at state.n_past.
+        llama_kv_cache_seq_div(state.ctx, 0, ga_i + ib * bd,
+                               ga_i + ib * bd + ga_w, ga_n);
+        // within the newly‑added window of size ga_w, it downsamples
+        // every ga_n‑th KV entry (i.e. group‑attention division),
+        // effectively compressing that slice by a factor of ga_n
+        llama_kv_cache_seq_add(state.ctx, 0, ga_i + ib * bd + ga_w,
+                               state.n_past + ib * bd, dd);
+        // makes one final tiny shift of dd entries so all tokens remain
+        // aligned after the division.
+        state.n_past -= bd;  // context shrinks by the discarded block
+        ga_i += ga_w / ga_n; // move to next group‑window
+        trace("n_past_old = %d, n_past = %d, ga_i = %d\n\n",
+              state.n_past + bd, state.n_past, ga_i);
+    }
+}
+
+/*
+    infinite_text_generation_via_context_shifting()
+    Theory of operation
+
+    When the model’s past‑token count exceeds its context window:
+    – If context shifting is enabled, we drop half of the excess tokens
+      beyond the first n_keep, then recompute logits on the remaining
+      context in batches so generation can continue with a “slid” window.
+
+    Each run:
+    • Compute how many tokens lie beyond the kept prompt (n_left).
+    • Discard half of those (n_discard).
+    • Remove them from the KV‑cache.
+    • Shift the tail of the context back into view by adding negative
+      offset (–n_discard).
+    • Update n_past accordingly.
+
+    state.params.ctx_shift   whether automatic context shifting is on
+    state.params.n_predict   the overall generation budget
+    state.params.n_keep      number of tokens to preserve at front
+    state.n_past             total tokens currently in KV‑cache
+    n_left                   = state.n_past – n_keep, tokens beyond keep
+    n_discard                = n_left / 2, half the excess to drop
+    keep                     = n_keep + n_discard, new split point
+*/
+
 static bool infinite_text_generation_via_context_shifting(struct state &state) {
     // if we run out of context:
     // - take the n_keep first tokens from the original prompt (via n_past)
-    // - take half of the last (n_ctx - n_keep) tokens and recompute the logits in batches
+    // - take half of the last (n_ctx - n_keep) tokens and
+    //                          recompute the logits in batches
     if (!state.params.ctx_shift){
         trace("context full and context shift is disabled => stopping\n");
         return true;
@@ -467,30 +579,6 @@ static bool infinite_text_generation_via_context_shifting(struct state &state) {
     return false;
 }
 
-static void context_extension_via_self_extend(struct state &state, int &ga_i) {
-    const int ga_n = state.params.grp_attn_n;
-    const int ga_w = state.params.grp_attn_w;
-    while (state.n_past >= ga_i + ga_w) {
-        const int ib = (ga_n * ga_i) / ga_w;
-        const int bd = (ga_w / ga_n) * (ga_n - 1);
-        const int dd = (ga_w / ga_n) - ib*bd - ga_w;
-        trace("shift: [%6d, %6d] + %6d -> [%6d, %6d]\n",
-                ga_i, state.n_past, ib*bd, ga_i + ib*bd, state.n_past + ib * bd);
-        trace("div:   [%6d, %6d] / %6d -> [%6d, %6d]\n",
-                ga_i + ib*bd, ga_i + ib*bd + ga_w, ga_n,
-                (ga_i + ib*bd)/ga_n, (ga_i + ib*bd + ga_w)/ga_n);
-        trace("shift: [%6d, %6d] + %6d -> [%6d, %6d]\n",
-                ga_i + ib * bd + ga_w, state.n_past + ib*bd, dd,
-                ga_i + ib * bd + ga_w + dd, state.n_past + ib*bd + dd);
-        llama_kv_cache_seq_add(state.ctx, 0, ga_i, state.n_past, ib * bd);
-        llama_kv_cache_seq_div(state.ctx, 0, ga_i + ib*bd, ga_i + ib * bd + ga_w, ga_n);
-        llama_kv_cache_seq_add(state.ctx, 0, ga_i + ib*bd + ga_w, state.n_past + ib * bd, dd);
-        state.n_past -= bd;
-        ga_i += ga_w / ga_n;
-        trace("n_past_old = %d, n_past = %d, ga_i = %d\n\n",
-              state.n_past + bd, state.n_past, ga_i);
-    }
-}
 
 static void insert_user_input(struct state &state, std::string &input) {
     bool format = state.params.conversation_mode &&
@@ -516,7 +604,7 @@ static void insert_user_input(struct state &state, std::string &input) {
     const auto line_inp = common_tokenize(state.ctx, user_input, false, format);
     const auto line_sfx = common_tokenize(state.ctx, sfx, false, true);
 //  trace("input tokens: %s\n", string_from(state.ctx, line_inp).c_str());
-    // if user stop generation mid-way, we must add EOT to finish model's last response
+    // if user stop generation mid-way, add EOT to finish model's last response
     if (state.need_insert_eot && format) {
         llama_token eot = llama_vocab_eot(state.vocab);
         state.embd_inp.push_back(eot == LLAMA_TOKEN_NULL ?
@@ -654,10 +742,11 @@ static int chat(struct state &state, const char* session_id, bool existing) {
     const int ga_n = state.params.grp_attn_n;
     const int ga_w = state.params.grp_attn_w;
     if (ga_n != 1) {
-        trace("self-extend: n_ctx_train = %d, grp_attn_n = %d, grp_attn_w = %d\n",
+        trace("self-extend: n_ctx_train = %d, grp_attn_n = %d, "
+              "grp_attn_w = %d\n",
               state.n_ctx_train, ga_n, ga_w);
-        assert(ga_n > 0);         // grp_attn_n must be positive
-        assert(ga_w % ga_n == 0); // grp_attn_w must be a multiple of grp_attn_n
+        assert(ga_n > 0);         // ga_n must be positive
+        assert(ga_w % ga_n == 0); // ga_w must be a multiple of ga_n
         // n_ctx_train must be a multiple of grp_attn_w
         assert(state.n_ctx_train % ga_w == 0);
         // n_ctx must be at least n_ctx_train * grp_attn_n
@@ -692,25 +781,28 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         state.embd_inp.clear();
         state.embd_inp.push_back(decoder_start_token_id);
     }
+    
+    
 //  trace("context.n_remain: %d\n", (int)state.n_remain);
     while ((state.n_remain != 0 && !state.is_antiprompt) ||
             state.params.interactive) {
         // predict
         if (!state.embd.empty()) {
             // Note: (n_ctx - 4) here is to match the logic for commandline
-            // prompt handling via --prompt or --file which uses the same value.
+            // prompt handling --prompt or --file which uses the same value.
             int max_embd_size = state.n_ctx - 4;
             // Ensure the input doesn't exceed the context size by
             // truncating embd if necessary.
-            if ((int) state.embd.size() > max_embd_size) {
-                const int skipped_tokens = (int) state.embd.size() - max_embd_size;
+            if ((int)state.embd.size() > max_embd_size) {
+                const int skipped = (int)state.embd.size() - max_embd_size;
                 state.embd.resize(max_embd_size);
-                trace("<<input too long: skipped %d token%s>>", skipped_tokens,
-                      skipped_tokens != 1 ? "s" : "");
+                trace("<<input too long: skipped %d token%s>>", skipped,
+                      skipped != 1 ? "s" : "");
             }
             if (ga_n == 1) {
-                if (state.n_past + (int) state.embd.size() >= state.n_ctx) {
+                if (state.n_past + (int)state.embd.size() >= state.n_ctx) {
                     if (infinite_text_generation_via_context_shifting(state)) {
+                        llama.error("Context Overflow");
                         break; // context full and shift is disabled => stop
                     }
                     trace("clear session path?!\n");
@@ -726,7 +818,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 auto e = state.embd.end();
                 state.session_tokens.insert(state.session_tokens.end(), b, e);
             }
-//          trace("embd.size(): %d\n", (int) state.embd.size());
+//          trace("embd.size(): %d\n", (int)state.embd.size());
         }
         state.embd.clear();
 //      trace("embd.clear()\n");
@@ -739,7 +831,8 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 save_session(state, filename);
             }
             */
-            const llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
+            const llama_token id = common_sampler_sample(state.smpl,
+                                                         state.ctx, -1);
             common_sampler_accept(state.smpl, id, /* accept_grammar= */ true);
             state.embd.push_back(id);
             // echo this to console
@@ -751,12 +844,13 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             // some user input remains from prompt or interaction:
 //          trace("embd_inp.size(): %d, n_consumed: %d\n",
 //                (int)state.embd_inp.size(), state.n_consumed);
-            while ((int) state.embd_inp.size() > state.n_consumed) {
+            while ((int)state.embd_inp.size() > state.n_consumed) {
                 state.embd.push_back(state.embd_inp[state.n_consumed]);
                 // push the prompt in the sampling context in order to apply
                 // repetition penalties later for the prompt, we don't apply
                 // grammar rules
-                common_sampler_accept(state.smpl, state.embd_inp[state.n_consumed],
+                common_sampler_accept(state.smpl,
+                                      state.embd_inp[state.n_consumed],
                 /* accept_grammar= */ false);
                 ++state.n_consumed;
             }
@@ -764,7 +858,8 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         bool interrupted = false;
         if (state.input_echo && state.display) {
             for (auto id : state.embd) {
-                const std::string token_str = common_token_to_piece(state.ctx, id, state.params.special);
+                const std::string token_str = common_token_to_piece(state.ctx,
+                      id, state.params.special);
 //              trace("token_str.c_str(): %s\n", token_str.c_str());
                 if (!llama.output(token_str.c_str())) {
                     interrupted  = true;
@@ -772,7 +867,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 }
             }
         }
-        if (state.input_echo && (int) state.embd_inp.size() == state.n_consumed) {
+        if (state.input_echo && (int)state.embd_inp.size() == state.n_consumed) {
             state.display = true;
         }
         // if not currently processing queued inputs
@@ -780,20 +875,21 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             // check for reverse prompt in the last n_prev tokens
             if (!state.params.antiprompt.empty()) {
                 const int n_prev = 32;
-                const std::string last_output = common_sampler_prev_str(state.smpl,
-                    state.ctx, n_prev);
+                const std::string last_output = common_sampler_prev_str(
+                        state.smpl, state.ctx, n_prev);
                 state.is_antiprompt = false;
                 // Check if each of the reverse prompts appears at the end of
                 // the output. If we're not running interactively, the reverse
                 // prompt might be tokenized with some following characters so
-                // we'll compensate for that by widening the search window a bit.
+                // we'll compensate for that by widening search window.
                 for (std::string & antiprompt : state.params.antiprompt) {
                     size_t extra_padding = state.params.interactive ? 0 : 2;
                     int with_extra = (int)(antiprompt.length() + extra_padding);
                     int len = (int)last_output.length();
                     size_t search_start_pos = len > with_extra ?
                         len - with_extra : 0;
-                    if (last_output.find(antiprompt, search_start_pos) != std::string::npos) {
+                    if (last_output.find(antiprompt, search_start_pos) !=
+                                         std::string::npos) {
                         if (state.params.interactive) {
                             state.is_interacting = true;
                             trace("context.is_interacting = true;\n");
@@ -822,7 +918,8 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                             common_sampler_last(state.smpl));
             // deal with end of generation tokens in interactive mode
             if (is_eog) {
-                trace("found an EOG token embd.size(): %d\n", (int)state.embd.size());
+                trace("found an EOG token embd.size(): %d\n",
+                       (int)state.embd.size());
                 if (state.params.interactive) {
                     if (!state.params.antiprompt.empty()) {
                         // tokenize and inject first reverse prompt
@@ -850,41 +947,41 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 continue;
             }
             if (state.n_past > 0 && state.is_interacting) {
-//              trace("embd.size(): %d context.n_past: %d\n", (int)state.embd.size(), state.n_past);
+//              trace("embd.size(): %d context.n_past: %d\n",
+//                    (int)state.embd.size(), state.n_past);
                 state.need_to_save_session = false;
                 trace("waiting for user input\n");
                 if (state.params.input_prefix_bos) {
                     trace("adding input prefix BOS token\n");
                     state.embd_inp.push_back(llama_vocab_bos(state.vocab));
                 }
-                std::string input;
                 state.display = state.params.display_prompt;
                 assert(state.embd.size() <= 1); // and it is EOG
                 state.embd.clear();
-                const char* line = llama.input();
-                if (!line || strcmp(line, "<--end-->") == 0) {
+                const char* text = llama.input();
+                if (!text || strcmp(text, "<--end-->") == 0) {
 //                  trace("<--done--> line == null\n");
                     llama.output("<--done-->");
 //                  trace("<--done--> because line == null\n");
                     trace("ENDS RUNNING THE MODEL\n");
                     break; // ENDS RUNNING THE MODEL
                 }
-                input += line;
-                free((void*)line);
+                std::string user = text;
+                free((void*)text);
 //              trace("%s buff: %s\n", __func__, buffer.c_str());
-                if (off_the_record(state, input)) { continue; }
+                if (off_the_record(state, user)) { continue; }
                 state.display = true;
                 // Add tokens to embd only if the input buffer is non-empty
                 // Entering a empty line lets the user pass control back
-                if (input.length() > 1) {
-                    trace("input: '%s'\n", input.c_str());
+                if (user.length() > 1) {
+                    trace("input: '%s'\n", user.c_str());
                     state.need_to_save_session = true;
                     save_state(state);
                     state.progress = 0;
                     if (state.params.escape) {
-                        string_process_escapes(input);
+                        string_process_escapes(user);
                     }
-                    insert_user_input(state, input);
+                    insert_user_input(state, user);
                 } else {
                     trace("empty line, passing control back\n");
                 }
@@ -914,11 +1011,11 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             state.is_interacting = true;
             trace("context.is_interacting = true;\n");
             llama.output("<--done-->");
-            trace("%d: <--done--> context.n_remain <= 0\n", __LINE__);
+            trace("<--done--> context.n_remain <= 0\n");
         }
     }
     trace("saving final output of %d tokens\n",
-           (int)state.session_tokens.size());
+          (int)state.session_tokens.size());
     save_session(state, filename);
     common_perf_print(state.ctx, state.smpl);
     common_sampler_free(state.smpl);
@@ -928,8 +1025,9 @@ static int chat(struct state &state, const char* session_id, bool existing) {
 static void ggml_free(struct state &state) {
     llama_detach_threadpool(state.ctx);
     llama_backend_free();
-    auto * ggml_threadpool_free_fn = (decltype(ggml_threadpool_free) *)
-        ggml_backend_reg_get_proc_address(state.ggml_reg, "ggml_threadpool_free");
+    auto * ggml_threadpool_free_fn = (decltype(ggml_threadpool_free)*)
+        ggml_backend_reg_get_proc_address(state.ggml_reg,
+                                         "ggml_threadpool_free");
     ggml_threadpool_free_fn(state.threadpool);
     ggml_threadpool_free_fn(state.threadpool_batch);
 }
@@ -984,6 +1082,8 @@ struct llama_if llama = {
 
 
 /*
+    # Last Session Token Decoding
+    
     Practical reasons why one would want to force a fresh decode
     of that last prompt token instead of blindly re‑using the “cached” logits:
 
@@ -1002,9 +1102,9 @@ struct llama_if llama = {
     Correct next‑step distribution
     
     Even if you never change sampling parameters mid‑session, you still
-    need a fresh logit vector for “where are we in the distribution right now?”
-    to hand off to common_sampler_sample(). If you re‑use an old cached
-    logit you’d either have to store and reload that vector
+    need a fresh logit vector for “where are we in the distribution right
+    now?” to hand off to common_sampler_sample(). If you re‑use an old
+    cached logit you’d either have to store and reload that vector
     (which llama.cpp doesn’t currently do) or risk sampling from stale data.
 
     Parameter changes
@@ -1019,5 +1119,6 @@ struct llama_if llama = {
     If you show a progress bar or log token‑by‑token probabilities,
     you need a call to llama_decode() to drive those callbacks for that
     last prompt token as well.
+    
 
 */
