@@ -302,9 +302,7 @@ export const run = () => { // called DOMContentLoaded
     
     const placeholder = () => {
         let ph = ""
-        if (backend.is_answering()) {
-            ph = "▣ stop"
-        } else if (chat.messages.length > 0) {
+        if (chat.messages.length > 0 && !model.polling) {
             ph = followup[util.random_int(0, followup.length - 1)]
         } else if (!detect.macOS) {
             ph = "Ask anything..."
@@ -323,7 +321,6 @@ export const run = () => { // called DOMContentLoaded
             `<div class='${classes}' >` +
             "<span class='logo'></span>" + c +
             "</div>"
-        placeholder()
     }
     
     const set_chat_title = (s) => {
@@ -389,6 +386,7 @@ export const run = () => { // called DOMContentLoaded
     const punctuation = ':;\u2013\u2014'
 
     const shorten_title = (s, maximum) => {
+        console.log(`title: "${s}":${s.length}`)
         let r = skip_short_lines(s)
         for (let i = 0; i < punctuation.length; i++) {
             const ix = r.indexOf(punctuation.charAt(i))
@@ -398,11 +396,19 @@ export const run = () => { // called DOMContentLoaded
         let out = '';
         for (let i = 0; i < words.length; i++) {
             const w = words[i];
+            const n = i < words.length - 1 ? words[i + 1] : '';
             if (out === '') {
                 if (w.length <= maximum) {
                     out = w;
                 } else {
                     out = w.slice(0, maximum);
+                    break;
+                }
+            } else if (i > 0 && w.length <= 3 && n != '') {
+                // do not end with short words hanging:
+                if (out.length + 1 + w.length + 1 + n.length <= maximum) {
+                    out += ' ' + w;
+                } else {
                     break;
                 }
             } else if (out.length + 1 + w.length <= maximum) {
@@ -411,6 +417,7 @@ export const run = () => { // called DOMContentLoaded
                 break;
             }
         }
+        console.log(`out: "${out}":${out.length}`)
         return out
     }
 
@@ -419,9 +426,9 @@ export const run = () => { // called DOMContentLoaded
         set_input_placeholder('')
         let start = performance.now()
         const prompt =
-            "[otr:32]Generate shortest concise title " +
+            "[otr:32]Write concise title " +
             "for the preceding conversation.\n" +
-            "Output only the title text.\n[/otr]"
+            "Reply only with the title plain text.\n[/otr]"
         chats.start(model, prompt,
             model => { }, // per-token callback
             model => { // completion callback
@@ -511,7 +518,6 @@ export const run = () => { // called DOMContentLoaded
             stop.classList.add("shadowing")
             markdown.start()
             cycle_titles(0)
-            placeholder()
             let context = {
                 last: util.timestamp(),
                 count: 1
@@ -519,6 +525,9 @@ export const run = () => { // called DOMContentLoaded
             chats.start(model, t,
                 model => {
 //                  console.log(model.tokens)
+                    if (performance.now() - model.start > 1500) {
+                        set_input_placeholder('')
+                    }
                     poll(model, context)
                 },
                 model => { // completion callback
@@ -570,9 +579,8 @@ export const run = () => { // called DOMContentLoaded
             ui.hide(carry, clear)
             input.innerHTML = ""
             ui.hide(send)
-            input.style.setProperty("--placeholder", '""')
             set_title('')
-            placeholder()
+            set_input_placeholder('')
             input.blur()
             layout_and_render().then( () => ask(s) )
         }

@@ -202,7 +202,7 @@ static int64_t extract_id(const std::string &input, const std::string &prefix) {
     return 0;
 }
 
-static std::string prompt_cache_filename(const char* session) {
+static std::string xxx_prompt_cache_folder(const char* session) {
     static const char* cwd = get_cwd();
     static char prompts[4 * 1024];
     strcpy(prompts, cwd);
@@ -210,10 +210,22 @@ static std::string prompt_cache_filename(const char* session) {
     mkdir(prompts, S_IRWXU);
     static char prompt_cache[4 * 1024];
     strcpy(prompt_cache, prompts);
+    static bool once;
+    if (!once) { trace("%s\n", prompt_cache); once = true; }
     strcat(prompt_cache, "/");
     strcat(prompt_cache, session);
-//  trace("%s\n", prompt_cache);
     return std::string(prompt_cache);
+}
+
+static std::string prompt_cache_folder(const char* session) {
+    static std::string prompt_cache;
+    if (prompt_cache.empty()) {
+        const char* cwd = get_cwd();
+        std::string prompts = std::string(cwd) + "/prompts";
+        trace("%s\n", prompts.c_str());
+        prompt_cache = prompts + "/" + std::string(session);
+    }
+    return prompt_cache;
 }
 
 static void clear(struct state &state) {
@@ -617,7 +629,7 @@ static void insert_user_input(struct state &state, std::string &input) {
     inp.insert(inp.end(), line_inp.begin(), line_inp.end());
     inp.insert(inp.end(), line_sfx.begin(), line_sfx.end());
     state.n_remain -= line_inp.size();
-    trace("n_remain: %d embd_inp: %d\n", state.n_remain, (int)inp.size());
+//  trace("n_remain: %d embd_inp: %d\n", state.n_remain, (int)inp.size());
 }
 
 static bool off_the_record(struct state &state, const std::string &input) {
@@ -631,6 +643,7 @@ static bool off_the_record(struct state &state, const std::string &input) {
     size_t start = close + 1;
     size_t end   = input.rfind("[/otr]");
     std::string body = input.substr(start, end - start);
+    trace("body: %s\n", body.c_str());
     save_state(state);
     int kv_start = state.n_past;
     state.embd_inp.clear();
@@ -645,23 +658,23 @@ static bool off_the_record(struct state &state, const std::string &input) {
         llama_decode(state.ctx, llama_batch_get_one(&tok, 1));
         state.n_past++;
     }
-    std::string buf;
+    std::string s;
     for (int i = 0; i < otr_max; i++) {
         llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
         common_sampler_accept(state.smpl, id, /*grammar=*/true);
         llama_decode(state.ctx, llama_batch_get_one(&id, 1));
         state.n_past++;
-        buf += common_token_to_piece(state.ctx, id, state.params.special);
+        s += common_token_to_piece(state.ctx, id, state.params.special);
         if (llama_vocab_is_eog(state.vocab, id)) {
             break;
         }
     }
-    llama.output(buf.c_str());
+    llama.output(s.c_str());
 //  llama.error("error test");  // DEBUG: uncomment to test errors to UI
     llama.output("<--done-->");
     restore_state(state);
     llama_kv_cache_seq_rm(state.ctx,
-        /*layer:*/0, /*from:*/kv_start, /*to:*/kv_start + (int)buf.size());
+        /*layer:*/0, /*from:*/kv_start, /*to:*/kv_start + (int)s.size());
     return true;
 }
 
@@ -687,7 +700,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             state.params.conversation_mode = COMMON_CONVERSATION_MODE_DISABLED;
         }
     }
-    std::string filename = prompt_cache_filename(session_id);
+    std::string filename = prompt_cache_folder(session_id);
     assert(!filename.empty());
     if (load_session(state, filename) != 0) { return 1; }
     const bool add_bos = llama_vocab_get_add_bos(state.vocab);
@@ -803,11 +816,10 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 if (state.n_past + (int)state.embd.size() >= state.n_ctx) {
                     if (infinite_text_generation_via_context_shifting(state)) {
                         llama.error("Context Overflow");
-                        break; // context full and shift is disabled => stop
+                        state.need_to_save_session = false;
+                        // context full, shift is disabled => stop w/o saving
+                        break;
                     }
-                    trace("clear session path?!\n");
-                    assert(false);
-                    filename.clear();
                 }
             } else {
                 context_extension_via_self_extend(state, ga_i);
@@ -958,39 +970,35 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 state.display = state.params.display_prompt;
                 assert(state.embd.size() <= 1); // and it is EOG
                 state.embd.clear();
-                const char* text = llama.input();
-                if (!text || strcmp(text, "<--end-->") == 0) {
+                const char* str = llama.input();
+                if (!str || strcmp(str, "<--end-->") == 0) {
 //                  trace("<--done--> line == null\n");
                     llama.output("<--done-->");
 //                  trace("<--done--> because line == null\n");
                     trace("ENDS RUNNING THE MODEL\n");
                     break; // ENDS RUNNING THE MODEL
                 }
-                std::string user = text;
-                free((void*)text);
+                std::string text = str;
+                free((void*)str);
 //              trace("%s buff: %s\n", __func__, buffer.c_str());
-                if (off_the_record(state, user)) { continue; }
+                if (off_the_record(state, text)) { continue; }
                 state.display = true;
                 // Add tokens to embd only if the input buffer is non-empty
                 // Entering a empty line lets the user pass control back
-                if (user.length() > 1) {
-                    trace("input: '%s'\n", user.c_str());
+                if (text.length() > 1) {
+                    trace("input: '%s'\n", text.c_str());
                     state.need_to_save_session = true;
                     save_state(state);
                     state.progress = 0;
-                    if (state.params.escape) {
-                        string_process_escapes(user);
-                    }
-                    insert_user_input(state, user);
+                    if (state.params.escape) { string_process_escapes(text); }
+                    insert_user_input(state, text);
                 } else {
                     trace("empty line, passing control back\n");
                 }
                 state.input_echo = false; // do not echo this again
             }
             if (state.n_past > 0) {
-                if (state.is_interacting) {
-                    common_sampler_reset(state.smpl);
-                }
+                if (state.is_interacting) { common_sampler_reset(state.smpl); }
                 state.is_interacting = false;
 //              trace("context.is_interacting = false;\n");
             }

@@ -195,15 +195,6 @@ export const substitutions = (text) => {
     // `text` input string
     const now = new Date()
     const replacements = {
-        '[note]': '',
-        '[end of output]': '',
-        '[explanation]': '',
-        '[/explanation]': '',
-        '[answer]': '',
-        '[/answer]': '',
-        '[solution]': '',
-        '[/solution]': '',
-        '[end of solution]': '',
         '[insert current date]': now.toLocaleDateString(),
         '[insert day of the week]': now.toLocaleDateString(undefined, {
             weekday: 'long'
@@ -216,7 +207,14 @@ export const substitutions = (text) => {
             .join('|'),
         'gi'
     )
-    return text.replace(pattern,
-                        match => replacements[match.toLowerCase()] || match)
+    text = text.replace(pattern,
+        match => replacements[match.toLowerCase()] || match
+    )
+    // strip remaining bracketed text except markdown markdown links:
+    text = text.replace(
+        /(\[[^\]]+\]\([^)]*\))|(\[[^\]]+\])/g,
+        (match, link) => link ? match : ''
+    )
+    return text
 }
 
