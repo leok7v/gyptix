@@ -88,6 +88,7 @@
 		B3B4F66A2DB61EA200EEE9F7 /* trace.c in Sources */ = {isa = PBXBuildFile; fileRef = B3B4F6692DB61EA200EEE9F7 /* trace.c */; };
 		B3B76A512DB6C30A003799D6 /* llama-legacy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3B76A502DB6C30A003799D6 /* llama-legacy.cpp */; };
 		B3BEE9D82D4EE035009A4168 /* llama.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3BEE9D72D4EE035009A4168 /* llama.cpp */; };
+		B3C7C7602DB8B7810015291C /* text.js in Resources */ = {isa = PBXBuildFile; fileRef = B3C7C75F2DB8B7810015291C /* text.js */; };
 		B3D7EDF02D955A86003AF38F /* app3.html in Resources */ = {isa = PBXBuildFile; fileRef = B3D7EDEF2D955A86003AF38F /* app3.html */; };
 		B3E04BD12D84816800C6C67B /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E04BD02D84816800C6C67B /* Dispatch.swift */; };
 		B3E2499B2D6162110048A24F /* backend.js in Resources */ = {isa = PBXBuildFile; fileRef = B3E2499A2D6162110048A24F /* backend.js */; };
@@ -238,6 +239,7 @@
 		B3B4F6692DB61EA200EEE9F7 /* trace.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = trace.c; path = ../src/trace.c; sourceTree = SOURCE_ROOT; };
 		B3B76A502DB6C30A003799D6 /* llama-legacy.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-legacy.cpp"; path = "../src/llama-legacy.cpp"; sourceTree = SOURCE_ROOT; };
 		B3BEE9D72D4EE035009A4168 /* llama.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = llama.cpp; path = ../src/patched/llama.cpp; sourceTree = SOURCE_ROOT; };
+		B3C7C75F2DB8B7810015291C /* text.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = text.js; sourceTree = "<group>"; };
 		B3D7EDEF2D955A86003AF38F /* app3.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app3.html; sourceTree = "<group>"; };
 		B3E04BD02D84816800C6C67B /* Dispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = ../src/swift/Dispatch.swift; sourceTree = SOURCE_ROOT; };
 		B3E2499A2D6162110048A24F /* backend.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = backend.js; sourceTree = "<group>"; };
@@ -528,6 +530,7 @@
 				B3B3F3FC2D4AB3C300A2D406 /* prompts.js */,
 				B3994E812DA882F5002906B5 /* scroll.js */,
 				B3A3D8382D67E455000A5839 /* suggestions.js */,
+				B3C7C75F2DB8B7810015291C /* text.js */,
 				B361EBE12D92101100B45B70 /* ui.js */,
 				B3E2499C2D61621C0048A24F /* util.js */,
 				B3B3F3F92D4AB3C300A2D406 /* eula.md */,
@@ -622,6 +625,7 @@
 				B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */,
 				B3B3F4062D4AB3C300A2D406 /* prompts.js in Resources */,
 				B3B3F4092D4AB3C300A2D406 /* about.md in Resources */,
+				B3C7C7602DB8B7810015291C /* text.js in Resources */,
 				B3994E822DA882F5002906B5 /* scroll.js in Resources */,
 				B34C1FBF2DB18C43004E8B2C /* algo.js in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,

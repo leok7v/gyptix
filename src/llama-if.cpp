@@ -158,8 +158,8 @@ static int load(struct state &state) {
 }
 
 static int ggml_init(struct state &state) {
-    trace("llama threadpool init, n_threads = %d\n",
-          (int)state.params.cpuparams.n_threads);
+//  trace("llama threadpool init, n_threads = %d\n",
+//        (int)state.params.cpuparams.n_threads);
     state.ggml_reg = ggml_backend_dev_backend_reg(
             ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU));
     auto &reg = state.ggml_reg;
@@ -202,27 +202,12 @@ static int64_t extract_id(const std::string &input, const std::string &prefix) {
     return 0;
 }
 
-static std::string xxx_prompt_cache_folder(const char* session) {
-    static const char* cwd = get_cwd();
-    static char prompts[4 * 1024];
-    strcpy(prompts, cwd);
-    strcat(prompts, "/prompts");
-    mkdir(prompts, S_IRWXU);
-    static char prompt_cache[4 * 1024];
-    strcpy(prompt_cache, prompts);
-    static bool once;
-    if (!once) { trace("%s\n", prompt_cache); once = true; }
-    strcat(prompt_cache, "/");
-    strcat(prompt_cache, session);
-    return std::string(prompt_cache);
-}
-
 static std::string prompt_cache_folder(const char* session) {
     static std::string prompt_cache;
     if (prompt_cache.empty()) {
         const char* cwd = get_cwd();
         std::string prompts = std::string(cwd) + "/prompts";
-        trace("%s\n", prompts.c_str());
+//      trace("%s\n", prompts.c_str());
         prompt_cache = prompts + "/" + std::string(session);
     }
     return prompt_cache;
@@ -254,9 +239,9 @@ static void clear(struct state &state) {
 }
 
 static int load_session(struct state &state, const std::string &filename) {
-    trace("attempting to load saved session from '%s'\n",filename.c_str());
+//  trace("attempting to load saved session from '%s'\n",filename.c_str());
     if (!file_exists(filename)) {
-        trace("file does not exist, will create: %s\n", filename.c_str());
+//      trace("file does not exist, will create: %s\n", filename.c_str());
     } else if (file_is_empty(filename)) {
         trace("session file is empty. A new session will be initialized.\n");
     } else { // The file exists and is not empty
@@ -270,8 +255,8 @@ static int load_session(struct state &state, const std::string &filename) {
             return 1;
         }
         state.session_tokens.resize(n_token_count_out); // truncate
-        trace("loaded a session with prompt size of %d tokens\n",
-               (int)state.session_tokens.size());
+//      trace("loaded a session with prompt size of %d tokens\n",
+//             (int)state.session_tokens.size());
     }
     return 0;
 }
@@ -279,14 +264,14 @@ static int load_session(struct state &state, const std::string &filename) {
 static void save_session(struct state &state, const std::string &filename) {
     assert(!filename.empty()); // in chat() usecase we always have a filename
     if (!state.need_to_save_session) {
-        trace("no need to save session because it has not been changed\n");
+//      trace("no need to save session because it has not been changed\n");
     } else {
-        trace("saving %d tokens to '%s'\n", (int)state.session_tokens.size(),
-                                                 filename.c_str());
+//      trace("saving %d tokens to '%s'\n", (int)state.session_tokens.size(),
+//                                               filename.c_str());
         bool b = llama_state_save_file(state.ctx, filename.c_str(),
             state.session_tokens.data(), state.session_tokens.size());
         if (b) {
-            trace("saved session to %s\n", filename.c_str());
+//          trace("saved session to %s\n", filename.c_str());
             state.need_to_save_session = false;
         } else {
             trace("error: failed to save session\n");
@@ -432,19 +417,18 @@ static int decode(struct state &state) {
             trace("failed to eval\n");
             return 1;
         }
+/*
+            state.progress = (double)(i + n_eval) / (double)state.embd.size();
+            trace("progress: %.6f i:%d n_eval:%d state.embd.size():%d\n",
+                  state.progress, i, n_eval, (int)state.embd.size());
+*/
         state.n_past += n_eval;
-//      trace("context.n_past: %d params.n_batch: %d n_eval: %d\n",
-//            (int)state.n_past, (int)state.params.n_batch, n_eval);
-        if (state.n_consumed <= state.embd_inp.size()) {
-            // still processing input
-            if (state.progress < 1.0) {
-                double n = (state.n_consumed  - state.saved.embd_inp_size);
-                double d = (state.embd_inp.size() - state.saved.embd_inp_size);
-                state.progress = n / d;
-                trace("progress: %.6f\n", state.progress);
-                if (llama.progress) { llama.progress(state.progress); }
-            }
-        }
+        trace("embd_inp.size(): %d embd.size(): %d n_past: %d n_consumed: %d "
+              "session_tokens.size(): %d state.is_interacting: %d\n",
+              (int)state.embd_inp.size(), (int)state.embd.size(),
+              state.n_past, state.n_consumed,
+              (int)state.session_tokens.size(), state.is_interacting);
+        if (llama.progress) { llama.progress(state.progress); }
     }
     return 0;
 }
@@ -643,7 +627,7 @@ static bool off_the_record(struct state &state, const std::string &input) {
     size_t start = close + 1;
     size_t end   = input.rfind("[/otr]");
     std::string body = input.substr(start, end - start);
-    trace("body: %s\n", body.c_str());
+//  trace("body: %s\n", body.c_str());
     save_state(state);
     int kv_start = state.n_past;
     state.embd_inp.clear();
@@ -779,10 +763,10 @@ static int chat(struct state &state, const char* session_id, bool existing) {
     }
     if (llama_model_has_encoder(state.model)) {
         assert(false); // NO ENCODER SUPPORT YET
-        int enc_input_size = state.embd_inp.size();
-        llama_token * enc_input_buf = state.embd_inp.data();
+        const int input_size = state.embd_inp.size();
+        llama_token * input_data = state.embd_inp.data();
         if (llama_encode(state.ctx,
-                        llama_batch_get_one(enc_input_buf, enc_input_size))) {
+                        llama_batch_get_one(input_data, input_size))) {
             trace("%s : failed to eval\n", __func__);
             return 1;
         }
@@ -794,9 +778,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         state.embd_inp.clear();
         state.embd_inp.push_back(decoder_start_token_id);
     }
-    
-    
-//  trace("context.n_remain: %d\n", (int)state.n_remain);
+//  trace("state.n_remain: %d\n", (int)state.n_remain);
     while ((state.n_remain != 0 && !state.is_antiprompt) ||
             state.params.interactive) {
         // predict
@@ -824,6 +806,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             } else {
                 context_extension_via_self_extend(state, ga_i);
             }
+            trace("PREDICT?\n");
             if (decode(state) != 0) { return 1; }
             if (!state.embd.empty() && !filename.empty()) {
                 auto b = state.embd.begin();
@@ -856,6 +839,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             // some user input remains from prompt or interaction:
 //          trace("embd_inp.size(): %d, n_consumed: %d\n",
 //                (int)state.embd_inp.size(), state.n_consumed);
+            int k = 0;
             while ((int)state.embd_inp.size() > state.n_consumed) {
                 state.embd.push_back(state.embd_inp[state.n_consumed]);
                 // push the prompt in the sampling context in order to apply
@@ -864,8 +848,11 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 common_sampler_accept(state.smpl,
                                       state.embd_inp[state.n_consumed],
                 /* accept_grammar= */ false);
-                ++state.n_consumed;
+                state.n_consumed++;
+                k++;
             }
+            trace("state.embd.pushed_back() %d tokens from embd_inp\n", k);
+            k = 0;
         }
         bool interrupted = false;
         if (state.input_echo && state.display) {
@@ -904,7 +891,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                                          std::string::npos) {
                         if (state.params.interactive) {
                             state.is_interacting = true;
-                            trace("context.is_interacting = true;\n");
+                            trace("state.is_interacting = true;\n");
                         }
                         state.is_antiprompt = true;
                         break;
@@ -916,7 +903,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                     if (ids.size() == 1 && last_token == ids[0]) {
                         if (state.params.interactive) {
                             state.is_interacting = true;
-                            trace("context.is_interacting = true;\n");
+                            trace("state.is_interacting = true;\n");
                         }
                         state.is_antiprompt = true;
                         break;
@@ -930,8 +917,8 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                             common_sampler_last(state.smpl));
             // deal with end of generation tokens in interactive mode
             if (is_eog) {
-                trace("found an EOG token embd.size(): %d\n",
-                       (int)state.embd.size());
+//              trace("found an EOG token embd.size(): %d\n",
+//                     (int)state.embd.size());
                 if (state.params.interactive) {
                     if (!state.params.antiprompt.empty()) {
                         // tokenize and inject first reverse prompt
@@ -941,9 +928,9 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                             first_antiprompt.begin(), first_antiprompt.end());
                         state.is_antiprompt = true;
                     }
-                    trace("<--done--> llama_vocab_is_eog()\n");
+//                  trace("<--done--> llama_vocab_is_eog()\n");
                     state.is_interacting = true;
-                    trace("context.is_interacting = true;\n");
+//                  trace("state.is_interacting = true;\n");
                     llama.output("<--done-->");
                     assert(state.embd.size() <= 1); // and it is EOG
                     state.embd.clear();
@@ -955,14 +942,14 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 llama.output("<--done-->");
                 state.is_interacting = true;
                 state.need_insert_eot = true;
-                trace("context.is_interacting = true;\n");
+                trace("state.is_interacting = true;\n");
                 continue;
             }
             if (state.n_past > 0 && state.is_interacting) {
 //              trace("embd.size(): %d context.n_past: %d\n",
 //                    (int)state.embd.size(), state.n_past);
                 state.need_to_save_session = false;
-                trace("waiting for user input\n");
+//              trace("waiting for user input\n");
                 if (state.params.input_prefix_bos) {
                     trace("adding input prefix BOS token\n");
                     state.embd_inp.push_back(llama_vocab_bos(state.vocab));
@@ -975,7 +962,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
 //                  trace("<--done--> line == null\n");
                     llama.output("<--done-->");
 //                  trace("<--done--> because line == null\n");
-                    trace("ENDS RUNNING THE MODEL\n");
+//                  trace("ENDS RUNNING THE MODEL\n");
                     break; // ENDS RUNNING THE MODEL
                 }
                 std::string text = str;
@@ -986,7 +973,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                 // Add tokens to embd only if the input buffer is non-empty
                 // Entering a empty line lets the user pass control back
                 if (text.length() > 1) {
-                    trace("input: '%s'\n", text.c_str());
+//                  trace("input: '%s'\n", text.c_str());
                     state.need_to_save_session = true;
                     save_state(state);
                     state.progress = 0;
@@ -1000,7 +987,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             if (state.n_past > 0) {
                 if (state.is_interacting) { common_sampler_reset(state.smpl); }
                 state.is_interacting = false;
-//              trace("context.is_interacting = false;\n");
+//              trace("state.is_interacting = false;\n");
             }
         }
         // end of generation
@@ -1017,13 +1004,13 @@ static int chat(struct state &state, const char* session_id, bool existing) {
                                         state.params.n_predict >= 0) {
             state.n_remain = state.params.n_predict;
             state.is_interacting = true;
-            trace("context.is_interacting = true;\n");
+//          trace("state.is_interacting = true;\n");
             llama.output("<--done-->");
-            trace("<--done--> context.n_remain <= 0\n");
+//          trace("<--done--> context.n_remain <= 0\n");
         }
     }
-    trace("saving final output of %d tokens\n",
-          (int)state.session_tokens.size());
+//  trace("saving final output of %d tokens\n",
+//        (int)state.session_tokens.size());
     save_session(state, filename);
     common_perf_print(state.ctx, state.smpl);
     common_sampler_free(state.smpl);

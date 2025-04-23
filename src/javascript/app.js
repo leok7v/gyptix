@@ -11,6 +11,7 @@ import * as modal       from "./modal.js"
 import * as prompts     from "./prompts.js"
 import * as scroll      from "./scroll.js"
 import * as suggestions from "./suggestions.js"
+import * as text        from "./text.js"
 import * as util        from "./util.js"
 import * as ui          from "./ui.js"
 
@@ -166,15 +167,14 @@ export const run = () => { // called DOMContentLoaded
             if (c > 2 || d.length > 64) { requestAnimationFrame(interrupt) }
         }
     }
-    
-    const render_last = (chunk) => {
+
+    const append_chunk = (chunk) => {
         if (!chat || !chat.messages || chat.messages.length === 0) { return }
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         // Get last child element (assumed to be the last message).
         const last_child = messages.lastElementChild
         last_msg.text += chunk
-        last_msg.text = util.substitutions(last_msg.text)
         if (last_child && last_msg.sender === "user") {
             messages.appendChild(render_message(last_msg))
         } else if (last_child && last_msg.sender === "bot") {
@@ -210,7 +210,7 @@ export const run = () => { // called DOMContentLoaded
             scrollable.scroll_to_bottom()
             layout_and_render().then(() => {
                 backend.run(c.id) // slowest
-                load_timestamp = util.timestamp
+                load_timestamp = util.timestamp()
             })
         })
     }
@@ -228,7 +228,7 @@ export const run = () => { // called DOMContentLoaded
             search.innerText = ""
         }
         const span = document.createElement("span")
-        const t = c.title !== "" ? c.title : util.timestamp_label(c.id)
+        const t = c.title !== "" ? c.title : text.timestamp_label(c.id)
         span.textContent = t
         const dots = document.createElement("button")
         dots.textContent = '⋮' // aka '&vellip;' alternative "⋯"
@@ -263,7 +263,7 @@ export const run = () => { // called DOMContentLoaded
         chat = {
             id: id,
             timestamp: id,
-            title: "", // rendered as util.timestamp_label(id)
+            title: "", // rendered as text.timestamp_label(id)
             messages: []
         }
         ui.hide(carry)
@@ -277,7 +277,7 @@ export const run = () => { // called DOMContentLoaded
         suggestions.show()
         placeholder()
         layout_and_render().then(() => backend.run('+' + id))
-        load_timestamp = util.timestamp
+        load_timestamp = util.timestamp()
     }
     
     const recent = () => { // most recent chat -> current
@@ -296,7 +296,7 @@ export const run = () => { // called DOMContentLoaded
             current = most_recent.id
             chat = history.load_chat(most_recent.id)
             backend.run(most_recent.id)
-            load_timestamp = util.timestamp
+            load_timestamp = util.timestamp()
             messages.innerHTML = ""
             render_messages()
             rebuild_list()
@@ -383,78 +383,21 @@ export const run = () => { // called DOMContentLoaded
         scrollable.scroll_to_bottom()
     }
 
-    const skip_short_lines = (s) => {
-        let r = ""
-        const lines = s.trim().split("\n")
-        for (let i = 0; i < lines.length; i++) {
-            let s = lines[i].trim().replace(/[".]/g, "")
-            // "Title: AI Translators: Capturing Nuance, Albeit Limitations"
-            // remove "title" or "Title:" case-insensitive
-            s = s.replace(/^\.?title:?\s*/i, '').trim()
-            if (s.length >= 4) {
-                r = s
-                break
-            }
-        }
-        return r
-    }
-
-    // en_dash: '\u2013' == '–'
-    // em_dash: '\u2014' == '—'
-    const punctuation = ':;\u2013\u2014'
-
-    const shorten_title = (s, maximum) => {
-        console.log(`title: "${s}":${s.length}`)
-        let r = skip_short_lines(s)
-        chat.subject = r // TODO: make use of (scrolling line on progress)
-        console.log(`chat.subject: "${chat.subject}":${chat.subject.length}`)
-        for (let i = 0; i < punctuation.length; i++) {
-            const ix = r.indexOf(punctuation.charAt(i))
-            if (ix >= 4) { r = r.slice(0, ix).trim() }
-        }
-        const words = r.split(/\s+/);
-        let out = '';
-        for (let i = 0; i < words.length; i++) {
-            const w = words[i];
-            const n = i < words.length - 1 ? words[i + 1] : '';
-            if (out === '') {
-                if (w.length <= maximum) {
-                    out = w;
-                } else {
-                    out = w.slice(0, maximum);
-                    break;
-                }
-            } else if (i > 0 && w.length <= 3 && n != '') {
-                // do not end with short words hanging:
-                if (out.length + 1 + w.length + 1 + n.length <= maximum) {
-                    out += ' ' + w;
-                } else {
-                    break;
-                }
-            } else if (out.length + 1 + w.length <= maximum) {
-                out += ' ' + w;
-            } else {
-                break;
-            }
-        }
-        console.log(`out: "${out}":${out.length}`)
-        return out
-    }
-
     const generate_title = (done) => {
         ui.hide(stop)
         set_input_placeholder('')
         const prompt =
-            "[otr:32]Write concise title " +
-            "for the preceding conversation.\n" +
-            "Reply only with the title plain text.\n[/otr]"
+            "[otr:32]Write concise title for the preceding conversation.\n" +
+            "Reply only with the title in plain-text.\n[/otr]"
         model.start(prompt,
             model => { }, // per-token callback
             model => { // completion callback
                 const dt = performance.now() - model.started
 //              console.log(`generate_title: ${dt.toFixed(1)} ms`)
-                let text = model.result.join('')
-                let title = shorten_title(text, 32)
+                let t = text.long_title(model.result.join(''))
+//              console.log(`long_title(): "${t}":${t.length}`)
+                chat.subject = t // TODO: make use of (scrolling line on progress)
+                let title = text.short_title(t, 32)
                 if (model.error) {
                     console.error(model.error)
                     let s = `${model.error.name}:\n${model.error.message}`
@@ -503,7 +446,7 @@ export const run = () => { // called DOMContentLoaded
                 title.innerHTML = ""
                 chat.title = s
                 if (chat.title === "") {
-                    chat.title = util.summarize(chat.messages[0].text + " " +
+                    chat.title = text.summarize(chat.messages[0].text + " " +
                                                 chat.messages[1].text)
                 }
                 title.innerHTML = chat.title
@@ -529,7 +472,7 @@ export const run = () => { // called DOMContentLoaded
                 context.cycle = cycle_titles(context.cycle)
                 context.last = performance.now()
             }
-            render_last(model.tokens)
+            append_chunk(model.tokens)
             check_for_repetitions_and_stop()
         }
     }
@@ -548,9 +491,6 @@ export const run = () => { // called DOMContentLoaded
         layout_and_render().then(() => { // render before asking
             scrollable.autoscroll = true
 //          console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
-            ui.show(stop)
-            console.log(`ui.show(stop)`)
-            ui.hide(expand, spawn)
             stop.classList.add("pulsing")
             markdown.start()
             cycle_titles(0)
@@ -601,7 +541,7 @@ export const run = () => { // called DOMContentLoaded
     
     toggle_theme.onclick = e => {
         e.preventDefault()
-        util.toggle_theme()
+        ui.toggle_theme()
     }
     
 
@@ -634,7 +574,6 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const start_input = () => {
-        console.log("start_input")
         collapsed()
         if (is_input_focused() || model.polling) { return }
         if (!detect.macOS) {
@@ -652,9 +591,9 @@ export const run = () => { // called DOMContentLoaded
     }
 
     if (detect.macOS) {
-        send.addEventListener("click",     send_click,  { passive: false } )
-        clear.addEventListener("click",    clear_click, { passive: false } )
-        box.addEventListener("click",      start_input, { passive: false } )
+        send.addEventListener("click",       send_click,  { passive: false } )
+        clear.addEventListener("click",      clear_click, { passive: false } )
+        box.addEventListener("click",        start_input, { passive: false } )
     } else {
         send.addEventListener("touchstart",  send_click,  { passive: false } )
         clear.addEventListener("touchstart", clear_click, { passive: false } )
@@ -992,13 +931,13 @@ export const run = () => { // called DOMContentLoaded
     get("font-increase").onclick = e => {
         e.preventDefault()
         hide_menu()
-        util.increase_font_size()
+        ui.increase_font_size()
     }
 
     get("font-decrease").onclick = e => {
         e.preventDefault()
         hide_menu()
-        util.decrease_font_size()
+        ui.decrease_font_size()
     }
     
     document.querySelectorAll(".tooltip").forEach(button => {
@@ -1063,7 +1002,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const licenses = () => {
-        modal.show(util.load("./licenses.md"), (action) => {
+        modal.show(backend.load("./licenses.md"), (action) => {
         }, "OK")
     }
     
@@ -1076,7 +1015,7 @@ export const run = () => { // called DOMContentLoaded
 //      localStorage.removeItem("app.eula") // DEBUG
         if (!localStorage.getItem("app.eula")) {
 //          localStorage.clear() // no one promissed to keep data forever
-            modal.show(util.load("./eula.md"), (action) => {
+            modal.show(backend.load("./eula.md"), (action) => {
                 if (action === "Disagree") {
                     localStorage.removeItem("app.eula")
                     backend.quit()
@@ -1107,8 +1046,8 @@ export const run = () => { // called DOMContentLoaded
     detect.init()
     marked.use({pedantic: false, gfm: true, breaks: true})
     
-    util.init_theme()
-    util.init_font_size()
+    ui.init_theme()
+    ui.init_font_size()
     history.init_search(search, freeze, unfreeze)
     ui.hide(tools)
     

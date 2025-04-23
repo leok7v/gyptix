@@ -404,7 +404,7 @@ func debugger_attached() {
     let a = is_debugger_attached() ? "true" : "false"
     let r = call_js("app.debugger_attached(\(a))", sync: true)
     if r == "" { print("app.debugger_attached(\(a)) -> \(r)") }
-    print("is_running_in_test_flight(): \(is_running_in_test_flight())")
+//  print("is_running_in_test_flight(): \(is_running_in_test_flight())")
 }
 
 func gyptix_stop() {

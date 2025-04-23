@@ -33,7 +33,8 @@ const build = () => {
     })
     disp = sc.slice(0, 2)
     for (let i = 0; i < disp.length; i++) {
-        disp[0].pix = util.random_int(0, categories[i].prompts.length - 1)
+        disp[i].pix = util.random_int(0, categories[i].prompts.length - 1)
+        console.log(`disp[${i}].pix: ${disp[i].pix}`)
     }
     let container = get("suggestions_container")
     container.innerHTML = ""

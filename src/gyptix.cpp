@@ -219,7 +219,7 @@ static void list() {
             if (stat(path, &st) != 0) {
                 perror("stat");
             } else {
-                printf("%12d %s\n", (int)st.st_size, path);
+                trace("%12d %s\n", (int)st.st_size, path);
             }
         }
     }
@@ -228,7 +228,7 @@ static void list() {
 
 static int load_and_run(int argc, char** argv) {
     int r = llama.load(argc, argv);
-    printf("llama.load() %s\n", r == 0 ? "done" : "failed");
+//  trace("llama.load() %s\n", r == 0 ? "done" : "failed");
     if (r != 0) {
         running = false;
         return 1;
@@ -247,12 +247,12 @@ static int load_and_run(int argc, char** argv) {
         question = nullptr;
         if (quit || id == nullptr) { break; }
         running = true;
-//      fprintf(stderr, "running = true\n");
+//      trace("running = true\n");
 //      list();
         int r = llama.run(id, existing);
         free(id);
         running = false;
-//      fprintf(stderr, "running = false\n");
+//      trace("running = false\n");
         if (r != 0) { break; }
         if (quit) {
             break;
@@ -264,8 +264,7 @@ static int load_and_run(int argc, char** argv) {
     return 0;
 }
 
-
-static void load_model(const char* model) {
+static int load_model(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
     static char arg0[1024];
     uint32_t size = sizeof(arg0);
@@ -311,30 +310,33 @@ static void load_model(const char* model) {
 #endif
     argv[argc++] = (char*)"-p";
     argv[argc++] = (char*)sp.c_str();
-//  printf("%s\n", sp.c_str());
+//  trace("%s\n", sp.c_str());
+    int r = 0;
     #if DEBUG // do not catch exception in DEBUG
-        int r = load_and_run(argc, argv);
-        printf("load_and_run() %s\n", r == 0 ? "done" : "failed");
+        r = load_and_run(argc, argv);
+//      trace("load_and_run() %s\n", r == 0 ? "done" : "failed");
     #else
         try {
-            int r = load_and_run(argc, argv);
-            printf("load_and_run() %s\n", r == 0 ? "done" : "failed");
+            r = load_and_run(argc, argv);
+//          trace("load_and_run() %s\n", r == 0 ? "done" : "failed");
         } catch (...) {
+            r = -1;
             running = false;
-            fprintf(stderr, "Exception in run()\n");
+            trace("Exception in run()\n");
         }
     #endif
+    return r;
 }
 
 static void remove_chat(const char* id) {
-//  printf("remove: %s\n", id);
+//  trace("remove: %s\n", id);
     static char filename[4 * 1024];
     snprintf(filename, sizeof(filename) - 1, "%s/%s", prompts_dir(), id);
-//  printf("remove: %s\n", filename);
+//  trace("remove: %s\n", filename);
     if (remove(filename) != 0) {
         perror(filename);
     } else {
-//      printf("remove: %s REMOVED\n", filename);
+//      trace("remove: %s REMOVED\n", filename);
     }
 }
 
@@ -361,7 +363,7 @@ static void erase(void) {
 
 static void* worker(void* p) {
     const char* model = (const char*)p;
-    load_model(model);
+    (void)load_model(model); // nowhere to report failure
     free(p);
     return NULL;
 }
@@ -407,7 +409,7 @@ static const char* poll(const char* i) {
         s = strdup(t.c_str());
         message = "";
     } else if (answer.length() == 0 && (!answering || !running)) {
-        printf("output.length() == 0 && answering: %d\n", answering);
+//      trace("output.length() == 0 && answering: %d\n", answering);
         s = strdup("<--done-->");
     } else if (answer.length() > 0 && validUTF8(answer)) {
         s = strdup(answer.c_str());
@@ -463,11 +465,11 @@ static void run(const char* id, int create_new) {
     ask("<--end-->"); // end previous session
     answering = false; // because no one will be polling right after run
     wakeup();
-//  printf("running: %s\n", id);
+//  trace("running: %s\n", id);
 }
 
 static void inactive(void) {
-//  printf("TODO: we can unload model here to make it easier on OS\n");
+//  trace("TODO: we can unload model here to make it easier on OS\n");
 }
 
 static void stop(void) {

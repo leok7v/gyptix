@@ -1,6 +1,8 @@
 "use strict" // can be used as
 // import * as ui from "./ui.js"
 
+import * as detect from "./detect.js"
+
 const element = (tag, a) => {
     let e = document.createElement(tag) // `e` element
     let c = '' // `c` class
@@ -110,3 +112,44 @@ export const is_disabled = e => e.disabled
 export const show_hide = (b, ...elements) =>
     elements.forEach(e => b ? show(e) : hide(e))
 
+export const init_theme = () => {
+    let theme = localStorage.getItem("settings.theme")
+    if (!theme) {
+        theme = "dark"  // default theme
+        localStorage.setItem("settings.theme", theme)
+    }
+    document.documentElement.setAttribute("data-theme", theme)
+}
+
+export const toggle_theme = () => {
+    const html = document.documentElement
+    let current = html.getAttribute("data-theme")
+    let theme = current === "dark" ? "light" : "dark"
+    html.setAttribute("data-theme", theme)
+    localStorage.setItem("settings.theme", theme)
+}
+
+export const init_font_size = () => {
+    let fs = 100
+    if (detect.iPhone) fs = 110
+    if (detect.iPad)   fs = 150
+    let font_size = localStorage.getItem("settings.font-size") || fs;
+    document.body.style.fontSize = font_size + "%";
+    localStorage.setItem("settings.font-size", font_size);
+}
+
+export const decrease_font_size = () => {
+    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
+    const min_font = detect.iPad ? 70 : 80
+    font_size = Math.max(min_font, font_size - 10);
+    document.body.style.fontSize = font_size + "%";
+    localStorage.setItem("settings.font-size", font_size);
+}
+
+export const increase_font_size = () => {
+    let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
+    const max_font = detect.iPad ? 200 : 170
+    font_size = Math.min(max_font, font_size + 10);
+    document.body.style.fontSize = font_size + "%";
+    localStorage.setItem("settings.font-size", font_size);
+}

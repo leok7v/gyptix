@@ -1,14 +1,41 @@
 "use strict"
 
-import * as util from "./util.js"
-
-const sleep = async (ms) => {
-    await new Promise(resolve => setTimeout(resolve, ms))
+const http = (url, method, req = "", done = null) => {
+    let error = null
+    let text = `Failed to load ${url}`
+    try {
+        const request = new XMLHttpRequest()
+        request.open(method, url, false) // false = synchronous
+        request.setRequestHeader("Content-Type", "text/plain")
+        if (method === "POST") {
+            request.send(req)
+        } else {
+            request.send()
+        }
+        if (request.status === 200) {
+            text = request.responseText
+            if (done) done(text)
+        } else {
+            error = new Error(`${url} ${method} failed: ${request.status}`)
+        }
+    } catch (e) {
+        error = new Error(`${url} ${method} failed: ${e}`)
+    }
+    if (error) throw error
+    return text
 }
+
+export const log = (...args) => {
+    return post("./log", args.join(''), null)
+}
+
+export const load = (url) => http(url, "GET")
+
+export const post = (url, req = "", done = null) => http(url, "POST", req, done)
 
 export const ask = (value) => { // returns error message or null on OK
     if (is_running()) {
-        const result = util.post("./ask", value)
+        const result = post("./ask", value)
         return result === "OK" ? null : new Error(result)
     } else {
         return new Error("not running")
@@ -16,41 +43,74 @@ export const ask = (value) => { // returns error message or null on OK
 }
 
 export const run = id => {
-    util.post("./run", id)
+    post("./run", id)
 }
 
-export const remove = id => util.post("./remove", id)
+export const remove = id => post("./remove", id)
 
 export const download = (url) => {
-    return util.post("./download", url, null)
+    return post("./download", url, null)
 }
 
 export const download_remove = (url) => {
-    return util.post("./download_remove", url, null)
+    return post("./download_remove", url, null)
 }
 
 export const poll = () => {
-    return util.post("./poll", "", null)
+    return post("./poll", "", null)
 }
 
 export const interrupt = () => {
-    return util.post("./poll", "<--interrupt-->", null)
+    return post("./poll", "<--interrupt-->", null)
 }
 
 /* is_running() is_answering() round trip is <= 1ms */
 
 export const is_running = () =>  {
-    return util.post("./is_running") === "true"
+    return post("./is_running") === "true"
 }
 
 export const is_answering = () => {
-    return util.post("./is_answering") === "true"
+    return post("./is_answering") === "true"
 }
 
-export const erase = () => util.post("./erase")
+export const erase = () => post("./erase")
 
 // app.* methods can be called from native code
-export const initialized = () => util.post("./initialized")
+export const initialized = () => post("./initialized")
 
-export const quit = () => util.post("./quit") // fatal no return
+export const quit = () => post("./quit") // fatal no return
 
+export const console_log = console.log
+
+const start = performance.now() // high precision but in milliseconds
+
+console.log = (...args) => {
+    try {
+        throw new Error()
+    } catch (e) {
+        const dt = (performance.now() - start) / 1000.0 // seconds
+        const lines = e.stack.split('\n')
+        let f = lines[1] || ''
+        if (f.includes('backend.js')) f = lines[2] || ''
+        let func = f.includes('@') ? f.substring(0, f.indexOf('@')) : ''
+        if (func != '') func = ' ' + func + '()'
+        let m = f.match(/@(.*?):(\d+):\d+/) || // @gyptix://./modal.js:67:46
+                f.match(/(.*?):(\d+):\d+/)
+        if (m) { // m.length > 1 guaranteed by regexes above
+            const file = m[1].split('/').pop()
+            const line = m[2]
+            const s = `${dt.toFixed(3)} ${file}:${line}${func} ${args.join("\x20")}`
+            log(s)
+            console_log(s)
+        } else {
+            if (f != '') log(f)
+            log(...args)
+            console_log(...args)
+        }
+    }
+    /*  dt.toFixed(3): (delta timeWebKit) on iOS currently coarsens
+        performance.now() to whole-millisecond steps (and in non-isolated
+        pages you only get 100 µs resolution at best) (April, 2025)
+    */
+}

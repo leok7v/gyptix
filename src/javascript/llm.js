@@ -3,6 +3,10 @@
 import * as backend from "./backend.js"
 import * as modal   from "./modal.js"
 
+const verbose = false
+
+const log = verbose ? console.log : () => {}
+
 export const interrupt = (state) => {
     backend.interrupt() // next poll will get "<--done-->"
     state.interrupted = true
@@ -18,13 +22,13 @@ const averages = (state) => {
         const alpha = 1.0 / 8.0
         state.ewma  = state.ewma * (1 - alpha) + state.cps * alpha
     }
-    console.log(`.cps: ${state.cps.toFixed(1)} ` +
-                `.ewma: ${state.ewma.toFixed(3)} ` +
-                `.tma: ${state.tma.toFixed(3)}`)
+    log(`.cps: ${state.cps.toFixed(1)} ` +
+        `.ewma: ${state.ewma.toFixed(3)} ` +
+        `.tma: ${state.tma.toFixed(3)}`)
 }
 
 const completed = (state) => {
-    console.log("completed")
+    log("completed")
     const done = state.done
     state.polling   = null
     state.completed = performance.now()
@@ -51,7 +55,7 @@ const poll = (state) => {
         )
         modal.fatal_error(message)
     } else if (tokens === "<--done-->") {
-//      console.log("<--done-->")
+//      log("<--done-->")
         clearInterval(state.polling)
         completed(state)
     } else if (tokens && tokens.length > 0) {
@@ -60,15 +64,14 @@ const poll = (state) => {
         state.tokens = tokens
         state.generated += tokens.length
         state.result.push(tokens)
-//      console.log(`state.generated: ${state.generated} tokens: ${tokens}`)
-//      console.log(`state.response != null: ${state.response != null}`)
+//      log(`state.generated: ${state.generated} tokens: ${tokens}`)
+//      log(`state.response != null: ${state.response != null}`)
         state.response(state)
         if (state.generated >= state.maximum) { state.interrupt(state) }
     }
 }
 
 export const create = () => {
-    console.log("create")
     return {
         started:     0,         // performance.now() at chat() call
         error:       null,      // Error object
@@ -123,18 +126,20 @@ const start = (state, prompt, response, done) => {
     state.tokens      = ""
     state.completed   = 0
     state.error = backend.ask(prompt)
-//  console.log(`start("${prompt}")`)
+//  log(`start("${prompt}")`)
     if (state.error) {
         completed(state)
     } else {
         const Hz = state.tma == 0 ? 0 : state.ewma / state.tma
         const i = Hz == 0 ? 33 : (1000 / Hz) // default interval 33Hz
         const interval = state.interval ?? i
-        console.log(`.cps: ${state.cps.toFixed(1)} ` +
-                    `.ewma: ${state.ewma.toFixed(3)} ` +
-                    `.tma: ${state.tma.toFixed(3)}`)
-        console.log(`.Hz: ${Hz.toFixed(3)} .i: ${i.toFixed(3)} ` +
-                    `.interval: ${interval.toFixed(3)}`)
+        if (verbose) {
+            log(`.cps: ${state.cps.toFixed(1)} ` +
+                `.ewma: ${state.ewma.toFixed(3)} ` +
+                `.tma: ${state.tma.toFixed(3)}`)
+            log(`.Hz: ${Hz.toFixed(3)} .i: ${i.toFixed(3)} ` +
+                `.interval: ${interval.toFixed(3)}`)
+        }
         state.polling = setInterval(() => poll(state), interval)
     }
 }
