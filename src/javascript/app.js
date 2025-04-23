@@ -2,9 +2,9 @@
 
 import * as algo        from "./algo.js"
 import * as backend     from "./backend.js"
-import * as chats       from "./chats.js"
 import * as detect      from "./detect.js"
 import * as history     from "./history.js"
+import * as llm         from "./llm.js"
 import * as markdown    from "./markdown.js"
 import * as marked      from "./marked.js"
 import * as modal       from "./modal.js"
@@ -31,51 +31,69 @@ let chat = null // **the** chat
 
 export const run = () => { // called DOMContentLoaded
     const
-    box          = get("box"),
-    content      = get("content"),
-    discuss      = get("discuss"),
-    expand       = get("expand"),
-    header       = get("header"),
-    input        = get("input"),
-    layout       = get("layout"),
-    list         = get("list"),
-    menu         = get("menu"),
-    messages     = get("messages"),
-    navigation   = get("navigation"),
-    search       = get("search"),
-    remove       = get("remove"),
-    rename       = get("rename"),
-    spawn        = get("spawn"),
-    stop         = get("stop"),
-    carry        = get("carry"),
-    clear        = get("clear"),
-    send         = get("send"),
-    strut        = get("strut"),
-    share        = get("share"),
-    shred        = get("shred"),
-    suggest      = get("suggest"),
-    talk         = get("talk"),
-    title        = get("title"),
-    tools        = get("tools"),
-    toggle_theme = get("toggle_theme")
-    
-    // TODO:
-    // visiblility (hidden) and display none state management is from HELL
-    // It was Q&D hack on spur of the moment. Need to subscribe to state
-    // changes and update all visibility in one place.
-    // Maybe also need "disabled" state for some buttons
-    
+        box          = get("box"),
+        content      = get("content"),
+        discuss      = get("discuss"),
+        expand       = get("expand"),
+        header       = get("header"),
+        input        = get("input"),
+        layout       = get("layout"),
+        list         = get("list"),
+        menu         = get("menu"),
+        messages     = get("messages"),
+        navigation   = get("navigation"),
+        search       = get("search"),
+        remove       = get("remove"),
+        rename       = get("rename"),
+        spawn        = get("spawn"),
+        stop         = get("stop"),
+        carry        = get("carry"),
+        clear        = get("clear"),
+        send         = get("send"),
+        share        = get("share"),
+        shred        = get("shred"),
+        suggest      = get("suggest"),
+        talk         = get("talk"),
+        title        = get("title"),
+        tools        = get("tools"),
+        toggle_theme = get("toggle_theme")
+        
     let load_timestamp = util.timestamp()
-    let current  = null // current  chat id
-    let selected = null // selected chat id
-    let is_expanded = false  // navigation pane expanded
-    let selected_item = null // item in chats list
-    let model = chats.create()
+    let current        = null  // current  chat id
+    let selected       = null  // selected chat id
+    let is_expanded    = false // navigation pane expanded
+    let selected_item  = null  // item in chats list
+    let interrupted    = false // answer generation was interrupted by **user**
+    let suggested      = false // suggestion used
+
+    let model = llm.create()
     
     let scrollable = scroll.scroll_create_wrapper(messages,
                                                   backend.is_answering, false)
 
     const is_input_focused = () => document.activeElement === input
+
+    const update_buttons = () => {
+        let s = input.innerText
+        if (s === '\n') { s = "" } // empty div has '\n'
+        const empty = s === ""
+//      console.log(`empty: ${empty} polling: ${model.polling} interrupted: ${interrupted}`)
+        const show_clear = !empty && !model.polling && suggested
+        const show_carry = !show_clear && interrupted
+        ui.show_hide(show_clear, clear)
+        ui.show_hide(show_carry, carry)
+        ui.show_hide(model.polling, stop)
+        ui.show(send) // always
+        ui.show_hide(!model.polling, expand, spawn)
+        const running = backend.is_running() // about 1ms roundtrip
+        if (!running) {
+            ui.disable(send)
+            clearTimeout(check_running)
+            check_running = setTimeout(wait_for_running, 100)
+        } else {
+            ui.enable_disable(!empty && !model.polling, send)
+        }
+    }
 
     document.addEventListener("copy", e => {
         e.preventDefault()
@@ -83,7 +101,7 @@ export const run = () => { // called DOMContentLoaded
         e.clipboardData.setData("text/plain", s)
     })
     
-    function normalize_line_breaks_to_spaces(text) {
+    const normalize_line_breaks_to_spaces = (text) => {
         const paragraphs = text.split(/(\r\n\r\n|\r\r|\n\n)/)
         return paragraphs.map(segment => {
             if (/^(\r\n\r\n|\r\r|\n\n)$/.test(segment)) { return "\n\n" }
@@ -119,10 +137,9 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const interrupt = () => {
-        chats.interrupt(model)
+        model.interrupt()
         placeholder()
-        ui.hide(stop)
-        carry.style.display = "inline"
+        update_buttons()
     }
 
     const count_dups = (s, d) => {
@@ -133,15 +150,15 @@ export const run = () => { // called DOMContentLoaded
         return n
     }
 
-    let check_for_repeatitions_count = 0
+    let check_for_repetitions_count = 0
 
     const check_for_repetitions_and_stop = () => {
         if (chat.messages.length < 1) { return }
         const s = chat.messages[chat.messages.length - 1].text
         if (s.length < 1024) { return } // start checking at 1KB
-        check_for_repeatitions_count++
+        check_for_repetitions_count++
         // check after 128 appends
-        if (check_for_repeatitions_count % 128 != 0) { return }
+        if (check_for_repetitions_count % 128 != 0) { return }
         const d = algo.longest_duplicate_substring(s)
         if (d.length > 48) {
             const c = count_dups(s, d)
@@ -211,7 +228,8 @@ export const run = () => { // called DOMContentLoaded
             search.innerText = ""
         }
         const span = document.createElement("span")
-        span.textContent = c.title
+        const t = c.title !== "" ? c.title : util.timestamp_label(c.id)
+        span.textContent = t
         const dots = document.createElement("button")
         dots.textContent = '⋮' // aka '&vellip;' alternative "⋯"
         dots.onclick = e => {
@@ -245,10 +263,10 @@ export const run = () => { // called DOMContentLoaded
         chat = {
             id: id,
             timestamp: id,
-            title: util.timestamp_label(id),
+            title: "", // rendered as util.timestamp_label(id)
             messages: []
         }
-        ui.hide(carry, send)
+        ui.hide(carry)
         ui.show(discuss)
         set_title('')
         history.save_chat(chat)
@@ -388,6 +406,8 @@ export const run = () => { // called DOMContentLoaded
     const shorten_title = (s, maximum) => {
         console.log(`title: "${s}":${s.length}`)
         let r = skip_short_lines(s)
+        chat.subject = r // TODO: make use of (scrolling line on progress)
+        console.log(`chat.subject: "${chat.subject}":${chat.subject.length}`)
         for (let i = 0; i < punctuation.length; i++) {
             const ix = r.indexOf(punctuation.charAt(i))
             if (ix >= 4) { r = r.slice(0, ix).trim() }
@@ -424,15 +444,14 @@ export const run = () => { // called DOMContentLoaded
     const generate_title = (done) => {
         ui.hide(stop)
         set_input_placeholder('')
-        let start = performance.now()
         const prompt =
             "[otr:32]Write concise title " +
             "for the preceding conversation.\n" +
             "Reply only with the title plain text.\n[/otr]"
-        chats.start(model, prompt,
+        model.start(prompt,
             model => { }, // per-token callback
             model => { // completion callback
-                const dt = performance.now() - start
+                const dt = performance.now() - model.started
 //              console.log(`generate_title: ${dt.toFixed(1)} ms`)
                 let text = model.result.join('')
                 let title = shorten_title(text, 32)
@@ -453,17 +472,31 @@ export const run = () => { // called DOMContentLoaded
     const complete = () => {
         input.oninput()
         chat.timestamp = util.timestamp()
-        stop.classList.remove("shadowing")
+        stop.classList.remove("pulsing")
         placeholder()
         ui.show(expand, spawn)
         title.innerHTML = chat.title
     }
 
+    const bot_messages_total_length = () => {
+        let total_length = 0
+        for (let i = 0; i < chat.messages.length; i++) {
+            if (chat.messages[i].sender === "bot") {
+                total_length += chat.messages[i].text.length
+            }
+        }
+        return total_length
+    }
+
     const end_of_generation = () => {
+        // because model.interrupted will be reset to false by title generation
+        interrupted = model.interrupted
+        update_buttons()
         scrollable.autoscroll = false
 //      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
-        if (model.interrupted) { setTimeout(trim_interrupted, 250) }
-        if (chat.messages.length != 2) {
+        if (interrupted) { setTimeout(trim_interrupted, 250) }
+//      console.log(`chat.title: ${chat.title} bot_messages_total_length: ${bot_messages_total_length()}`)
+        if (chat.title !== "" || bot_messages_total_length() < 256) {
             complete()
         } else {
             generate_title((s) => {
@@ -489,10 +522,12 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const poll = (model, context) => {
+        if (context.count == 0) { update_buttons() } // first poll
+        context.count++
         if (!markdown.processing) {
-            if (util.timestamp() - context.last > 1500) {
-                context.count = cycle_titles(context.count)
-                context.last = util.timestamp()
+            if (performance.now() - context.last > 1500) {
+                context.cycle = cycle_titles(context.cycle)
+                context.last = performance.now()
             }
             render_last(model.tokens)
             check_for_repetitions_and_stop()
@@ -500,7 +535,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const ask = (t, hidden) => { // 't': text
-        model.interrupted = false
+        interrupted = false
         ui.hide(carry, clear)
         if (!current || !t) { return }
         if (!backend.is_running()) { oops() }
@@ -512,20 +547,22 @@ export const run = () => { // called DOMContentLoaded
         setTimeout(scrollable.scroll_to_bottom, 500)
         layout_and_render().then(() => { // render before asking
             scrollable.autoscroll = true
-    //      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
+//          console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
             ui.show(stop)
-            ui.hide(send, expand, spawn)
-            stop.classList.add("shadowing")
+            console.log(`ui.show(stop)`)
+            ui.hide(expand, spawn)
+            stop.classList.add("pulsing")
             markdown.start()
             cycle_titles(0)
             let context = {
-                last: util.timestamp(),
-                count: 1
+                last: performance.now(),
+                count: 0,
+                cycle: 1
             }
-            chats.start(model, t,
+            model.start(t,
                 model => {
 //                  console.log(model.tokens)
-                    if (performance.now() - model.start > 1500) {
+                    if (performance.now() - model.started > 1500) {
                         set_input_placeholder('')
                     }
                     poll(model, context)
@@ -588,28 +625,47 @@ export const run = () => { // called DOMContentLoaded
 
     const clear_click = (e) => {
         e.preventDefault()
-        input.innerText = ""
+        input.innerHTML = ''
         placeholder()
         layout_and_render().then(() => {
             clear_selection()
-            if (chat.messages.length === 0 && !is_input_focused()) {
-                suggestions.show()
-            }
+            suggestions.show()
         })
+    }
+
+    const start_input = () => {
+        console.log("start_input")
+        collapsed()
+        if (is_input_focused() || model.polling) { return }
+        if (!detect.macOS) {
+            box.style.opacity = "0"
+            move_box = true
+        }
+        input.contentEditable = "plaintext-only"
+        input.oninput()
+        input.focus()
+    }
+
+    const box_touch = (e) => {
+        hide_menu()
+        if (is_expanded) { collapsed() }
     }
 
     if (detect.macOS) {
         send.addEventListener("click",     send_click,  { passive: false } )
         clear.addEventListener("click",    clear_click, { passive: false } )
+        box.addEventListener("click",      start_input, { passive: false } )
     } else {
         send.addEventListener("touchstart",  send_click,  { passive: false } )
         clear.addEventListener("touchstart", clear_click, { passive: false } )
+        box.addEventListener("touchstart",   box_touch,   { passive: true  } )
     }
     
     stop.onclick = e => {
         e.preventDefault()
+        ui.hide(stop)
         let s = input.innerText.trim()
-        if (backend.is_answering()) { interrupt() }
+        if (model.polling) { interrupt() }
     }
 
     carry.onclick = e => {
@@ -628,8 +684,8 @@ export const run = () => { // called DOMContentLoaded
     
     const erase = () => {
         collapsed()
-        const keys = Object.keys(localStorage).filter(k => k.startsWith("chat."))
-        keys.forEach(k => localStorage.removeItem(k))
+        const ks = Object.keys(localStorage).filter(k => k.startsWith("chat."))
+        ks.forEach(k => localStorage.removeItem(k))
         backend.erase()
         current = null
         rebuild_list()
@@ -732,15 +788,21 @@ export const run = () => { // called DOMContentLoaded
 
     let move_box = false
 
+    input.onfocus = () => { // focus gained
+        if (input.textContent === "\n") { input.textContent = "" }
+        suggestions.hide()
+    }
+
     input.onblur = () => { // focus lost
-        if (detect.macOS) { return }
-        move_box = false
         if (chat.messages.length === 0 && input.innerText.trim() === "") {
             suggestions.show()
         }
-        input.contentEditable = "false"
-        talk.style.marginBottom = talk.dataset.marginBottom
-//      console.log(`talk.style.marginBottom = ${talk.dataset.marginBottom}`)
+        if (!detect.macOS) {
+            move_box = false
+            input.contentEditable = "false"
+            talk.style.marginBottom = talk.dataset.marginBottom
+//          console.log(`talk.style.marginBottom = ${talk.dataset.marginBottom}`)
+        }
     }
 
     const viewport = (e) => {
@@ -752,63 +814,35 @@ export const run = () => { // called DOMContentLoaded
     window.visualViewport.addEventListener('resize', viewport);
     window.visualViewport.addEventListener('scroll', viewport);
 
-    input.onclick = () => {
-        collapsed()
-        if (is_input_focused()) { return }
-        if (detect.macOS) { return }
-        box.style.opacity = "0"
-        move_box = true
-        input.contentEditable = "plaintext-only"
-        input.focus()
-    }
+    input.onclick = start_input
 
     // save initial marginBottom
     talk.dataset.marginBottom = `${getComputedStyle(talk).marginBottom}`
 //  console.log(`talk.dataset.marginBottom = ${getComputedStyle(talk).marginBottom}`)
 
-    input.onfocus = () => suggestions.hide()
-
     if (detect.macOS) {
         input.contentEditable = "plaintext-only"
     }
 
-    let polling_running = null
+    let check_running = null
 
-    const poll_running = () => {
-        clearTimeout(polling_running)
-        polling_running = null
+    const wait_for_running = () => {
+        clearTimeout(check_running)
+        check_running = null
         if (backend.is_running()) {
-            show_hide_input_buttons()
+            update_buttons()
         } else {
             let since = util.timestamp() - load_timestamp // ms
             if (since > 10000) {
                 oops()
             } else {
-                polling_running = setTimeout(poll_running, 100)
+                check_running = setTimeout(wait_for_running, 100)
             }
-        }
-        polling_running = setTimeout(poll_running, 100)
-    }
-
-    const show_hide_input_buttons = () => {
-        const answering = backend.is_answering()
-        const running   = backend.is_running()
-        let s = input.innerText
-        if (s === '\n') { s = "" } // empty div has '\n'
-        if (s !== "" || answering) { suggestions.hide() }
-        const clear_and_send = s !== "" && !answering && running;
-        ui.show_hide(clear_and_send, clear, send)
-        ui.show_hide(answering,  stop)
-        ui.show_hide(!clear_and_send && !model.interrupted, strut)
-        ui.show_hide(model.interrupted && !answering && !clear_and_send,  carry)
-        if (!running) {
-            clearTimeout(polling_running)
-            polling_running = setTimeout(poll_running, 100)
         }
     }
 
     input.oninput = () => {
-        show_hide_input_buttons()
+        update_buttons()
         input.style.maxHeight = `${window.innerHeight * 0.25}px`
         set_box_top()
     }
@@ -821,6 +855,18 @@ export const run = () => { // called DOMContentLoaded
     }
     
     input.onkeydown = e => {
+        suggested = false
+        const lf = input.textContent === "\n"
+        const empty = input.textContent === ""
+        const enter = e.key === "Enter"
+        const shift_enter = e.key === "Enter" && e.shiftKey
+        if (detect.macOS && enter && (lf || empty)) {
+            return // let the browser insert the '\n' for us
+        }
+        if (detect.macOS && shift_enter) {
+            if (lf) { input.textContent = "" }
+            return // let the browser insert the '\n' for us
+        }
         let s = input.innerText.trim()
         if (detect.macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
             e.preventDefault()
@@ -833,9 +879,9 @@ export const run = () => { // called DOMContentLoaded
         }
         if (s.length > 0 && last_key_down_time !== 0) {
             setTimeout(() => {
-                if (Date.now() - last_key_down_time > 2000) {
-                    send.classList.add("shadowing")
-                    setTimeout(() => send.classList.remove("shadowing"), 2000)
+                if (Date.now() - last_key_down_time > 1000) {
+                    send.classList.add("pulsing")
+                    setTimeout(() => send.classList.remove("pulsing"), 2000)
                 }
             }, 3000)
         }
@@ -853,6 +899,11 @@ export const run = () => { // called DOMContentLoaded
     )
 
     messages.onclick = e => {
+        if (!e.target.closest("#menu")) { hide_menu() }
+        if (is_expanded) { collapsed() }
+    }
+
+    content.onclick = e => {
         if (!e.target.closest("#menu")) { hide_menu() }
         if (is_expanded) { collapsed() }
     }
@@ -973,7 +1024,8 @@ export const run = () => { // called DOMContentLoaded
     suggest.innerHTML = suggestions.init({
         data: prompts.data,
         callback: s => {
-            model.interrupted = false;
+            interrupted = false
+            suggested = true
             input.innerText = s.prompt
             input.oninput()
             suggestions.hide()
@@ -994,7 +1046,7 @@ export const run = () => { // called DOMContentLoaded
         swipe();
     }, false);
     
-    function swipe() {
+    const swipe = () => {
         const dx = touch_end_x - touch_start_x;
         const threshold = window.innerWidth / 4;
         if (Math.abs(dx) > threshold) {
@@ -1070,7 +1122,7 @@ export const run = () => { // called DOMContentLoaded
     showEULA()
     
     suggestions.show()
-    show_hide_input_buttons()
+    update_buttons()
 
     const test_download = false // WIP
     

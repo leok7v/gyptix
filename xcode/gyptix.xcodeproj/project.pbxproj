@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B304E1882DB40D380081FC1C /* chats.js in Resources */ = {isa = PBXBuildFile; fileRef = B304E1872DB40D380081FC1C /* chats.js */; };
+		B304E1882DB40D380081FC1C /* llm.js in Resources */ = {isa = PBXBuildFile; fileRef = B304E1872DB40D380081FC1C /* llm.js */; };
 		B30D38DB2D458C4E00B8196B /* llama-adapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38B72D458C4E00B8196B /* llama-adapter.cpp */; };
 		B30D38DC2D458C4E00B8196B /* llama-grammar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38C32D458C4E00B8196B /* llama-grammar.cpp */; };
 		B30D38DD2D458C4E00B8196B /* unicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38D72D458C4E00B8196B /* unicode.cpp */; };
@@ -100,7 +100,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B304E1872DB40D380081FC1C /* chats.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = chats.js; sourceTree = "<group>"; };
+		B304E1872DB40D380081FC1C /* llm.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = llm.js; sourceTree = "<group>"; };
 		B30D38B62D458C4E00B8196B /* llama-adapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-adapter.h"; sourceTree = "<group>"; };
 		B30D38B72D458C4E00B8196B /* llama-adapter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "llama-adapter.cpp"; sourceTree = "<group>"; };
 		B30D38B82D458C4E00B8196B /* llama-arch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-arch.h"; sourceTree = "<group>"; };
@@ -518,7 +518,7 @@
 				B33026C42DA1F40C0082BBB5 /* app3.js */,
 				B34C1FBE2DB18C43004E8B2C /* algo.js */,
 				B3E2499A2D6162110048A24F /* backend.js */,
-				B304E1872DB40D380081FC1C /* chats.js */,
+				B304E1872DB40D380081FC1C /* llm.js */,
 				B3F590552D6A7294008B5B7D /* detect.js */,
 				B39546C82DA5ABE300E35252 /* history.js */,
 				B3E249A02D617E300048A24F /* marked.js */,
@@ -601,7 +601,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B304E1882DB40D380081FC1C /* chats.js in Resources */,
+				B304E1882DB40D380081FC1C /* llm.js in Resources */,
 				B361EBE02D8FD06500B45B70 /* app1.css in Resources */,
 				B3E249A12D617E300048A24F /* marked.js in Resources */,
 				B3E2499D2D61621C0048A24F /* util.js in Resources */,

@@ -57,13 +57,13 @@ export const log = (...args) => {
 
 export const console_log = console.log
 
-const start = Date.now() // UTC timestamp in milliseconds
+const start = performance.now() // high precision but in milliseconds
 
 console.log = (...args) => {
     try {
         throw new Error()
     } catch (e) {
-        const dt = (Date.now() - start) / 1000.0 // seconds
+        const dt = (performance.now() - start) / 1000.0 // seconds
         const lines = e.stack.split('\n')
         let f = lines[1] || ''
         if (f.includes('util.js')) f = lines[2] || ''
@@ -83,6 +83,10 @@ console.log = (...args) => {
             console_log(...args)
         }
     }
+    /*  dt.toFixed(3): (delta timeWebKit) on iOS currently coarsens
+        performance.now() to whole-millisecond steps (and in non-isolated
+        pages you only get 100 µs resolution at best) (April, 2025)
+    */
 }
 
 export const init_theme = () => {
@@ -104,7 +108,7 @@ export const toggle_theme = () => {
 
 export const init_font_size = () => {
     let fs = 100
-    if (detect.iPhone) fs = 130
+    if (detect.iPhone) fs = 120
     if (detect.iPad)   fs = 160
     let font_size = localStorage.getItem("settings.font-size") || fs;
     document.body.style.fontSize = font_size + "%";
@@ -113,7 +117,7 @@ export const init_font_size = () => {
 
 export const decrease_font_size = () => {
     let font_size = parseInt(localStorage.getItem("settings.font-size")) || 100;
-    const min_font = detect.iPad ? 90 : 100
+    const min_font = detect.iPad ? 80 : 90
     font_size = Math.max(min_font, font_size - 10);
     document.body.style.fontSize = font_size + "%";
     localStorage.setItem("settings.font-size", font_size);

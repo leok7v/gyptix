@@ -98,6 +98,9 @@ export const disable = (...elements) =>
 export const enable = (...elements) =>
     elements.forEach(e => e.disabled = false)
 
+export const enable_disable = (b, ...elements) =>
+    elements.forEach(e => e.disabled = !b)
+
 export const is_hidden = e => e.style.display === "none"
 
 export const is_concealed = e => e.style.visibility === "hidden"

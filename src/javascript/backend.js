@@ -37,7 +37,9 @@ export const interrupt = () => {
     return util.post("./poll", "<--interrupt-->", null)
 }
 
-export const is_running = () =>  { 
+/* is_running() is_answering() round trip is <= 1ms */
+
+export const is_running = () =>  {
     return util.post("./is_running") === "true"
 }
 

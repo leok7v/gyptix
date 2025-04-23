@@ -6,13 +6,14 @@ import * as modal   from "./modal.js"
 export const interrupt = (state) => {
     backend.interrupt() // next poll will get "<--done-->"
     state.interrupted = true
+    console.log(`state.interrupted: ${state.interrupted}`)
 }
 
 const averages = (state) => {
-    const seconds   = (state.completed - state.start) / 1000;
-    state.cps       = seconds === 0 ? 0 : state.generated / seconds
+    const seconds  = (state.completed - state.started) / 1000;
+    state.cps      = seconds === 0 ? 0 : state.generated / seconds
     if (state.ewma === 0) {
-        state.ewma  = state.cps
+        state.ewma = state.cps
     } else {
         const alpha = 1.0 / 8.0
         state.ewma  = state.ewma * (1 - alpha) + state.cps * alpha
@@ -69,14 +70,13 @@ const poll = (state) => {
 export const create = () => {
     console.log("create")
     return {
-        start:       0,         // performance.now() at chat() call
+        started:     0,         // performance.now() at chat() call
         error:       null,      // Error object
         prompt:      "",        // current prompt
         response:    null,      // response(state) called for generated token(s)
         progress:    null,      // progress(state) called for prompt token(s)
         processed:   0,         // 0..1 ratio of processed promot
         done:        null,      // called when generation is complete
-        interrupt:   interrupt, // client can call to stop generation
         interrupted: false,     // chat tokens generation was interrupted
         maximum:     Infinity,  // maximum number of tokens to generate
         tokens:      "",        // last generated tokens response is called with
@@ -88,10 +88,20 @@ export const create = () => {
         cps:         0,         // characters per second
         ewma:        0,         // exponentially weighted moving average of cps
         tma:         0,         // token length moving average
+        // bound methods:
+        interrupt() {
+            interrupt(this);
+        },
+        start(prompt, response, done) {
+            return start(this, prompt, response, done);
+        },
+        ask(prompt, maximum = Infinity) {
+            return ask(this, prompt, maximum);
+        }
     }
 }
 
-export const start = (state, prompt, response, done) => {
+const start = (state, prompt, response, done) => {
     // verify correctness of state and arguments
     if (prompt.length == 0) {
         throw new Error("empty prompt")
@@ -102,7 +112,7 @@ export const start = (state, prompt, response, done) => {
     } else if (!backend.is_running()) {
         throw new Error("not running")
     }
-    state.start       = performance.now()
+    state.started     = performance.now()
     state.prompt      = prompt
     state.response    = response
     state.done        = done
@@ -129,7 +139,7 @@ export const start = (state, prompt, response, done) => {
     }
 }
 
-export const ask = (state, prompt, maximum = Infinity) => {
+const ask = (state, prompt, maximum = Infinity) => {
     state.maximum = maximum
     return new Promise((resolve, reject) => {
         const response = () => {}
@@ -154,26 +164,26 @@ export const ask = (state, prompt, maximum = Infinity) => {
 
 import * as chat from "./chat.js"
 
-let state = chat.create()
+let model = llm.create()
 
 ### With streaming:
 
-chat.start(state, "Once upon a time…",
-    state => { // per-token callback
-        console.log(state.tokens)
+model.start("Once upon a time…",
+    model => { // per-token callback
+        console.log(model.tokens)
     },
-    state => { // completion callback
-        if (state.error) {
-            console.error(state.error)
+    model => { // completion callback
+        if (model.error) {
+            console.error(model.error)
         } else {
-            console.log(`.cps ${state.cps} .result: ${state.result.join("")}`)
+            console.log(`.cps ${model.cps} .result: ${model.result.join("")}`)
         }
     }, 4096
 )
 
 ### Without streaming:
 
-chat.ask(state, "Tell me a joke", 500)
+model.ask("Tell me a joke", 500)
     .then(text => {
         console.log("Joke:", text)
     })
@@ -183,7 +193,7 @@ chat.ask(state, "Tell me a joke", 500)
 
 ## Brief theory of operation:
 
-create() returns a fresh state object with all fields initialized.
+create() returns a fresh model state object with all fields initialized.
 
 start() kicks off backend.ask(prompt) and schedules setInterval → poll(state).
 
