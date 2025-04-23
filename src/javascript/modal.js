@@ -74,7 +74,6 @@ const buttons = (actions, done) => {
 
 const page = (pts) => {
     const panel = document.createElement("div")
-    panel.style.fontSize  = pts
     panel.style.border    = "none"
     panel.style.minWidth  = "100%"
     panel.style.minHeight = "100%"
@@ -205,7 +204,7 @@ export const fatal_error = (message) => {
     const error = `# Fatal Error:${two_lines_gap}`+
                   `** ${message} **${two_lines_gap}` +
                   "Application cannot continue and will close now."
-    modal.mbx(error, () => backend.quit(), "Close")
+    mbx(error, () => backend.quit(), "Close")
 }
 
 const scroll_into_view_later = (span) => {

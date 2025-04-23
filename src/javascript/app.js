@@ -868,8 +868,9 @@ export const run = () => { // called DOMContentLoaded
         hide_menu()
         if (!selected) { return }
         let c = history.load_chat(selected)
+        let t = c.title !== "" ? c.title : text.timestamp_label(c.id)
         modal.ask("# **Delete Chat**\n\n" +
-                  '"' + c.title + '"\n\n' +
+                  '"' + t + '"\n\n' +
                   "This cannot be undone.",
         (action) => {
             if (action === "Delete") { delete_chat() }

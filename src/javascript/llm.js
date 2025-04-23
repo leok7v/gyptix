@@ -10,7 +10,7 @@ const log = verbose ? console.log : () => {}
 export const interrupt = (state) => {
     backend.interrupt() // next poll will get "<--done-->"
     state.interrupted = true
-    console.log(`state.interrupted: ${state.interrupted}`)
+//  console.log(`state.interrupted: ${state.interrupted}`)
 }
 
 const averages = (state) => {

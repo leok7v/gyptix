@@ -637,13 +637,16 @@ button:hover { background-color: var(--background-button-hover); }
     flex-direction: column;
     right: 0;
     bottom: 0;
+    font-size: var(--font-size);
     overscroll-behavior: contain;
     overflow: hidden;
 }
 
+/*
 html[data-macos="true"] #modal * {
     font-size: 95%;
 }
+*/
 
 #modal h3 { padding-top: 0.25rem !important; }
 

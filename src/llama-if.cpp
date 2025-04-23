@@ -42,6 +42,7 @@ struct state {
     struct ggml_threadpool     * threadpool       {nullptr};
     struct ggml_threadpool     * threadpool_batch {nullptr};
     common_init_result           llama_init;
+    std::string                  filename;
     llama_context              * ctx   {nullptr};
     const llama_model          * model {nullptr};
     common_sampler             * smpl  {nullptr};
@@ -53,15 +54,14 @@ struct state {
     std::vector<llama_token>     embd_inp;
     std::vector<llama_token>     session_tokens;
     std::vector<std::vector<llama_token>> antiprompt_ids;
-    int n_ctx_train {0};
-    int n_ctx {0};
+    int n_ctx_train             {0};
+    int n_ctx                   {0};
+    size_t n_tokens_saved       {0}; // last saved session_tokens.size()
     bool has_chat_template      {false};
     bool is_interacting         {false};
     bool need_insert_eot        {false};
     bool is_antiprompt          {false};
-    bool input_echo             {false};
-    bool display                {false};
-    bool need_to_save_session   {false};
+    bool interrupted            {false};
     int n_past                  {0};
     int n_remain                {0};
     int n_consumed              {0};
@@ -149,6 +149,7 @@ static int load(struct state &state) {
     state.ctx = state.llama_init.context.get();
     if (state.model == NULL) {
         trace("error: unable to load model\n");
+        llama.error("unable to load model");
         return 1;
     }
     state.vocab = llama_model_get_vocab(state.model);
@@ -186,7 +187,8 @@ static int ggml_init(struct state &state) {
         trace("threadpool create failed : n_threads %d\n", tpp.n_threads);
         return 1;
     }
-    llama_attach_threadpool(state.ctx, state.threadpool, state.threadpool_batch);
+    llama_attach_threadpool(state.ctx, state.threadpool,
+                            state.threadpool_batch);
     llama_backend_init();
     llama_numa_init(state.params.numa);
     return 0;
@@ -202,15 +204,25 @@ static int64_t extract_id(const std::string &input, const std::string &prefix) {
     return 0;
 }
 
-static std::string prompt_cache_folder(const char* session) {
-    static std::string prompt_cache;
-    if (prompt_cache.empty()) {
+static std::string& prompt_cache_folder() {
+    static std::string prompts;
+    if (prompts.empty()) {
         const char* cwd = get_cwd();
-        std::string prompts = std::string(cwd) + "/prompts";
+        prompts = std::string(cwd) + "/prompts";
 //      trace("%s\n", prompts.c_str());
-        prompt_cache = prompts + "/" + std::string(session);
+        if (mkdir(prompts.c_str(), S_IRWXU) != 0 && errno != EEXIST) {
+            trace("failed to create prompts folder: %s\n", prompts.c_str());
+            llama.error("failed to create prompts folder: %s\n");
+            prompts = "";
+        }
     }
-    return prompt_cache;
+    return prompts;
+}
+
+static std::string filename(const char* session) {
+    std::string& prompts = prompt_cache_folder();
+    if (prompts.empty()) { return ""; }
+    return prompts + "/" + std::string(session);
 }
 
 static void clear(struct state &state) {
@@ -220,16 +232,12 @@ static void clear(struct state &state) {
     state.session_tokens.clear();
     state.antiprompt_ids.clear();
     state.is_interacting       = false;
-    state.input_echo           = false;
-    state.display              = false;
     state.n_ctx_train          = 0;
     state.n_ctx                = 0;
     state.has_chat_template    = false;
     state.is_interacting       = false;
     state.need_insert_eot      = false;
     state.is_antiprompt        = false;
-    state.display              = false;
-    state.need_to_save_session = false;
     state.n_consumed           = 0;
     state.progress             = 0; // progress of processing embd_inp
     state.n_past               = 0;
@@ -238,45 +246,51 @@ static void clear(struct state &state) {
     state.saved          = {0};
 }
 
-static int load_session(struct state &state, const std::string &filename) {
-//  trace("attempting to load saved session from '%s'\n",filename.c_str());
-    if (!file_exists(filename)) {
-//      trace("file does not exist, will create: %s\n", filename.c_str());
-    } else if (file_is_empty(filename)) {
+static int load_session(struct state &state) {
+    const char* fn = state.filename.c_str();
+//  trace("attempting to load saved session from '%s'\n", fn);
+    if (!file_exists(state.filename)) {
+//      trace("file does not exist, will create: %s\n", fn);
+    } else if (file_is_empty(state.filename)) {
         trace("session file is empty. A new session will be initialized.\n");
     } else { // The file exists and is not empty
         state.session_tokens.resize(state.n_ctx);
         size_t n_token_count_out = 0;
-        if (!llama_state_load_file(state.ctx, filename.c_str(),
+        if (!llama_state_load_file(state.ctx, fn,
                                    state.session_tokens.data(),
                                    state.session_tokens.capacity(),
                                    &n_token_count_out)) {
-            trace("failed to load session file '%s'\n", filename.c_str());
+            trace("failed to load session file '%s'\n", fn);
             return 1;
         }
+        assert(n_token_count_out > 0);
         state.session_tokens.resize(n_token_count_out); // truncate
+        state.n_tokens_saved = n_token_count_out;
 //      trace("loaded a session with prompt size of %d tokens\n",
 //             (int)state.session_tokens.size());
     }
     return 0;
 }
 
-static void save_session(struct state &state, const std::string &filename) {
-    assert(!filename.empty()); // in chat() usecase we always have a filename
-    if (!state.need_to_save_session) {
-//      trace("no need to save session because it has not been changed\n");
-    } else {
-//      trace("saving %d tokens to '%s'\n", (int)state.session_tokens.size(),
-//                                               filename.c_str());
-        bool b = llama_state_save_file(state.ctx, filename.c_str(),
-            state.session_tokens.data(), state.session_tokens.size());
+static void save_session(struct state &state) {
+    size_t n = (int)state.session_tokens.size();
+//  trace("session_tokens.size(): %d n_tokens_saved: %d\n",
+//        (int)n, (int)state.n_tokens_saved);
+    assert(n >= state.n_tokens_saved);
+    if (n > state.n_tokens_saved) {
+        const char* fn = state.filename.c_str();
+//      trace("saving %d tokens to '%s'\n", (int)n, fn);
+        bool b = llama_state_save_file(state.ctx, fn,
+                                       state.session_tokens.data(), n);
         if (b) {
-//          trace("saved session to %s\n", filename.c_str());
-            state.need_to_save_session = false;
+//          trace("saved %d tokens to %s\n", (int)n, fn);
+            state.n_tokens_saved = n;
         } else {
             trace("error: failed to save session\n");
             llama.error("failed to save chat state");
         }
+    } else {
+//      trace("session did not change: won't be saved\n");
     }
 }
 
@@ -302,47 +316,31 @@ static std::string add_and_format(struct state &state, const std::string & role,
     return formatted;
 }
 
-static int tokenize_prompt(struct state &state) {
-    assert(state.embd.size() == 0);
-    assert(state.embd_inp.size() == 0);
+static int tokenize_prompt(struct state &state, std::vector<llama_token> &p) {
+//  trace("tokenize system prompt\n");
     // format the system prompt in conversation mode
     // (fallback to default if empty)
-    auto prompt = (state.params.conversation_mode &&
-                   state.params.enable_chat_template)
+    auto prompt = state.params.enable_chat_template
         ? add_and_format(state, "system", state.params.prompt.empty() ?
                               DEFAULT_SYSTEM_MESSAGE : state.params.prompt)
         // otherwise use the prompt as is
         : state.params.prompt;
-    if (state.session_tokens.empty()) {
-        // because params.interactive_first is set to true for next session
-//      trace("tokenize system prompt\n");
-        state.embd_inp = common_tokenize(state.ctx, prompt, true, true);
-        // Should not run without any tokens
-        if (state.embd_inp.empty()) {
-            if (llama_vocab_get_add_bos(state.vocab)) {
-                state.embd_inp.push_back(llama_vocab_bos(state.vocab));
-                trace("embd_inp was considered empty but bos was added: %s\n",
-                      string_from(state.ctx, state.embd_inp).c_str());
-            } else {
-                trace("input is empty\n");
-                return -1;
-            }
+    p = common_tokenize(state.ctx, prompt, true, true);
+    // Should not run without any tokens
+    if (p.empty()) {
+        if (llama_vocab_get_add_bos(state.vocab)) {
+            state.embd_inp.push_back(llama_vocab_bos(state.vocab));
+            trace("embd_inp was considered empty but bos was added: %s\n",
+                  string_from(state.ctx, state.embd_inp).c_str());
+        } else {
+            trace("input is empty\n");
+            llama.error("missing system prompt");
+            return 1;
         }
-    } else {
-        const int n = (int)state.session_tokens.size();
-        trace("use session %d tokens\n", n);
-        assert(state.session_tokens.size() > 0);
-        // don’t re‐tokenize, just advance the n_past counter.
-        // We still want to decode last session token, see
-        // "Last Session Token Decoding" discussion at the end of this file
-        state.n_past = n - 1;
-        const auto last_token = state.session_tokens[n - 1];
-        common_sampler_accept(state.smpl, last_token, /*accept_grammar=*/false);
-        state.embd.push_back(last_token);
-        state.session_tokens.pop_back();
     }
+    // we will not save sessions that only contain system prompt
 //  trace("prompt: \"%s\"\n", prompt.c_str());
-//  trace("tokens: %s\n", string_from(state.ctx, state.embd_inp).c_str());
+//  trace("tokens: %s\n", string_from(state.ctx, p).c_str());
     return 0;
 }
 
@@ -353,7 +351,8 @@ static void dump_interactive_info(const struct state &state) {
             for (const auto & antiprompt : state.params.antiprompt) {
                 trace("Reverse prompt: '%s'\n", antiprompt.c_str());
                 if (state.params.verbose_prompt) {
-                    auto t = common_tokenize(state.ctx, antiprompt, false, true);
+                    auto t = common_tokenize(state.ctx, antiprompt,
+                                             false, true);
                     for (int i = 0; i < (int)t.size(); i++) {
                         trace("%6d -> '%s'\n", t[i],
                             common_token_to_piece(state.ctx, t[i]).c_str());
@@ -406,15 +405,16 @@ static void dump_prompt(const struct state &state) {
     }
 }
 
-static int decode(struct state &state) {
+static int decode(struct state &state, bool generating) {
 //  trace("embd.size(): %d\n", (int)state.embd.size());
     for (int i = 0; i < (int)state.embd.size(); i += state.params.n_batch) {
         int n_eval = (int)state.embd.size() - i;
         if (n_eval > state.params.n_batch) {
             n_eval = state.params.n_batch;
         }
-        if (llama_decode(state.ctx, llama_batch_get_one(&state.embd[i], n_eval))) {
-            trace("failed to eval\n");
+        if (llama_decode(state.ctx, llama_batch_get_one(&state.embd[i],
+                                                        n_eval))) {
+            trace("failed to decode tokens\n");
             return 1;
         }
 /*
@@ -423,11 +423,13 @@ static int decode(struct state &state) {
                   state.progress, i, n_eval, (int)state.embd.size());
 */
         state.n_past += n_eval;
+/*
         trace("embd_inp.size(): %d embd.size(): %d n_past: %d n_consumed: %d "
               "session_tokens.size(): %d state.is_interacting: %d\n",
               (int)state.embd_inp.size(), (int)state.embd.size(),
               state.n_past, state.n_consumed,
               (int)state.session_tokens.size(), state.is_interacting);
+*/
         if (llama.progress) { llama.progress(state.progress); }
     }
     return 0;
@@ -606,7 +608,6 @@ static void insert_user_input(struct state &state, std::string &input) {
         state.embd_inp.push_back(eot == LLAMA_TOKEN_NULL ?
             llama_vocab_eos(state.vocab) : eot);
         state.need_insert_eot = false;
-        state.need_to_save_session = true;
     }
     auto &inp = state.embd_inp;
     inp.insert(inp.end(), line_pfx.begin(), line_pfx.end());
@@ -618,6 +619,8 @@ static void insert_user_input(struct state &state, std::string &input) {
 
 static bool off_the_record(struct state &state, const std::string &input) {
     if (input.rfind("[otr", 0) != 0) { return false; }
+    assert(state.embd.size() == 0);
+    assert(state.embd_inp.size() == 0);
     int otr_max = state.n_ctx - 4;
     size_t colon = input.find(':');
     size_t close = input.find(']');
@@ -636,44 +639,201 @@ static bool off_the_record(struct state &state, const std::string &input) {
     insert_user_input(state, const_cast<std::string&>(body));
     while (state.n_consumed < (int)state.embd_inp.size()) {
         // grab next user‐token
-        llama_token tok = state.embd_inp[state.n_consumed++];
-        common_sampler_accept(state.smpl, tok, /*grammar=*/false);
+        llama_token t = state.embd_inp[state.n_consumed++];
+        common_sampler_accept(state.smpl, t, /*grammar=*/false);
         // decode into KV cache
-        llama_decode(state.ctx, llama_batch_get_one(&tok, 1));
+        llama_decode(state.ctx, llama_batch_get_one(&t, 1));
         state.n_past++;
     }
-    std::string s;
+    std::ostringstream ss;
     for (int i = 0; i < otr_max; i++) {
         llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
         common_sampler_accept(state.smpl, id, /*grammar=*/true);
         llama_decode(state.ctx, llama_batch_get_one(&id, 1));
         state.n_past++;
-        s += common_token_to_piece(state.ctx, id, state.params.special);
+        ss << common_token_to_piece(state.ctx, id, state.params.special);
         if (llama_vocab_is_eog(state.vocab, id)) {
             break;
         }
     }
+    std::string s = ss.str();
     llama.output(s.c_str());
 //  llama.error("error test");  // DEBUG: uncomment to test errors to UI
     llama.output("<--done-->");
     restore_state(state);
+#if 0
     llama_kv_cache_seq_rm(state.ctx,
         /*layer:*/0, /*from:*/kv_start, /*to:*/kv_start + (int)s.size());
+#endif
+    llama_kv_cache_seq_rm(state.ctx,
+        /*layer:*/-1, /*from:*/kv_start, /*to:*/-1);
+    assert(state.embd.size() == 0);
+    assert(state.embd_inp.size() == 0);
     return true;
+}
+
+#if 0
+static bool output_tokens(struct state &state, // returns true if interrupted
+                          const std::vector<llama_token> &tokens) {
+    std::ostringstream ss;
+    for (auto id : tokens) {
+        const std::string s = common_token_to_piece(state.ctx, id,
+                                                    state.params.special);
+        ss << s;
+    }
+    std::string s = ss.str();
+    trace("s: %s\n", s.c_str());
+    return !llama.output(s.c_str());
+}
+#endif
+
+static int decode_input(struct state &state) {
+    while (state.n_consumed < (int)state.embd_inp.size()) {
+        int remain     = state.embd_inp.size() - state.n_consumed;
+        int to_decode  = std::min(state.params.n_batch, remain);
+        state.embd.clear();
+        for (int i = 0; i < to_decode; ++i) {
+            auto t = state.embd_inp[state.n_consumed++];
+            state.embd.push_back(t);
+            common_sampler_accept(state.smpl, t, /*accept_grammar=*/false);
+        }
+        if (decode(state, false) != 0) { return 1; }
+    }
+    state.session_tokens.insert(
+        state.session_tokens.end(),
+        state.embd_inp.begin(),
+        state.embd_inp.end()
+    );
+    state.embd_inp.clear();
+    state.n_consumed = 0;
+    return 0;
+}
+
+static bool read_user_input(struct state &state) {
+    for (;;) {
+//      trace("waiting for llama.input()\n");
+        const char* str = llama.input();
+        bool end = !str || strcmp(str, "<--end-->") == 0;
+        std::string text = end ? "" : str;
+        free((void*)str);
+        if (end) {
+            llama.output("<--done-->");
+//          trace("line is null or <--end-->\n");
+            return false;
+        }
+        if (state.params.escape) { string_process_escapes(text); }
+        if (off_the_record(state, text)) {
+            // will do llama.input() again
+        } else {
+            insert_user_input(state, text);
+            state.is_interacting = false;
+            return true;
+        }
+    }
+}
+
+static bool generate(struct state &state,
+        const std::vector<std::vector<llama_token>> antiprompt_ids,
+        const int ga_n, int &ga_i) {
+    for (;;) {
+        if (ga_n == 1) {
+            if (state.n_past + (int)state.embd.size() >= state.n_ctx) {
+                if (infinite_text_generation_via_context_shifting(state)) {
+                    trace("Context Overflow");
+                    llama.error("Context Overflow");
+                    return false;
+                }
+            }
+        } else {
+            context_extension_via_self_extend(state, ga_i);
+        }
+        const llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
+        common_sampler_accept(state.smpl, id, /*accept_grammar=*/true);
+        state.embd = { id };
+        if (decode(state, true) != 0) { return 1; }
+        // end‐of‐generation handling
+        const bool is_eog = llama_vocab_is_eog(state.vocab, id);
+        if (!is_eog) {
+            std::string s = common_token_to_piece(state.ctx, id,
+                                                  state.params.special);
+            if (s.length() > 0) {
+                state.interrupted = !llama.output(s.c_str());
+            }
+        }
+        state.embd.clear();
+        // push to session history & mark for save
+        state.session_tokens.push_back(id);
+        state.n_remain--;
+        if (is_eog || state.interrupted) {
+            llama.output("<--done-->");
+            state.is_interacting = true;
+            if (is_eog && state.params.interactive) {
+                save_session(state);
+            }
+            // jump back to Phase 2 to wait for the user
+            return true; // done
+        }
+        // reverse‐prompt check
+        if ((int)state.embd_inp.size() <= state.n_consumed) {
+            const int n_prev = 32;
+            const std::string last_out = common_sampler_prev_str(
+                state.smpl, state.ctx, n_prev);
+            // text‐based antiprompt
+            for (auto &ap : state.params.antiprompt) {
+                size_t pad = state.params.interactive ? 0 : 2;
+                size_t start = last_out.size() > ap.size() + pad
+                             ? last_out.size() - (ap.size() + pad)
+                             : 0;
+                if (last_out.find(ap, start) != std::string::npos) {
+                    state.is_antiprompt = true;
+                    if (state.params.interactive) {
+                        state.is_interacting = true;
+                    }
+                    break;
+                }
+            }
+            // token‐based antiprompt
+            llama_token last_tok = common_sampler_last(state.smpl);
+            for (auto &ids : antiprompt_ids) {
+                if (ids.size() == 1 && last_tok == ids[0]) {
+                    state.is_antiprompt = true;
+                    if (state.params.interactive) {
+                        state.is_interacting = true;
+                    }
+                    break;
+                }
+            }
+        }
+        // enforce n_keep and n_remain logic (unchanged)
+        if (state.params.interactive && state.n_remain <= 0
+            && state.params.n_predict >= 0) {
+            state.n_remain      = state.params.n_predict;
+            state.is_interacting = true;
+            llama.output("<--done-->");
+        }
+        // reset for next iteration
+        if (state.is_interacting) {
+            common_sampler_reset(state.smpl);
+            state.is_interacting = false;
+        }
+    }
 }
 
 static int chat(struct state &state, const char* session_id, bool existing) {
     clear(state);
-    assert(!state.params.prompt_cache_ro); // not read only cache
-//  params.interactive_first = false; // it will be modified later...
-    // https://github.com/ggml-org/llama.cpp/issues/1790
-    // https://github.com/ggml-org/llama.cpp/issues/1647
     llama_kv_cache_clear(state.ctx);
     state.n_ctx = llama_n_ctx(state.ctx);
     state.n_ctx_train = llama_model_n_ctx_train(state.model);
     if (state.n_ctx > state.n_ctx_train) {
         trace("model was trained on only %d context tokens (%d specified)\n",
                state.n_ctx_train, state.n_ctx);
+        llama.error("context is too large");
+        return 1;
+    }
+    const bool add_bos = llama_vocab_get_add_bos(state.vocab);
+//  trace("n_ctx: %d, add_bos: %d\n", state.n_ctx, add_bos);
+    if (!llama_model_has_encoder(state.model)) {
+        assert(!llama_vocab_get_add_eos(state.vocab));
     }
     state.has_chat_template = state.chat_templates.has_explicit_template &&
                               state.chat_templates.template_default;
@@ -684,52 +844,53 @@ static int chat(struct state &state, const char* session_id, bool existing) {
             state.params.conversation_mode = COMMON_CONVERSATION_MODE_DISABLED;
         }
     }
-    std::string filename = prompt_cache_folder(session_id);
-    assert(!filename.empty());
-    if (load_session(state, filename) != 0) { return 1; }
-    const bool add_bos = llama_vocab_get_add_bos(state.vocab);
-    if (!llama_model_has_encoder(state.model)) {
-        assert(!llama_vocab_get_add_eos(state.vocab));
-    }
-//  trace("n_ctx: %d, add_bos: %d\n", state.n_ctx, add_bos);
-    if ((int)state.embd_inp.size() > state.n_ctx - 4) {
-        trace("prompt is too long (%d tokens, max %d)\n",
-              (int)state.embd_inp.size(), state.n_ctx - 4);
-        return 1;
-    }
     state.smpl = common_sampler_init(state.model, state.params.sampling);
     if (!state.smpl) {
-        trace("%s: failed to initialize sampling subsystem\n");
+        trace("%failed to initialize sampling subsystem\n");
+        llama.error("failed to initialize sampling subsystem");
         return 1;
+    } else {
+//      trace("sampler seed: %u\n",     common_sampler_get_seed(state.smpl));
+//      trace("sampler params: \n%s\n", state.params.sampling.print().c_str());
+//      trace("sampler chain: %s\n",    common_sampler_print(state.smpl).c_str());
     }
-    if (tokenize_prompt(state) != 0) { return 0; }
-    // debug message about similarity of saved session, if applicable
+    // always used with "-i" and "-cnv"
+    assert(state.params.conversation_mode);
+    assert(state.params.interactive);
+//  dump_interactive_info(state);
+    // loading session or using system prompt (exclusive)
+    state.filename = filename(session_id);
+    if (state.filename.empty())   { return 1; }
+    if (load_session(state) != 0) { return 1; }
+    state.interrupted = false;
     if (!state.session_tokens.empty()) {
+        if ((int)state.session_tokens.size() > state.n_ctx - 4) {
+            trace("session is too long (%d tokens, max %d)\n",
+                  (int)state.session_tokens.size(), state.n_ctx - 4);
+            llama.error("session is too long");
+            return 1;
+        }
+        llama_token last = state.session_tokens.back();
+        state.session_tokens.pop_back();
+        common_sampler_accept(state.smpl, last, /*accept_grammar=*/false);
+        state.embd = { last };
+        if (decode(state, true) != 0) return 1;
+        state.n_past++;
+        state.session_tokens.push_back(last);
+        state.embd.clear();
         // remove any "future" tokens that we might have inherited from
         // the previous session...
-        trace("remove any `future` tokens that we might have inherited\n");
+//      trace("remove any `future` tokens that we might have inherited\n");
         llama_kv_cache_seq_rm(state.ctx, -1, state.session_tokens.size(), -1);
-        // llama_kv_cache_seq_rm() removes everything after session_tokens.size()
-    }
-    // number of tokens to keep when resetting context
-    if (state.params.n_keep < 0 ||
-        state.params.n_keep > (int)state.embd_inp.size()) {
-        state.params.n_keep = (int)state.embd_inp.size();
+        // llama_kv_cache_seq_rm() removes tail after session_tokens.size()
+        state.params.n_keep = state.session_tokens.size();
     } else {
-        state.params.n_keep += add_bos; // always keep the BOS token
+        std::vector<llama_token> system_prompt;
+        if (tokenize_prompt(state, system_prompt) != 0) { return 1; }
+        state.n_tokens_saved = (int)state.embd_inp.size();
+        state.params.n_keep = state.embd_inp.size() + add_bos;
+//       dump_prompt(state);
     }
-    if (state.params.conversation_mode) {
-        state.params.interactive_first = true;
-    }
-    // enable interactive mode if interactive start is specified
-    if (state.params.interactive_first) {
-        state.params.interactive = true;
-    }
-//  dump_prompt(state);
-//  dump_interactive_info(state);
-//  trace("sampler seed: %u\n",     common_sampler_get_seed(state.smpl));
-//  trace("sampler params: \n%s\n", state.params.sampling.print().c_str());
-//  trace("sampler chain: %s\n",    common_sampler_print(state.smpl).c_str());
 //  trace("generate: n_ctx = %d, n_batch = %d, n_predict = %d, n_keep = %d\n",
 //         state.n_ctx, state.params.n_batch,
 //         state.params.n_predict, state.params.n_keep);
@@ -749,11 +910,6 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         // n_ctx must be at least n_ctx_train * grp_attn_n
         assert(state.n_ctx >= state.n_ctx_train * ga_n);
     }
-    if (state.params.interactive) {
-        state.is_interacting = state.params.interactive_first;
-    }
-    state.need_to_save_session = false;
-    state.display = state.params.display_prompt;
     // tokenized antiprompts
     auto antiprompt_ids = state.antiprompt_ids;
     antiprompt_ids.reserve(state.params.antiprompt.size());
@@ -779,239 +935,23 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         state.embd_inp.push_back(decoder_start_token_id);
     }
 //  trace("state.n_remain: %d\n", (int)state.n_remain);
-    while ((state.n_remain != 0 && !state.is_antiprompt) ||
-            state.params.interactive) {
-        // predict
-        if (!state.embd.empty()) {
-            // Note: (n_ctx - 4) here is to match the logic for commandline
-            // prompt handling --prompt or --file which uses the same value.
-            int max_embd_size = state.n_ctx - 4;
-            // Ensure the input doesn't exceed the context size by
-            // truncating embd if necessary.
-            if ((int)state.embd.size() > max_embd_size) {
-                const int skipped = (int)state.embd.size() - max_embd_size;
-                state.embd.resize(max_embd_size);
-                trace("<<input too long: skipped %d token%s>>", skipped,
-                      skipped != 1 ? "s" : "");
-            }
-            if (ga_n == 1) {
-                if (state.n_past + (int)state.embd.size() >= state.n_ctx) {
-                    if (infinite_text_generation_via_context_shifting(state)) {
-                        llama.error("Context Overflow");
-                        state.need_to_save_session = false;
-                        // context full, shift is disabled => stop w/o saving
-                        break;
-                    }
-                }
-            } else {
-                context_extension_via_self_extend(state, ga_i);
-            }
-            trace("PREDICT?\n");
-            if (decode(state) != 0) { return 1; }
-            if (!state.embd.empty() && !filename.empty()) {
-                auto b = state.embd.begin();
-                auto e = state.embd.end();
-                state.session_tokens.insert(state.session_tokens.end(), b, e);
-            }
-//          trace("embd.size(): %d\n", (int)state.embd.size());
+    // session is loaded or system prompt is tokenized into state.embd_inp
+    // we need to start with is_interacting = true to wait for user input
+    // after processing the embd_inp
+    state.is_interacting = true;
+    while ((state.n_remain != 0 && !state.is_antiprompt)
+           || state.params.interactive) {
+        if (decode_input(state) != 0) { return 1; }
+        if (state.is_interacting) {
+            if (!read_user_input(state)) { break; }
+            assert(!state.is_interacting);
+            continue;  // back to decode_input()
         }
-        state.embd.clear();
-//      trace("embd.clear()\n");
-        if ((int)state.embd_inp.size() <= state.n_consumed &&
-            !state.is_interacting) {
-            // optionally save the session on first sample
-            // (for faster prompt loading next time)
-            /*
-            if (state.need_to_save_session && !state.params.prompt_cache_ro) {
-                save_session(state, filename);
-            }
-            */
-            const llama_token id = common_sampler_sample(state.smpl,
-                                                         state.ctx, -1);
-            common_sampler_accept(state.smpl, id, /* accept_grammar= */ true);
-            state.embd.push_back(id);
-            // echo this to console
-            state.input_echo = true;
-            // decrement remaining sampling budget
-            state.n_remain--;
-//          trace("n_remain: %d\n", state.n_remain);
-        } else {
-            // some user input remains from prompt or interaction:
-//          trace("embd_inp.size(): %d, n_consumed: %d\n",
-//                (int)state.embd_inp.size(), state.n_consumed);
-            int k = 0;
-            while ((int)state.embd_inp.size() > state.n_consumed) {
-                state.embd.push_back(state.embd_inp[state.n_consumed]);
-                // push the prompt in the sampling context in order to apply
-                // repetition penalties later for the prompt, we don't apply
-                // grammar rules
-                common_sampler_accept(state.smpl,
-                                      state.embd_inp[state.n_consumed],
-                /* accept_grammar= */ false);
-                state.n_consumed++;
-                k++;
-            }
-            trace("state.embd.pushed_back() %d tokens from embd_inp\n", k);
-            k = 0;
-        }
-        bool interrupted = false;
-        if (state.input_echo && state.display) {
-            for (auto id : state.embd) {
-                const std::string token_str = common_token_to_piece(state.ctx,
-                      id, state.params.special);
-//              trace("token_str.c_str(): %s\n", token_str.c_str());
-                if (!llama.output(token_str.c_str())) {
-                    interrupted  = true;
-                    break;
-                }
-            }
-        }
-        if (state.input_echo && (int)state.embd_inp.size() == state.n_consumed) {
-            state.display = true;
-        }
-        // if not currently processing queued inputs
-        if ((int)state.embd_inp.size() <= state.n_consumed) {
-            // check for reverse prompt in the last n_prev tokens
-            if (!state.params.antiprompt.empty()) {
-                const int n_prev = 32;
-                const std::string last_output = common_sampler_prev_str(
-                        state.smpl, state.ctx, n_prev);
-                state.is_antiprompt = false;
-                // Check if each of the reverse prompts appears at the end of
-                // the output. If we're not running interactively, the reverse
-                // prompt might be tokenized with some following characters so
-                // we'll compensate for that by widening search window.
-                for (std::string & antiprompt : state.params.antiprompt) {
-                    size_t extra_padding = state.params.interactive ? 0 : 2;
-                    int with_extra = (int)(antiprompt.length() + extra_padding);
-                    int len = (int)last_output.length();
-                    size_t search_start_pos = len > with_extra ?
-                        len - with_extra : 0;
-                    if (last_output.find(antiprompt, search_start_pos) !=
-                                         std::string::npos) {
-                        if (state.params.interactive) {
-                            state.is_interacting = true;
-                            trace("state.is_interacting = true;\n");
-                        }
-                        state.is_antiprompt = true;
-                        break;
-                    }
-                }
-                // check for reverse prompt using special tokens
-                llama_token last_token = common_sampler_last(state.smpl);
-                for (std::vector<llama_token> ids : antiprompt_ids) {
-                    if (ids.size() == 1 && last_token == ids[0]) {
-                        if (state.params.interactive) {
-                            state.is_interacting = true;
-                            trace("state.is_interacting = true;\n");
-                        }
-                        state.is_antiprompt = true;
-                        break;
-                    }
-                }
-                if (state.is_antiprompt) {
-                    trace("found antiprompt: %s\n", last_output.c_str());
-                }
-            }
-            bool is_eog = llama_vocab_is_eog(state.vocab,
-                            common_sampler_last(state.smpl));
-            // deal with end of generation tokens in interactive mode
-            if (is_eog) {
-//              trace("found an EOG token embd.size(): %d\n",
-//                     (int)state.embd.size());
-                if (state.params.interactive) {
-                    if (!state.params.antiprompt.empty()) {
-                        // tokenize and inject first reverse prompt
-                        const auto first_antiprompt = common_tokenize(state.ctx,
-                            state.params.antiprompt.front(), false, true);
-                        state.embd_inp.insert(state.embd_inp.end(),
-                            first_antiprompt.begin(), first_antiprompt.end());
-                        state.is_antiprompt = true;
-                    }
-//                  trace("<--done--> llama_vocab_is_eog()\n");
-                    state.is_interacting = true;
-//                  trace("state.is_interacting = true;\n");
-                    llama.output("<--done-->");
-                    assert(state.embd.size() <= 1); // and it is EOG
-                    state.embd.clear();
-                    save_session(state, filename);
-                }
-            }
-            if (interrupted) {
-                trace("<--done--> interrupted\n");
-                llama.output("<--done-->");
-                state.is_interacting = true;
-                state.need_insert_eot = true;
-                trace("state.is_interacting = true;\n");
-                continue;
-            }
-            if (state.n_past > 0 && state.is_interacting) {
-//              trace("embd.size(): %d context.n_past: %d\n",
-//                    (int)state.embd.size(), state.n_past);
-                state.need_to_save_session = false;
-//              trace("waiting for user input\n");
-                if (state.params.input_prefix_bos) {
-                    trace("adding input prefix BOS token\n");
-                    state.embd_inp.push_back(llama_vocab_bos(state.vocab));
-                }
-                state.display = state.params.display_prompt;
-                assert(state.embd.size() <= 1); // and it is EOG
-                state.embd.clear();
-                const char* str = llama.input();
-                if (!str || strcmp(str, "<--end-->") == 0) {
-//                  trace("<--done--> line == null\n");
-                    llama.output("<--done-->");
-//                  trace("<--done--> because line == null\n");
-//                  trace("ENDS RUNNING THE MODEL\n");
-                    break; // ENDS RUNNING THE MODEL
-                }
-                std::string text = str;
-                free((void*)str);
-//              trace("%s buff: %s\n", __func__, buffer.c_str());
-                if (off_the_record(state, text)) { continue; }
-                state.display = true;
-                // Add tokens to embd only if the input buffer is non-empty
-                // Entering a empty line lets the user pass control back
-                if (text.length() > 1) {
-//                  trace("input: '%s'\n", text.c_str());
-                    state.need_to_save_session = true;
-                    save_state(state);
-                    state.progress = 0;
-                    if (state.params.escape) { string_process_escapes(text); }
-                    insert_user_input(state, text);
-                } else {
-                    trace("empty line, passing control back\n");
-                }
-                state.input_echo = false; // do not echo this again
-            }
-            if (state.n_past > 0) {
-                if (state.is_interacting) { common_sampler_reset(state.smpl); }
-                state.is_interacting = false;
-//              trace("state.is_interacting = false;\n");
-            }
-        }
-        // end of generation
-        const bool is_eog = !state.embd.empty() &&
-                llama_vocab_is_eog(state.vocab, state.embd.back());
-        if (is_eog && !(state.params.interactive)) {
-            trace(" [end of text]\n");
-            break;
-        }
-        // In interactive mode, respect the maximum number of tokens and
-        // drop back to user input when reached. We skip this logic when
-        // n_predict == -1 (infinite) or -2 (stop at context size).
-        if (state.params.interactive && state.n_remain <= 0 &&
-                                        state.params.n_predict >= 0) {
-            state.n_remain = state.params.n_predict;
-            state.is_interacting = true;
-//          trace("state.is_interacting = true;\n");
-            llama.output("<--done-->");
-//          trace("<--done--> context.n_remain <= 0\n");
-        }
+        if (!generate(state, antiprompt_ids, ga_n, ga_i)) { break; }
     }
 //  trace("saving final output of %d tokens\n",
 //        (int)state.session_tokens.size());
-    save_session(state, filename);
+    save_session(state);
     common_perf_print(state.ctx, state.smpl);
     common_sampler_free(state.smpl);
     return 0;
@@ -1115,5 +1055,5 @@ struct llama_if llama = {
     you need a call to llama_decode() to drive those callbacks for that
     last prompt token as well.
     
-
 */
+
