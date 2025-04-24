@@ -31,7 +31,7 @@ const default_font_size = () => {
 
 const min_font_size = () => {
     let fs = 70
-    if (detect.iPhone) { fs = 80 }
+    if (detect.iPhone) { fs = 90 }
     if (detect.iPad)   { fs = 70 }
     if (detect.macOS)  { fs = 70 }
     return fs;
@@ -39,7 +39,7 @@ const min_font_size = () => {
 
 const max_font_size = () => {
     let fs = 200
-    if (detect.iPhone) { fs = 170 }
+    if (detect.iPhone) { fs = 150 }
     if (detect.iPad)   { fs = 200 }
     if (detect.macOS)  { fs = 200 }
     return fs;

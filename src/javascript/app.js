@@ -611,6 +611,7 @@ export const run = () => { // called DOMContentLoaded
     }
 
     carry.onclick = e => {
+        if (model.polling) { return } // still polling cannot continue
         e.preventDefault()
         ui.hide(carry)
         ask("carry on", true) // hidden
@@ -1005,10 +1006,8 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    const licenses = () => {
-        modal.show(backend.load("./licenses.md"), (action) => {
-        }, "OK")
-    }
+    const licenses = () =>
+        modal.page(backend.load("./licenses.md"), () => {}, "OK")
     
     let version_app  = "25.02.24" // application version
                                   // data version should be changed
@@ -1019,7 +1018,7 @@ export const run = () => { // called DOMContentLoaded
 //      localStorage.removeItem("app.eula") // DEBUG
         if (!localStorage.getItem("app.eula")) {
 //          localStorage.clear() // no one promissed to keep data forever
-            modal.show(backend.load("./eula.md"), (action) => {
+            modal.page(backend.load("./eula.md"), (action) => {
                 if (action === "Disagree") {
                     localStorage.removeItem("app.eula")
                     backend.quit()

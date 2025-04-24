@@ -63,7 +63,7 @@ const buttons = (actions, done) => {
         b.style.color = "white"
         b.style.fontWeight = "bold"
         b.style.backgroundColor = color
-        if (detect.iPad) b.style.fontSize = "15pt"
+        if (detect.iPad) { b.style.fontSize = "15pt" }
         b.innerText = text
         b.addEventListener("click", () => {
             get("modal").style.display = "none"
@@ -75,8 +75,9 @@ const buttons = (actions, done) => {
     return buttons
 }
 
-const page = (pts) => {
+const full_page = (pts) => {
     const panel = document.createElement("div")
+    panel.style.fontSize = pts
     panel.style.border    = "none"
     panel.style.minWidth  = "100%"
     panel.style.minHeight = "100%"
@@ -102,7 +103,7 @@ const error_box = (content, markdown, html) => {
 
 const message_box = (centered, markdown, done, actions) => {
     const html = marked.parse(markdown)
-    const panel = page(detect.iOS ? "11pt" : "10pt")
+    const panel = full_page(detect.iOS ? "11pt" : "10pt")
     panel.style.justifyContent = "center"
     panel.style.alignItems = "center"
     const mbx = document.createElement("div") // message box
@@ -155,9 +156,9 @@ export const mbx = (markdown, done, ...actions) =>
 // "OK" "Cancel" "<green>Agree</green>" "<red>Delete</red>"
 // and calls done(plainText of a button) on click
 
-export const show = (markdown, done, ...actions) => {
+const show_page = (markdown, fs, done, actions) => {
     const html = marked.parse(markdown)
-    const panel = page(detect.iPhone ? "0.85rem" : "1rem")
+    const panel = full_page(fs)
     panel.style.justifyContent = "top"
     const content = document.createElement("div")
     content.style.overflow = "auto"
@@ -174,6 +175,17 @@ export const show = (markdown, done, ...actions) => {
     modal.style.backgroundColor = "var(--background-color)"
     modal.style.display = "block"
     modal_on()
+}
+
+export const show = (markdown, done, ...actions) => {
+    show_page(markdown, detect.iPhone ? "0.65rem" : "1rem", done, actions)
+}
+
+export const page = (markdown, done, ...actions) => {
+    let fs = "1rem";
+    if (detect.iPhone) { fs = "0.65rem" }
+    if (detect.macOS)  { fs = "0.90rem" }
+    show_page(markdown, fs, done, actions)
 }
 
 export const toast = (s, to) => {
