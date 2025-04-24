@@ -453,7 +453,8 @@ static int decode(struct state &state, bool generating) {
         if (n > state.params.n_batch) { n = state.params.n_batch; }
         auto batch = llama_batch_get_one(&state.tokens[i], n);
         if (llama_decode(state.ctx, batch)) {
-            trace("failed to decode tokens\n");
+            trace("failed to decode tokens generating: %d %d:%d\n",
+                  generating, i, (int)state.tokens.size());
             return 1;
         }
         llama.info.generated += n;
@@ -771,7 +772,8 @@ static bool generate(struct state &state,
         state.tokens = { id };
         if (decode(state, true) != 0) {
             llama.info.time += now() - start;
-            return 1; // error already reported by decode()
+            llama.error("Error: failed to decode tokens");
+            return false;
         }
         // end‐of‐generation handling
         const bool is_eog = llama_vocab_is_eog(state.vocab, id);
@@ -1039,7 +1041,6 @@ struct llama_if llama = {
     .output   = 0,
     .progress = 0,
 };
-
 
 /*
     # Last Session Token Decoding

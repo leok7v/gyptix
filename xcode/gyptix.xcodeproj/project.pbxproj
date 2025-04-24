@@ -551,6 +551,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B323E3742D1CDAB3007BA38C /* Build configuration list for PBXNativeTarget "GyPTix" */;
 			buildPhases = (
+				B3D1C3142DBA109900C7C1F7 /* ShellScript */,
 				B3F62D062D489BCD0030F051 /* download model */,
 				B323E35F2D1CDAB2007BA38C /* Sources */,
 				B323E3602D1CDAB2007BA38C /* Frameworks */,
@@ -648,6 +649,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		B3D1C3142DBA109900C7C1F7 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				../src/git_hash.h,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "pushd ..\nscripts/git_hash.sh\npopd\n";
+		};
 		B3F62D062D489BCD0030F051 /* download model */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -746,7 +765,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 250419;
+				CURRENT_PROJECT_VERSION = 250424;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -800,7 +819,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 25.04.19;
+				MARKETING_VERSION = 25.04.24;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -831,7 +850,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_ENTITLEMENTS = gyptix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 250419;
+				CURRENT_PROJECT_VERSION = 250424;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -878,7 +897,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 25.04.19;
+				MARKETING_VERSION = 25.04.24;
 				OTHER_CFLAGS = "-Wno-ambiguous-macro";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.leok7v.gyptix;
 				PRODUCT_NAME = "$(TARGET_NAME)";

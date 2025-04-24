@@ -7,6 +7,7 @@ extern "C" {
 
 struct gyptix_info {
     char   platform[128];       // "iPad", "iPhone", "macOS"...
+    char   git_hash[64];        // short hash
     int    is_iOS_app_on_mac;   // bool
     int    is_mac_catalyst_app; // bool
     int    cpu;                 // processors count

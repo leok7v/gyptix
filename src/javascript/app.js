@@ -90,13 +90,44 @@ export const run = () => { // called DOMContentLoaded
         const running = backend.is_running() // about 1ms roundtrip
         if (!running) {
             ui.disable(send)
-            clearTimeout(check_running)
-            check_running = setTimeout(wait_for_running, 100)
         } else {
             ui.enable_disable(!empty && !model.polling, send)
         }
     }
 
+    const oops = () => {
+        modal.toast("<p>Oops<br>" +
+                    "**Fatal Error:**<br>Cannot run model.", 5000)
+        setTimeout(() => { backend.quit() }, 5100)
+    }
+    
+    let check_running = null
+    let check_running_timestamp = util.timestamp()
+
+    const wait_for_running = () => {
+        clearTimeout(check_running)
+        check_running = null
+        if (backend.is_running()) {
+            update_buttons()
+        } else {
+            let since = util.timestamp() - check_running_timestamp // ms
+            // it takes iPad 20+ second to load model after installation
+            if (since > 30000) {
+                console.log("backend is not running after 30 seconds")
+                oops()
+            } else {
+                check_running = setTimeout(wait_for_running, 100)
+            }
+        }
+    }
+
+    const start_waiting_for_running_if_necessary = () => {
+        if (backend.is_running()) { return }
+        clearTimeout(check_running)
+        check_running_timestamp = util.timestamp()
+        check_running = setTimeout(wait_for_running, 100)
+    }
+    
     document.addEventListener("copy", e => {
         e.preventDefault()
         const s = window.getSelection().toString()
@@ -387,6 +418,10 @@ export const run = () => { // called DOMContentLoaded
     const generate_title = (done) => {
         ui.hide(stop)
         set_input_placeholder('')
+        if (!backend.is_running()) {
+            done("")
+            return
+        }
         const prompt =
             "[otr:32]Write concise title for the preceding conversation.\n" +
             "Reply only with the title in plain-text.\n[/otr]"
@@ -400,7 +435,7 @@ export const run = () => { // called DOMContentLoaded
                 chat.subject = t // TODO: make use of (scrolling line on progress)
                 let title = text.short_title(t, 32)
                 if (model.error) {
-                    console.error(model.error)
+                    console.log(model.error)
                     let s = `${model.error.name}:\n${model.error.message}`
                     modal.mbx(s, () => {}, "Dismiss")
                 } else {
@@ -460,12 +495,6 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    const oops = () => {
-        modal.toast("<p>Oops<br>" +
-                    "Fatal Error", 5000)
-        setTimeout(() => { backend.quit() }, 5100)
-    }
-
     const poll = (model, context) => {
         if (context.count == 0) { update_buttons() } // first poll
         context.count++
@@ -483,7 +512,7 @@ export const run = () => { // called DOMContentLoaded
         interrupted = false
         ui.hide(carry, clear)
         if (!current || !t) { return }
-        if (!backend.is_running()) { oops() }
+        if (!backend.is_running()) { return }
         let h = hidden ? hidden : false
         chat.messages.push({ sender: "user", text: t, hidden: h })
         chat.messages.push({ sender: "bot",  text: "", hidden: false })
@@ -547,13 +576,17 @@ export const run = () => { // called DOMContentLoaded
         ui.toggle_theme()
     }
     
-
     const send_click = (e) => {
+        if (!backend.is_running()) { return }
         e.preventDefault()
+        llm.update_info()
         let s = input.innerText.trim()
+        const context_tokens = parseInt(llm.info.context_tokens) || 4096
+        if (s.length > context_tokens) {
+            modal.toast("Prompt is too long", 5555)
+            return;
+        }
         // if we did not achive running state in 10 seconds since load time
-        let since = util.timestamp() - load_timestamp // ms
-        if (!backend.is_running() && since > 10000) { oops() }
         if (backend.is_running() && !backend.is_answering() && s !== "") {
             collapsed()
             ui.hide(carry, clear)
@@ -734,6 +767,7 @@ export const run = () => { // called DOMContentLoaded
     input.onfocus = () => { // focus gained
         if (input.textContent === "\n") { input.textContent = "" }
         suggestions.hide()
+        start_waiting_for_running_if_necessary()
     }
 
     input.onblur = () => { // focus lost
@@ -765,23 +799,6 @@ export const run = () => { // called DOMContentLoaded
 
     if (detect.macOS) {
         input.contentEditable = "plaintext-only"
-    }
-
-    let check_running = null
-
-    const wait_for_running = () => {
-        clearTimeout(check_running)
-        check_running = null
-        if (backend.is_running()) {
-            update_buttons()
-        } else {
-            let since = util.timestamp() - load_timestamp // ms
-            if (since > 10000) {
-                oops()
-            } else {
-                check_running = setTimeout(wait_for_running, 100)
-            }
-        }
     }
 
     input.oninput = () => {
@@ -1041,7 +1058,7 @@ export const run = () => { // called DOMContentLoaded
     
     let v = localStorage.getItem("version.data")
     if (v !== version_data) {
-        console.log("version.data: " + v + " version_data: " + version_data)
+//      console.log("version.data: " + v + " version_data: " + version_data)
         localStorage.clear() // no one promissed to keep data forever
         localStorage.setItem("version.data", version_data)
     }
@@ -1065,6 +1082,11 @@ export const run = () => { // called DOMContentLoaded
     
     suggestions.show()
     update_buttons()
+    
+    console.log(`\n` +
+        `info.platform: ${llm.info.platform}\n` +
+        `info.git_hash: ${llm.info.git_hash}\n`
+    )
 
     const test_download = false // WIP
     
@@ -1076,6 +1098,7 @@ export const downloaded = (file, error) => {
 }
 
 export const inactive = () => {
+    console.log("inactive")
     if (chat) { history.save_chat(chat) }
     return "done"
 }

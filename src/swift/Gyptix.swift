@@ -444,6 +444,10 @@ private func free_storage() -> UInt64 {
 func startup() {
     UserDefaults.standard.set(is_debugger_attached() || is_debug_build(),
                               forKey: "WebKitDeveloperExtras")
+    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as?
+                  String ?? ""
+    let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+    print("\(version) (\(build))")
     #if os(macOS)
         gyptix.set_platform("macOS");
     #else

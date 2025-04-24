@@ -12,11 +12,11 @@
 #include <string>
 #include <ctime>
 
-
 #include "gyptix.h"
 #include "getcwd.h"
 #include "llama-if.h"
 #include "trace.h"
+#include "git_hash.h"
 
 extern "C" {
 
@@ -231,6 +231,7 @@ static int load_and_run(int argc, char** argv) {
 //  trace("llama.load() %s\n", r == 0 ? "done" : "failed");
     if (r != 0) {
         running = false;
+        trace("running := false\n");
         return 1;
     }
     for (;;) {
@@ -247,12 +248,12 @@ static int load_and_run(int argc, char** argv) {
         question = nullptr;
         if (quit || id == nullptr) { break; }
         running = true;
-//      trace("running = true\n");
+        trace("running := true\n");
 //      list();
         int r = llama.run(id, existing);
         free(id);
         running = false;
-//      trace("running = false\n");
+        trace("running := false\n");
         if (r != 0) { break; }
         if (quit) {
             break;
@@ -322,6 +323,7 @@ static int load_model(const char* model) {
         } catch (...) {
             r = -1;
             running = false;
+            trace("running := false\n");
             trace("Exception in run()\n");
         }
     #endif
@@ -418,6 +420,7 @@ static const char* stat(void) {
         "  \"sum\": %.0f,\n"
         "  \"time\": %.6f,\n"
         "  \"platform\": \"%s\",\n"
+        "  \"git_hash\": \"%s\",\n"
         "  \"ram\": %.0f,\n"
         "  \"storage\": %.0f,\n"
         "  \"gpu\": {\n"
@@ -441,6 +444,7 @@ static const char* stat(void) {
         llama.info.time,
         /* gyptix.info */
         gyptix.info.platform,
+        gyptix.info.git_hash,
         gyptix.info.ram,
         gyptix.info.storage,
         gyptix.info.gpu.recommended_max_working_set_size,
@@ -528,7 +532,7 @@ static void run(const char* id, int create_new) {
 }
 
 static void inactive(void) {
-//  trace("TODO: we can unload model here to make it easier on OS\n");
+    trace("TODO: we can unload model here to make it easier on OS\n");
 }
 
 static void stop(void) {
@@ -546,6 +550,11 @@ static void stop(void) {
 static void set_platform(const char* p) {
     snprintf(gyptix.info.platform, countof(gyptix.info.platform) - 1,
              "%s", p);
+    snprintf(gyptix.info.git_hash, countof(gyptix.info.git_hash) - 1,
+             "%s", GIT_HASH);
+    // keep the traces below on to set timeline basis in trace()
+    trace(".platform: %s\n", p);
+    trace(".git_hash: %s\n", gyptix.info.git_hash);
 }
 
 struct gyptix gyptix = {

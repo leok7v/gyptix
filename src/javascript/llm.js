@@ -17,7 +17,8 @@ export const info = {
     "logits_bytes": 0,
     "sum": 0,
     "time": 0,
-    "platform": "macOS",
+    "platform": "macOS", // "iPhone", "iPad"
+    "git_hash": "BADBEEF",
     "ram": 0,
     "storage": 0,
     "gpu": {
@@ -52,7 +53,7 @@ const averages = (state) => {
 
 const completed = (state) => {
     log("completed")
-    Object.assign(info, backend.stat())
+    update_info()
     const done = state.done
     state.polling   = null
     state.completed = performance.now()
@@ -65,10 +66,12 @@ const completed = (state) => {
     done(state)
 }
 
+export const update_info = () => Object.assign(info, backend.stat())
+
 const poll_stats = (state) => {
     const now = performance.now()
     if (now - state.last_info >= 100) {
-        Object.assign(info, backend.stat())
+        update_info()
         state.last_info = now;
         if (state.progress) { state.progress(state) }
     }
@@ -106,6 +109,7 @@ const poll = (state) => {
 }
 
 export const create = () => {
+    update_info()
     return {
         started:     0,         // performance.now() at chat() call
         last_info:   0,         // performance.now() when last info was polled
