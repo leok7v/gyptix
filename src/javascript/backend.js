@@ -60,6 +60,12 @@ export const poll = () => {
     return post("./poll", "", null)
 }
 
+export const stat = () => { // see info definition at the end of file
+    const json = post("./info", "", null)
+//  console.log(`json:\n${json}\n`)
+    return JSON.parse(json);
+}
+
 export const interrupt = () => {
     return post("./poll", "<--interrupt-->", null)
 }
@@ -114,3 +120,31 @@ console.log = (...args) => {
         pages you only get 100 µs resolution at best) (April, 2025)
     */
 }
+
+/*
+
+    stat() returns:
+    {
+        "context_tokens": 131072,
+        "session_tokens": 549,
+        "generated": 549,
+        "progress": 1.000000,
+        "average_token": 4.357,
+        "tps": 56.613,
+        "logits_bytes": 27190490,
+        "sum": 2392,
+        "time": 9.697398,
+        "platform": "macOS",
+        "ram": 25769803776,
+        "storage": 964298293248,
+        "gpu": {
+            "recommended_max_working_set_size": 17179885568,
+            "has_unified_memory": 1
+        },
+        "is_iOS_app_on_mac": 0,
+        "is_mac_catalyst_app": 0,
+        "cpu": 8,
+        "active_cpu": 8
+    }
+
+*/

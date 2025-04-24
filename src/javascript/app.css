@@ -783,3 +783,50 @@ span.label {
     transition: opacity 0.1s ease;
 }
 
+#progress {
+    display: none;
+    width: 90%;
+    height: 0.5rem;
+    margin: 1rem auto;
+    position: relative;
+    background: linear-gradient(to bottom, #ccc 0%, #ddd 100%);
+    border: 2px solid #888;
+    border-radius: 0.5rem;
+    box-shadow:
+      inset 0 0 3px rgba(0,0,0,0.3),
+      0 1px 2px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+#progress::before {   /* glass highlight */
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.5) 0%,
+      rgba(255,255,255,0) 50%);
+    border-radius: inherit;
+    pointer-events: none;
+}
+  
+#ratio {
+    display: block;
+    height: 100%;
+    width: 0;
+    /* darker, reflective mercury gradient */
+    background: linear-gradient(
+      to top,
+      #555 0%,
+      #aaa 40%,
+      #fff 50%,
+      #aaa 60%,
+      #555 100%);
+    box-shadow:
+      inset 0 0 2px rgba(255,255,255,0.9),
+      inset 0 0 4px rgba(0,0,0,0.3);
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+    transition: width 0.1s linear;
+}

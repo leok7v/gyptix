@@ -180,3 +180,10 @@ export const increase_font_size = () => {
     document.body.style.fontSize = font_size + "%";
     localStorage.setItem("settings.font-size", font_size);
 }
+
+export const progress = (value) => {
+      const tube = document.getElementById('progress');
+      const merc = document.getElementById('ratio');
+      merc.style.width = (value * 100) + '%';
+      if (value >= 1) tube.style.display = 'none';
+}

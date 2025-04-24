@@ -7,10 +7,33 @@ const verbose = false
 
 const log = verbose ? console.log : () => {}
 
+export const info = {
+    "context_tokens": 4096, // default
+    "session_tokens": 0,
+    "generated": 0,
+    "progress": 1.000000,
+    "average_token": 4.357,
+    "tps": 0,
+    "logits_bytes": 0,
+    "sum": 0,
+    "time": 0,
+    "platform": "macOS",
+    "ram": 0,
+    "storage": 0,
+    "gpu": {
+        "recommended_max_working_set_size": 0,
+        "has_unified_memory": 1
+    },
+    "is_iOS_app_on_mac": 0,
+    "is_mac_catalyst_app": 0,
+    "cpu": 0,
+    "active_cpu": 0
+}
+
 export const interrupt = (state) => {
     backend.interrupt() // next poll will get "<--done-->"
     state.interrupted = true
-//  console.log(`state.interrupted: ${state.interrupted}`)
+//  log(`state.interrupted: ${state.interrupted}`)
 }
 
 const averages = (state) => {
@@ -29,6 +52,7 @@ const averages = (state) => {
 
 const completed = (state) => {
     log("completed")
+    Object.assign(info, backend.stat())
     const done = state.done
     state.polling   = null
     state.completed = performance.now()
@@ -41,6 +65,15 @@ const completed = (state) => {
     done(state)
 }
 
+const poll_stats = (state) => {
+    const now = performance.now()
+    if (now - state.last_info >= 100) {
+        Object.assign(info, backend.stat())
+        state.last_info = now;
+        if (state.progress) { state.progress(state) }
+    }
+}
+
 const poll = (state) => {
     // interval polling can accumulate in a queue and be dispatched
     // after 'done' is called - ignore those
@@ -48,6 +81,7 @@ const poll = (state) => {
     // TODO: need progress 0..1 too in backend.poll() for prompt processing
     //       and backend.interrupt() should also be able to cancel long
     //       prompt processing for sizable prompts
+    poll_stats(state)
     const tokens = backend.poll()
     if (tokens.startsWith('<--error-->') && tokens.endsWith('</--error-->')) {
         const message = tokens.slice( // strip off the tags
@@ -74,6 +108,7 @@ const poll = (state) => {
 export const create = () => {
     return {
         started:     0,         // performance.now() at chat() call
+        last_info:   0,         // performance.now() when last info was polled
         error:       null,      // Error object
         prompt:      "",        // current prompt
         response:    null,      // response(state) called for generated token(s)
@@ -116,6 +151,7 @@ const start = (state, prompt, response, done) => {
         throw new Error("not running")
     }
     state.started     = performance.now()
+    state.last_info   = state.started
     state.prompt      = prompt
     state.response    = response
     state.done        = done

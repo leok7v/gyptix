@@ -289,7 +289,7 @@ static int load_model(const char* model) {
     argv[argc++] = (char*)"128";
     argv[argc++] = (char*)"--predict";
     argv[argc++] = (char*)"-2";           // stop when context if full
-    if (strcmp(gyptix.startup.platform, "macOS") == 0) {
+    if (strcmp(gyptix.info.platform, "macOS") == 0) {
         argv[argc++] = (char*)"--ctx-size"; // default: 4096 (too small)
         argv[argc++] = (char*)"0"; // from training 128K for granite
     } else {
@@ -382,9 +382,11 @@ static void ask(const char* s) {
         question = strdup(s);
         pthread_mutex_unlock(&lock);
         wakeup();
+//      trace("question := ... ; wakeup()\n");
         while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
         if (question == NULL) {
             answering = true;
+//          trace("answering := true\n");
         }
     }
 }
@@ -396,6 +398,61 @@ static void error(const char* text) {
     pthread_mutex_lock(&lock);
     message = text;
     pthread_mutex_unlock(&lock);
+}
+
+static void progress(double v) {
+//  trace("progress: %.6f\n", v);
+}
+
+static const char* stat(void) {
+    static char json[4 * 1024]; // average json length is < 500 so far
+    snprintf(json, countof(json),
+        "{\n"
+        "  \"context_tokens\": %d,\n"
+        "  \"session_tokens\": %d,\n"
+        "  \"generated\": %.0f,\n"
+        "  \"progress\": %.6f,\n"
+        "  \"average_token\": %.3f,\n"
+        "  \"tps\": %.3f,\n"
+        "  \"logits_bytes\": %.0f,\n"
+        "  \"sum\": %.0f,\n"
+        "  \"time\": %.6f,\n"
+        "  \"platform\": \"%s\",\n"
+        "  \"ram\": %.0f,\n"
+        "  \"storage\": %.0f,\n"
+        "  \"gpu\": {\n"
+        "    \"recommended_max_working_set_size\": %.0f,\n"
+        "    \"has_unified_memory\": %d\n"
+        "  },\n"
+        "  \"is_iOS_app_on_mac\": %d,\n"
+        "  \"is_mac_catalyst_app\": %d,\n"
+        "  \"cpu\": %d,\n"
+        "  \"active_cpu\": %d\n"
+        "}\n",
+        /* llama.info */
+        llama.info.context_tokens,
+        llama.info.session_tokens,
+        llama.info.generated,
+        llama.info.progress,
+        llama.info.average_token,
+        llama.info.tps,
+        llama.info.logits_bytes,
+        llama.info.sum,
+        llama.info.time,
+        /* gyptix.info */
+        gyptix.info.platform,
+        gyptix.info.ram,
+        gyptix.info.storage,
+        gyptix.info.gpu.recommended_max_working_set_size,
+        gyptix.info.gpu.has_unified_memory,
+        gyptix.info.is_iOS_app_on_mac,
+        gyptix.info.is_mac_catalyst_app,
+        gyptix.info.cpu,
+        gyptix.info.active_cpu
+    );
+//  trace("\n%s\n", json);
+//  trace("json.length: %d\n", (int)strlen(json));
+    return json;
 }
 
 static const char* poll(const char* i) {
@@ -430,6 +487,7 @@ static char* input(void) {
         s = question;
         question = NULL;
         pthread_mutex_unlock(&lock);
+//      trace("question := NULL\n");
         if (quit || s != NULL) { break; }
     }
     return s;
@@ -451,9 +509,10 @@ static bool output(const char* s) {
 }
 
 static void load(const char* model) {
-    llama.input  = input;
-    llama.output = output;
-    llama.error  = error;
+    llama.input    = input;
+    llama.output   = output;
+    llama.error    = error;
+    llama.progress = progress;
     if (thread == nullptr) {
         pthread_create(&thread, NULL, worker, (void*)strdup(model));
     }
@@ -485,7 +544,7 @@ static void stop(void) {
 }
 
 static void set_platform(const char* p) {
-    snprintf(gyptix.startup.platform, countof(gyptix.startup.platform) - 1,
+    snprintf(gyptix.info.platform, countof(gyptix.info.platform) - 1,
              "%s", p);
 }
 
@@ -495,6 +554,7 @@ struct gyptix gyptix = {
     .run = run,
     .ask = ask,
     .poll = poll,
+    .stat = stat,
     .is_answering = is_answering,
     .is_running = is_running,
     .remove = remove_chat,

@@ -30,6 +30,17 @@ func poll(_ req: String) -> String {
     return text
 }
 
+func stat(_ req: String) -> String {
+    var text: String = ""
+    if let response = gyptix.stat() {
+        text = String(cString: response)
+    } else {
+        text = ""
+    }
+//  if text != "" { print("info: \(text)") }
+    return text
+}
+
 func remove(_ id: String) -> String {
     id.withCString { s in gyptix.remove(s) }
     return ""
@@ -118,6 +129,7 @@ func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
         case "run":             check(path); s = call(run(r))
         case "ask":             check(path); s = call(ask(r))
         case "poll":            check(path); s = call(poll(r))
+        case "info":            check(path); s = call(stat(r))
         case "remove":          check(path); s = call(remove(r))
         case "download":        check(path); s = call(download(r))
         case "download_remove": check(path); s = call(download_remove(r))

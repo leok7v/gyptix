@@ -8,6 +8,9 @@ const get = id => document.getElementById(id)
 
 export let modality = 0 // modality count
 
+const one_line_gap = "\u00A0\u00A0\n\n"
+const two_lines_gap = one_line_gap + one_line_gap
+
 const app_modal = new CustomEvent('app_modal', {
       detail: { message: 'application modal dialog' },
       bubbles: false,
@@ -200,7 +203,6 @@ export const toast = (s, to) => {
 }
 
 export const fatal_error = (message) => {
-    const two_lines_gap = "\u00A0\u00A0\n\n\u00A0\u00A0\n\n"
     const error = `# Fatal Error:${two_lines_gap}`+
                   `** ${message} **${two_lines_gap}` +
                   "Application cannot continue and will close now."
@@ -279,10 +281,12 @@ const mailto = (email, subject, body) => {
 
 const show_error = (error) => {
     console.log("app_error: \n" + error || '')
-    mbx('# **Error**\n\n' +
-      '```\n' + error + '\n```\n' +
+    const backticks = "\n```\n"
+    mbx('# **Error**' + two_lines_gap +
+      backticks + error.replaceAll(": ", ":\n") + backticks + one_line_gap +
       'Please copy and email to: ' +
-      '<a href="mailto:gyptix@gmail.com">gyptix@gmail.com</a>',
+      '<p><a href="mailto:gyptix@gmail.com">gyptix@gmail.com</a></p>' +
+      '<p></p>',
     (action) => {
         copy_to_pasteboard(error)
         if (action === "Copy") {

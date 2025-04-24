@@ -452,11 +452,11 @@ func startup() {
             /* .ipa on Mac  ➜  isiOSAppOnMac  */
             if ProcessInfo.processInfo.isiOSAppOnMac {
                 p = "macOS"
-                gyptix.startup.is_iOS_app_on_mac = 1
+                gyptix.info.is_iOS_app_on_mac = 1
             }
             if ProcessInfo.processInfo.isMacCatalystApp {
                 p = "macOS"
-                gyptix.startup.is_mac_catalyst_app = 1
+                gyptix.info.is_mac_catalyst_app = 1
             }
         }
         if (p == "") {
@@ -469,8 +469,8 @@ func startup() {
         gyptix.set_platform(p)
     #endif
     if #available(iOS 14, *) {
-        gyptix.startup.cpu = Int32(ProcessInfo.processInfo.processorCount)
-        gyptix.startup.active_cpu =
+        gyptix.info.cpu = Int32(ProcessInfo.processInfo.processorCount)
+        gyptix.info.active_cpu =
             Int32(ProcessInfo.processInfo.activeProcessorCount)
     }
     let ram = memory_stats()
@@ -480,16 +480,16 @@ func startup() {
     print("RAM.total: \(String(format: "%8.3f", Double(ram.total) / GB)) GB")
     print("RAM.free : \(String(format: "%8.3f", Double(ram.free)  / MB)) MB")
     print("Storage  : \(String(format: "%8.3f", Double(storage)   / GB)) GB")
-    print("CPUs     : \(gyptix.startup.cpu) active: \(gyptix.startup.active_cpu)")
-    gyptix.startup.ram     = Double(ram.total)
-    gyptix.startup.storage = Double(storage)
+    print("CPUs     : \(gyptix.info.cpu) active: \(gyptix.info.active_cpu)")
+    gyptix.info.ram     = Double(ram.total)
+    gyptix.info.storage = Double(storage)
     if let device = MTLCreateSystemDefaultDevice() {
         if #available(macOS 10.15, iOS 13.0, *) {
-            gyptix.startup.gpu.recommended_max_working_set_size =
+            gyptix.info.gpu.recommended_max_working_set_size =
                 Double(device.recommendedMaxWorkingSetSize)
-            gyptix.startup.gpu.has_unified_memory =
+            gyptix.info.gpu.has_unified_memory =
                 device.hasUnifiedMemory ? 1 : 0
-            let wss = Double(gyptix.startup.gpu.recommended_max_working_set_size);
+            let wss = Double(gyptix.info.gpu.recommended_max_working_set_size);
             print("GPU w.s.s: \(String(format: "%8.3f", wss / GB)) GB")
             if device.hasUnifiedMemory {
                 print("GPU has unified memory")

@@ -14,6 +14,7 @@ import * as suggestions from "./suggestions.js"
 import * as text        from "./text.js"
 import * as util        from "./util.js"
 import * as ui          from "./ui.js"
+import * as widgets     from "./widgets.js"
 
 const nbsp4 = "    " // 4 non-breakable spaces
 
@@ -57,7 +58,7 @@ export const run = () => { // called DOMContentLoaded
         talk         = get("talk"),
         title        = get("title"),
         tools        = get("tools"),
-        toggle_theme = get("toggle_theme")
+        toggle       = get("toggle") // theme
         
     let load_timestamp = util.timestamp()
     let current        = null  // current  chat id
@@ -433,6 +434,7 @@ export const run = () => { // called DOMContentLoaded
 
     const end_of_generation = () => {
         // because model.interrupted will be reset to false by title generation
+        widgets.progress(1.0)
         interrupted = model.interrupted
         update_buttons()
         scrollable.autoscroll = false
@@ -488,6 +490,7 @@ export const run = () => { // called DOMContentLoaded
         history.save_chat(chat)
         render_messages()
         setTimeout(scrollable.scroll_to_bottom, 500)
+        model.progress = (state) => widgets.progress(llm.info.progress)
         layout_and_render().then(() => { // render before asking
             scrollable.autoscroll = true
 //          console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
@@ -539,7 +542,7 @@ export const run = () => { // called DOMContentLoaded
     
     const hide_menu = () => ui.hide(menu)
     
-    toggle_theme.onclick = e => {
+    toggle.onclick = e => {
         e.preventDefault()
         ui.toggle_theme()
     }
@@ -929,16 +932,16 @@ export const run = () => { // called DOMContentLoaded
         hide_menu()
     }
     
-    get("font-increase").onclick = e => {
+    get("inc").onclick = e => {
         e.preventDefault()
         hide_menu()
-        ui.increase_font_size()
+        widgets.increase_font_size()
     }
 
-    get("font-decrease").onclick = e => {
+    get("dec").onclick = e => {
         e.preventDefault()
         hide_menu()
-        ui.decrease_font_size()
+        widgets.decrease_font_size()
     }
     
     document.querySelectorAll(".tooltip").forEach(button => {
@@ -1047,8 +1050,8 @@ export const run = () => { // called DOMContentLoaded
     detect.init()
     marked.use({pedantic: false, gfm: true, breaks: true})
     
-    ui.init_theme()
-    ui.init_font_size()
+    widgets.init_theme()
+    widgets.init_font_size()
     history.init_search(search, freeze, unfreeze)
     ui.hide(tools)
     
