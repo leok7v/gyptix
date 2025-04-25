@@ -248,12 +248,12 @@ static int load_and_run(int argc, char** argv) {
         question = nullptr;
         if (quit || id == nullptr) { break; }
         running = true;
-        trace("running := true\n");
+//      trace("running := true\n");
 //      list();
         int r = llama.run(id, existing);
         free(id);
         running = false;
-        trace("running := false\n");
+//      trace("running := false\n");
         if (r != 0) { break; }
         if (quit) {
             break;
