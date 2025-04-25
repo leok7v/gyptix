@@ -21,6 +21,8 @@ struct llama_if {
     int   (*run)(const char* session, bool create_new);
     void  (*fini)(void);
     // supplied by caller:
+    bool  (*in_background)(void);
+    void  (*wait_foreground)(void); // waits for app to become foreground
     char* (*input)(void); // returns malloc()ed string
     bool  (*output)(const char* s); // returns false on interrupt
     void  (*error)(const char* message);

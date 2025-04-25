@@ -444,6 +444,15 @@ static void info(struct state &state) {
 */
 }
 
+static int decode_batch(struct state &state, struct llama_batch batch) {
+    while (llama.in_background()) { llama.wait_foreground(); }
+    for (;;) {
+        int r = llama_decode(state.ctx, batch);
+        if (r == 0 || !llama.in_background()) { return r; }
+        while (llama.in_background()) { llama.wait_foreground(); }
+    }
+}
+
 static int decode(struct state &state, bool generating) {
 //  trace("tokens.size(): %d\n", (int)state.tokens.size());
     bool report_progress = !generating &&
@@ -452,10 +461,12 @@ static int decode(struct state &state, bool generating) {
         int n = (int)state.tokens.size() - i;
         if (n > state.params.n_batch) { n = state.params.n_batch; }
         auto batch = llama_batch_get_one(&state.tokens[i], n);
-        if (llama_decode(state.ctx, batch)) {
-            trace("failed to decode tokens generating: %d %d:%d\n",
-                  generating, i, (int)state.tokens.size());
-            return 1;
+        int r = decode_batch(state, batch);
+        if (r != 0) {
+            trace("error: failed to decode tokens error: %d "
+                  "generating: %d i: %d size:%d\n",
+                  r, generating, i, (int)state.tokens.size());
+            return r;
         }
         llama.info.generated += n;
         if (report_progress) {
@@ -676,19 +687,31 @@ static bool off_the_record(struct state &state, const std::string &input) {
     state.n_consumed = 0;
     state.tokens.clear();
     insert_user_input(state, const_cast<std::string&>(body));
-    while (state.n_consumed < (int)state.input.size()) {
+    int r = 0;
+    while (state.n_consumed < (int)state.input.size() && r == 0) {
         // grab next user‐token
         llama_token t = state.input[state.n_consumed++];
         common_sampler_accept(state.smpl, t, /*grammar=*/false);
         // decode into KV cache
-        llama_decode(state.ctx, llama_batch_get_one(&t, 1));
+        r = decode_batch(state, llama_batch_get_one(&t, 1));
+        if (r != 0) {
+            trace("error: failed to decode tokens error: %d "
+                  "n_consumed: %d input.size:%d\n",
+                  r, state.n_consumed, (int)state.input.size());
+            break;
+        }
         state.n_past++;
     }
     std::ostringstream ss;
-    for (int i = 0; i < otr_max; i++) {
+    for (int i = 0; i < otr_max && r == 0; i++) {
         llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
         common_sampler_accept(state.smpl, id, /*grammar=*/true);
-        llama_decode(state.ctx, llama_batch_get_one(&id, 1));
+        r = decode_batch(state, llama_batch_get_one(&id, 1));
+        if (r != 0) {
+            trace("error: failed to decode tokens error: %d "
+                  "i: %d otr_max: %d\n", r, i, (int)otr_max);
+            break;
+        }
         state.n_past++;
         ss << common_token_to_piece(state.ctx, id, state.params.special);
         if (llama_vocab_is_eog(state.vocab, id)) {
@@ -705,7 +728,7 @@ static bool off_the_record(struct state &state, const std::string &input) {
         /*layer:*/-1, /*from:*/kv_start, /*to:*/-1);
     assert(state.tokens.size() == 0);
     assert(state.input.size() == 0);
-    return true;
+    return r == 0;
 }
 
 static int decode_input(struct state &state) {

@@ -512,11 +512,23 @@ static bool output(const char* s) {
     return result;
 }
 
+static bool in_background(void) { return gyptix.info.background != 0; }
+
+static void wait_foreground(void) {
+    for (;;) {
+        if (!gyptix.info.background) { return; }
+        const long timeout = 1000LL * 1000LL * 1000LL; // 1 second
+        sleep_for_ns(timeout);
+    }
+}
+
 static void load(const char* model) {
     llama.input    = input;
     llama.output   = output;
     llama.error    = error;
     llama.progress = progress;
+    llama.in_background   = in_background;
+    llama.wait_foreground = wait_foreground;
     if (thread == nullptr) {
         pthread_create(&thread, NULL, worker, (void*)strdup(model));
     }
@@ -532,7 +544,7 @@ static void run(const char* id, int create_new) {
 }
 
 static void inactive(void) {
-    trace("TODO: we can unload model here to make it easier on OS\n");
+//  trace("TODO: we can unload model here to make it easier on OS\n");
 }
 
 static void stop(void) {

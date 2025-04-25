@@ -1098,7 +1098,9 @@ export const downloaded = (file, error) => {
 }
 
 export const inactive = () => {
-    console.log("inactive")
+//  console.log("inactive")
+    // always save chat on inactive() notification because app can be killed
+    // after.
     if (chat) { history.save_chat(chat) }
     return "done"
 }

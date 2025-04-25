@@ -21,6 +21,7 @@ var js_ready = false
 var web_view: WKWebView?
 //var keyboard: CGRect = .zero // keyboard frame
 let timing = false
+let gpu: MTLDevice? = MTLCreateSystemDefaultDevice()
 
 @main
 struct Gyptix: App {
@@ -441,6 +442,11 @@ private func free_storage() -> UInt64 {
     return v?.uint64Value ?? 0
 }
 
+private func background(_ enter: Bool) {
+//  print("background(\(enter))")
+    gyptix.info.background = enter ? 1 : 0;
+}
+
 func startup() {
     UserDefaults.standard.set(is_debugger_attached() || is_debug_build(),
                               forKey: "WebKitDeveloperExtras")
@@ -487,7 +493,7 @@ func startup() {
     print("CPUs     : \(gyptix.info.cpu) active: \(gyptix.info.active_cpu)")
     gyptix.info.ram     = Double(ram.total)
     gyptix.info.storage = Double(storage)
-    if let device = MTLCreateSystemDefaultDevice() {
+    if let device = gpu {
         if #available(macOS 10.15, iOS 13.0, *) {
             gyptix.info.gpu.recommended_max_working_set_size =
                 Double(device.recommendedMaxWorkingSetSize)
@@ -500,4 +506,21 @@ func startup() {
             }
         }
     }
+    #if os(iOS)
+    NotificationCenter.default.addObserver(
+        forName: UIApplication.didEnterBackgroundNotification,
+        object: nil,
+        queue: .main
+    ) { _ in
+        background(true)
+    }
+
+    NotificationCenter.default.addObserver(
+        forName: UIApplication.willEnterForegroundNotification,
+        object: nil,
+        queue: .main
+    ) { _ in
+        background(false)
+    }
+    #endif    
 }
