@@ -47,6 +47,13 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>io.github.gyptix.backgroundrefresh</string>
+		<string>io.github.gyptix.backgroundprocess</string>
 	</array>
 </dict>
 </plist>
+

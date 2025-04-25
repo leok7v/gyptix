@@ -5,6 +5,7 @@ import SwiftUI
 import WebKit
 #if os(iOS)
 import StoreKit
+import BackgroundTasks
 typealias Window = UIWindow
 #elseif os(macOS)
 typealias Window = NSWindow
@@ -522,5 +523,13 @@ func startup() {
     ) { _ in
         background(false)
     }
-    #endif    
+    BGTaskScheduler.shared.register(forTaskWithIdentifier:
+        "io.github.gyptix.refresh", using: nil) { task in
+        // nothing for now
+    }
+    BGTaskScheduler.shared.register(forTaskWithIdentifier:
+        "io.github.gyptix.process", using: nil) { task in
+        // nothing for now
+    }
+    #endif
 }
