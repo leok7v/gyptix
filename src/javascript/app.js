@@ -263,7 +263,8 @@ export const run = () => { // called DOMContentLoaded
         const t = c.title !== "" ? c.title : text.timestamp_label(c.id)
         span.textContent = t
         const dots = document.createElement("button")
-        dots.textContent = '⋮' // aka '&vellip;' alternative "⋯"
+        dots.textContent = '⌄' // '▾' '»' '⋮' aka '&vellip;' alternative "⋯"
+        dots.style.opacity = "0.5"
         dots.onclick = e => {
             e.stopPropagation()
             selected = c.id;
