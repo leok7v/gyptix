@@ -653,8 +653,8 @@ export const run = () => { // called DOMContentLoaded
     }
     
     spawn.onclick = e => {
-//      console.log(`backend.is_running(): ${backend.is_running()} backend.is_answering(): ${backend.is_answering()}`)
         e.preventDefault()
+        collapsed()
         if (backend.is_running() && !backend.is_answering()) {
             spawn_new_conversation()
         }
