@@ -478,6 +478,7 @@ export const run = () => { // called DOMContentLoaded
         if (interrupted) { setTimeout(trim_interrupted, 250) }
 //      console.log(`chat.title: ${chat.title} bot_messages_total_length: ${bot_messages_total_length()}`)
         if (chat.title !== "" || bot_messages_total_length() < 256) {
+            history.save_chat(chat)
             complete()
         } else {
             generate_title((s) => {
