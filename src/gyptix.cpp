@@ -293,7 +293,7 @@ static int load_model(const char* model) {
     if (strcmp(gyptix.info.platform, "macOS") == 0) {
         argv[argc++] = (char*)"--ctx-size"; // default: 4096 (too small)
 //      argv[argc++] = (char*)"0"; // from training 128K for granite
-argv[argc++] = (char*)"256"; // xxx
+argv[argc++] = (char*)"512"; // xxx
     } else {
         // iPhone and iPad
         // 16384 crashes iPhone GPU hard
