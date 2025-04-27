@@ -537,7 +537,6 @@ const music = [
     "What separates pop from experimental music?",
     "Why are live performances irreplaceable?",
     "Why do certain songs trigger vivid memories?",
-    "Why do earworms hijack our brains?",
     "Why do music tastes change with age?",
     "Why do people gravitate towards sad music?",
     "Why is classical music still relevant today?"
