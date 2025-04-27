@@ -65,13 +65,10 @@ struct state {
     llama_tokens_t               input;
     llama_tokens_t               session_tokens;
     size_t n_tokens_saved       {0}; // last saved session_tokens.size()
-    int  n_ctx_train            {0};
     int  n_ctx                  {0};
     int  mode                  {-1}; // unknown
     int  n_sys_prompt_tokens    {0}; // keep at the head off session_tokens
     int  n_past                 {0}; // total tokens currently in KV‑cache
-    int  n_remain               {0};
-    int  n_consumed             {0};
     int  ga_i                   {0};
     bool has_chat_template      {false};
     bool is_interacting         {false};
@@ -233,13 +230,10 @@ static void clear(struct state &state) {
     state.session_tokens.clear();
     state.n_tokens_saved       = 0;
     state.is_interacting       = false;
-    state.n_ctx_train          = 0;
     state.n_ctx                = 0;
     state.mode                 = -1; // unknown
     state.n_sys_prompt_tokens  = 0;
     state.n_past               = 0;
-    state.n_remain             = state.params.n_predict;
-    state.n_consumed           = 0;
     state.ga_i                 = 0;
     state.has_chat_template    = false;
     state.is_interacting       = false;
@@ -563,6 +557,7 @@ static void context_extension_via_self_extend(struct state &state) {
 */
 
 static bool infinite_text_generation_via_context_shifting(struct state &state) {
+    assert(0 <= state.mode && state.mode <= 2);
     // called only when (state.n_past + batch) >= state.n_ctx - 4
     // if we run out of context:
     // - take the n_sys_prompt_tokens first tokens from the original prompt
@@ -661,6 +656,7 @@ static int decode_batch(struct state &state, struct llama_batch batch) {
 
 static int decode(struct state &state) {
 //  trace("tokens.size(): %d\n", (int)state.tokens.size());
+    assert(0 <= state.mode && state.mode <= 2);
     int max_size = state.n_ctx - 4;
     // Ensure the input doesn't exceed the context size by truncating tokens.
     if ((int)state.tokens.size() > max_size) {
@@ -728,8 +724,7 @@ static void insert_user_input(struct state &state, std::string &input) {
     inp.insert(inp.end(), line_pfx.begin(), line_pfx.end());
     inp.insert(inp.end(), line_inp.begin(), line_inp.end());
     inp.insert(inp.end(), line_sfx.begin(), line_sfx.end());
-    state.n_remain -= line_inp.size();
-//  trace("n_remain: %d input: %d\n", state.n_remain, (int)inp.size());
+//  trace("input: %d\n", (int)inp.size());
 }
 
 static int decode_input(struct state &state) { // also handle empty input
@@ -749,7 +744,6 @@ static int decode_input(struct state &state) { // also handle empty input
         state.tokens.end()
     );
     state.tokens.clear();
-    state.n_consumed = 0;
     llama.info.time += now() - start;
     return 0;
 }
@@ -781,7 +775,6 @@ static bool generate(struct state &state) {
         state.tokens.clear();
         // push to session history
         state.session_tokens.push_back(id);
-        state.n_remain--;
         if (is_eog || state.interrupted) {
             llama.output("<--done-->");
             state.is_interacting = true;
@@ -798,11 +791,11 @@ static int init_chat(struct state &state) {
     clear(state);
     llama_kv_cache_clear(state.ctx);
     state.n_ctx = llama_n_ctx(state.ctx);
-    state.n_ctx_train = llama_model_n_ctx_train(state.model);
+    int n_ctx_train = llama_model_n_ctx_train(state.model);
     llama.info.context_tokens = state.n_ctx;
-    if (state.n_ctx > state.n_ctx_train) {
+    if (state.n_ctx > n_ctx_train) {
         trace("model was trained on only %d context tokens (%d specified)\n",
-               state.n_ctx_train, state.n_ctx);
+               n_ctx_train, state.n_ctx);
         llama.error("context is too large");
         return 1;
     }
@@ -839,19 +832,18 @@ static int init_chat(struct state &state) {
     // (default: -1, -1 = infinity, -2 = until context filled)
     assert(state.params.n_predict == -1); // expecting infinity
 //  dump_interactive_info(state);
-    int ga_i = 0;
     const int ga_n = state.params.grp_attn_n;
     const int ga_w = state.params.grp_attn_w;
     if (ga_n != 1) {
         trace("self-extend: n_ctx_train = %d, grp_attn_n = %d, "
               "grp_attn_w = %d\n",
-              state.n_ctx_train, ga_n, ga_w);
+              n_ctx_train, ga_n, ga_w);
         assert(ga_n > 0);         // ga_n must be positive
         assert(ga_w % ga_n == 0); // ga_w must be a multiple of ga_n
         // n_ctx_train must be a multiple of grp_attn_w
-        assert(state.n_ctx_train % ga_w == 0);
+        assert(n_ctx_train % ga_w == 0);
         // n_ctx must be at least n_ctx_train * grp_attn_n
-        assert(state.n_ctx >= state.n_ctx_train * ga_n);
+        assert(state.n_ctx >= n_ctx_train * ga_n);
     }
     return 0;
 }
@@ -938,14 +930,12 @@ static bool off_the_record(struct state &state, const std::string &input) {
     std::string body = input.substr(start, end - start);
 //  trace("body: %s\n", body.c_str());
     state.mode = mode_otr;
-    state.n_consumed = 0;
     insert_user_input(state, const_cast<std::string&>(body));
-    int r = 0;
     for (auto t : state.input) {
-        common_sampler_accept(state.smpl, t, false); // accept_grammar: false
+        common_sampler_accept(state.smpl, t, false); // grammar: false
     }
     state.tokens = std::move(state.input);
-    r = decode(state);
+    int r = decode(state);
     if (r != 0) { return 1; }
     // not inserting decoded tokens into session, just throw them away:
     state.tokens.clear();
@@ -1029,9 +1019,6 @@ static int chat(struct state &state, const char* session_id, bool existing) {
 //  trace("generate: n_ctx = %d, n_batch = %d, n_predict = %d, \n",
 //         state.n_ctx, state.params.n_batch,
 //         state.params.n_predict);
-    // group-attention state
-    // number of grouped KV tokens so far (used only if params.grp_attn_n > 1)
-//  trace("state.n_remain: %d\n", (int)state.n_remain);
     state.interrupted = false;
     state.is_interacting = true;
     bool done = false;
