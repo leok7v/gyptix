@@ -57,17 +57,15 @@ struct state {
     llama_tokens_t               input;
     llama_tokens_t               session_tokens;
     array_of_llama_tokens_t      antiprompt_ids;
+    array_of_llama_tokens_t      antiprompts;
     size_t n_tokens_saved       {0}; // last saved session_tokens.size()
-    int n_ctx_train             {0};
-    int n_ctx                   {0};
-    bool has_chat_template      {false};
-    bool is_interacting         {false};
-    bool need_insert_eot        {false};
-    bool is_antiprompt          {false};
-    bool interrupted            {false};
-    int n_past                  {0};
-    int n_remain                {0};
-    int n_consumed              {0};
+    int  n_ctx_train            {0};
+    int  n_ctx                  {0};
+    int  n_sys_prompt_tokens    {0};
+    int  n_past                 {0}; // total tokens currently in KV‑cache
+    int  n_remain               {0};
+    int  n_consumed             {0};
+    int  ga_i                   {0};
     struct {
         size_t tokens           {0}; // saved tokens.size()
         size_t input            {0}; // saved input.size()
@@ -75,7 +73,13 @@ struct state {
         int n_past              {0};
         int n_remain            {0};
         int n_consumed          {0};
+        int ga_i                {0};
     } saved;
+    bool has_chat_template      {false};
+    bool is_interacting         {false};
+    bool need_insert_eot        {false};
+    bool is_antiprompt          {false};
+    bool interrupted            {false};
 };
 
 static void save_state(struct state& state) {
@@ -85,6 +89,7 @@ static void save_state(struct state& state) {
     state.saved.n_past         = state.n_past;
     state.saved.n_remain       = state.n_remain;
     state.saved.n_consumed     = state.n_consumed;
+    state.saved.ga_i           = state.ga_i;
 }
 
 static void restore_state(struct state& state) {
@@ -94,6 +99,7 @@ static void restore_state(struct state& state) {
     state.n_past     = state.saved.n_past;
     state.n_remain   = state.saved.n_remain;
     state.n_consumed = state.saved.n_consumed;
+    state.ga_i       = state.saved.ga_i;
 }
 
 static void print_usage(int argc, char ** argv) {
@@ -249,19 +255,48 @@ static void clear(struct state &state) {
     state.input.clear();
     state.session_tokens.clear();
     state.antiprompt_ids.clear();
+    state.antiprompts.clear();
     state.n_tokens_saved       = 0;
     state.is_interacting       = false;
     state.n_ctx_train          = 0;
     state.n_ctx                = 0;
+    state.n_sys_prompt_tokens  = 0;
+    state.n_past               = 0;
+    state.n_remain             = state.params.n_predict;
+    state.n_consumed           = 0;
+    state.ga_i                 = 0;
+    state.params.n_keep        = -1;
+    state.saved                = {0};
     state.has_chat_template    = false;
     state.is_interacting       = false;
     state.need_insert_eot      = false;
     state.is_antiprompt        = false;
-    state.n_consumed           = 0;
-    state.n_past               = 0;
-    state.n_remain             = state.params.n_predict;
-    state.params.n_keep        = -1;
-    state.saved          = {0};
+}
+
+const char* field_n_sys_prompt_tokens = "\"n_sys_prompt_tokens\": ";
+
+static void read_int(const std::string &json, const char* key, int &field) {
+    auto pos = json.find(key);
+    if (pos != std::string::npos) {
+        int v = -1;
+        if (sscanf(json.c_str() + pos + strlen(key), "%d", &v) == 1) {
+            field = v;
+        } else {
+            trace("warning: .meta is missing %s\n", key);
+        }
+    }
+}
+
+static void load_meta(struct state &state) {
+    std::ifstream meta{ state.filename + ".meta" };
+    if (!meta) {
+        trace("warning: .meta not found\n");
+        return;
+    }
+    std::ostringstream data;
+    data << meta.rdbuf();
+    std::string json = data.str();
+    read_int(json,field_n_sys_prompt_tokens, state.n_sys_prompt_tokens);
 }
 
 static int load_session(struct state &state) {
@@ -285,10 +320,24 @@ static int load_session(struct state &state) {
         llama.info.logits_bytes = filesize(fn);
         state.session_tokens.resize(n_token_count_out); // truncate
         state.n_tokens_saved = n_token_count_out;
+        state.n_sys_prompt_tokens = -1;
+        load_meta(state);
 //      trace("loaded a session with prompt size of %d tokens\n",
 //             (int)state.session_tokens.size());
     }
     return 0;
+}
+
+static void save_meta(const struct state &state) {
+    std::ofstream meta{ state.filename + ".meta" };
+    meta
+      << "{\n"
+      << field_n_sys_prompt_tokens << state.n_sys_prompt_tokens
+      // don't forget coma newline when there are more fields: ",\n"
+      << "\n}";
+    if (meta.fail()) {
+        trace("error: failed to save metadata");
+    }
 }
 
 static void save_session(struct state &state) {
@@ -305,6 +354,7 @@ static void save_session(struct state &state) {
 //          trace("saved %d tokens to %s\n", (int)n, fn);
             state.n_tokens_saved = n;
             llama.info.logits_bytes = filesize(fn);
+            save_meta(state);
         } else {
             trace("error: failed to save session\n");
             llama.error("failed to save chat state");
@@ -349,9 +399,9 @@ static int tokenize_prompt(struct state &state, llama_tokens_t &p) {
     // Should not run without any tokens
     if (p.empty()) {
         if (llama_vocab_get_add_bos(state.vocab)) {
-            state.input.push_back(llama_vocab_bos(state.vocab));
+            p.push_back(llama_vocab_bos(state.vocab));
             trace("input was considered empty but bos was added: %s\n",
-                  string_from(state.ctx, state.input).c_str());
+                  string_from(state.ctx, p).c_str());
         } else {
             trace("input is empty\n");
             llama.error("missing system prompt");
@@ -444,48 +494,6 @@ static void info(struct state &state) {
 */
 }
 
-static int decode_batch(struct state &state, struct llama_batch batch) {
-    while (llama.in_background()) { llama.wait_foreground(); }
-    for (;;) {
-        int r = llama_decode(state.ctx, batch);
-        if (r == 0 || !llama.in_background()) { return r; }
-        while (llama.in_background()) { llama.wait_foreground(); }
-    }
-}
-
-static int decode(struct state &state, bool generating) {
-//  trace("tokens.size(): %d\n", (int)state.tokens.size());
-    bool report_progress = !generating &&
-        (int)state.tokens.size() > state.params.n_batch * 4;
-    for (int i = 0; i < (int)state.tokens.size(); i += state.params.n_batch) {
-        int n = (int)state.tokens.size() - i;
-        if (n > state.params.n_batch) { n = state.params.n_batch; }
-        auto batch = llama_batch_get_one(&state.tokens[i], n);
-        int r = decode_batch(state, batch);
-        if (r != 0) {
-            trace("error: failed to decode tokens error: %d "
-                  "generating: %d i: %d size:%d\n",
-                  r, generating, i, (int)state.tokens.size());
-            return r;
-        }
-        llama.info.generated += n;
-        if (report_progress) {
-            const double nominator = (double)(i + n);
-            const double denominator = (double)state.tokens.size();
-            llama.info.progress = denominator == 0 ?
-                0 : nominator / denominator;
-//          trace("progress: %.6f i:%d n_eval:%d state.tokens.size():%d\n",
-//                 progress, i, n_eval, (int)state.tokens.size());
-            info(state);
-            if (llama.progress) { llama.progress(llama.info.progress); }
-        }
-        state.n_past += n;
-    }
-    llama.info.progress = 1.0;
-    if (report_progress && llama.progress) { llama.progress(1.0); }
-    return 0;
-}
-
 /*
     context_extension_via_self_extend()
     Theory of operation
@@ -515,7 +523,7 @@ static int decode(struct state &state, bool generating) {
 */
 
 
-static void context_extension_via_self_extend(struct state &state, int &ga_i) {
+static void context_extension_via_self_extend(struct state &state) {
     /*
      ga_i   the current “group‑attention” index or offset into the past context.
             It starts at 0 and increments by one group‑window each iteration.
@@ -540,6 +548,7 @@ static void context_extension_via_self_extend(struct state &state, int &ga_i) {
      dd     the delta‑displacement, a small correction so that after the
             two KV moves and the division, everything lines up precisely.
     */
+    int &ga_i = state.ga_i;
     const int ga_n = state.params.grp_attn_n;
     const int ga_w = state.params.grp_attn_w;
     while (state.n_past >= ga_i + ga_w) {
@@ -600,20 +609,7 @@ static void context_extension_via_self_extend(struct state &state, int &ga_i) {
     keep                     = n_keep + n_discard, new split point
 */
 
-static bool infinite_text_generation_via_context_shifting(struct state &state) {
-    // if we run out of context:
-    // - take the n_keep first tokens from the original prompt (via n_past)
-    // - take half of the last (n_ctx - n_keep) tokens and
-    //                          recompute the logits in batches
-    if (!state.params.ctx_shift){
-        trace("context full and context shift is disabled => stopping\n");
-        return true;
-    }
-    if (state.params.n_predict == -2) {
-        trace("context full and n_predict == -%d => stopping\n",
-              state.params.n_predict);
-        return true;
-    }
+/* XXX was:
     const int n_left    = state.n_past - state.params.n_keep;
     const int n_discard = n_left / 2;
     trace("context full, swapping: n_past = %d, n_left = %d, n_ctx = %d, "
@@ -624,8 +620,140 @@ static bool infinite_text_generation_via_context_shifting(struct state &state) {
     llama_kv_cache_seq_add(state.ctx, 0, keep, state.n_past, -n_discard);
     state.n_past -= n_discard;
     trace("after swap: n_past = %d\n", state.n_past);
-    trace("tokens: %s\n", string_from(state.ctx, state.tokens).c_str());
+*/
+
+static bool infinite_text_generation_via_context_shifting(struct state &state) {
+    // called only when (state.n_past + batch) >= state.n_ctx - 4
+    // if we run out of context:
+    // - take the n_keep first tokens from the original prompt (via n_past)
+    // - take half of the last (n_ctx - n_keep) tokens and
+    //                          recompute the logits in batches
+    // return true if we cannot shift
+    assert(state.params.ctx_shift);
+    if (!state.params.ctx_shift){
+        trace("context full and context shift is disabled => stopping\n");
+        return true;
+    }
+    assert(state.params.n_predict == -1); // expected inifinite
+    if (state.params.n_predict == -2) {
+        trace("context full and n_predict == -%d => stopping\n",
+              state.params.n_predict);
+        return true;
+    }
+    const int tokens = (int)state.tokens.size();
+    const int keep = state.n_sys_prompt_tokens;
+    assert(tokens > 0);
+    const int overflow = (state.n_past + tokens) - keep;
+    if (overflow <= 0) { return false; }
+#ifdef LLAMA_DISCARD_HALF //
+    const int discard = overflow / 2; // how many to drop
+#else // true sliding window
+    const int discard = std::min(overflow, tokens);
+#endif
+    trace("shifting: total=%d keep=%d discard=%d\n",
+          state.n_past + tokens, keep, discard);
+    // 1) drop [keep .. old n_past)
+    llama_kv_cache_seq_rm(
+      state.ctx, /*seq_id*/ 0,
+      /*p0*/      keep,
+      /*p1*/      keep + discard
+    );
+    llama_kv_cache_seq_add(
+      state.ctx, /*seq_id*/ 0,
+      /*p0*/      keep + discard,
+      /*p1*/      state.n_past,
+      /*delta*/  -discard
+    );
+    // shrink n_past by exactly what we dropped
+    state.n_past -= discard;
+    trace("after shift: n_past=%d\n", state.n_past);
+    // Now trim session_tokens to match the shorter context window:
+    // erase the same block of tokens [keep .. keep+n_discard)
+    if (tokens > keep + discard) {
+        state.session_tokens.erase(
+            state.session_tokens.begin() + keep,
+            state.session_tokens.begin() + keep + discard
+        );
+        trace("state.session_tokens.size(): %d", (int)state.session_tokens.size());
+    }
     return false;
+}
+
+static bool group_attention(struct state &state) {
+    if (state.params.grp_attn_n == 1) {
+        // future KV cache size after decoding of tokens
+        const int kv = state.n_past + (int)state.tokens.size();
+        if (kv >= state.n_ctx - 4) {
+            if (infinite_text_generation_via_context_shifting(state)) {
+                trace("Context Overflow");
+                llama.error("Context Overflow");
+                return false;
+            }
+        }
+    } else {
+        context_extension_via_self_extend(state);
+    }
+    return true;
+}
+
+static int decode_batch(struct state &state, struct llama_batch batch) {
+    while (llama.in_background()) { llama.wait_foreground(); }
+    for (;;) {
+        assert(batch.n_tokens > 0); // because llama_decode() failes otherwise
+        group_attention(state);
+        int r = llama_decode(state.ctx, batch);
+        if (r == 0) {
+            return 0;
+        } else {
+            trace("llama_decode() %d\n", r);
+            if (!llama.in_background()) {
+                llama.error("failed to decode token"); // fatal in foreground
+                return r;
+            }
+        }
+        while (llama.in_background()) { llama.wait_foreground(); }
+    }
+}
+
+static int decode(struct state &state, bool generating) {
+//  trace("tokens.size(): %d\n", (int)state.tokens.size());
+    int max_size = state.n_ctx - 4;
+    // Ensure the input doesn't exceed the context size by truncating tokens.
+    if ((int)state.tokens.size() > max_size) {
+        const int skipped_tokens = (int)state.tokens.size() - max_size;
+        state.tokens.resize(max_size);
+        trace("input too long: skipped %d tokens", skipped_tokens);
+    }
+    bool report_progress = !generating &&
+        (int)state.tokens.size() > state.params.n_batch * 4;
+    for (int i = 0; i < (int)state.tokens.size(); i += state.params.n_batch) {
+        int n = (int)state.tokens.size() - i;
+        if (n > state.params.n_batch) { n = state.params.n_batch; }
+        auto batch = llama_batch_get_one(&state.tokens[i], n);
+        int r = decode_batch(state, batch);
+        if (r != 0) {
+            trace("error: failed to decode tokens error: %d "
+                  "generating: %d i: %d size:%d\n",
+                  r, generating, i, (int)state.tokens.size());
+            // TODO: non-fatal warning here
+            return r;
+        }
+        llama.info.generated += n;
+        if (report_progress) {
+            const double nominator = (double)(i + n);
+            const double denominator = (double)state.tokens.size();
+            llama.info.progress = denominator == 0 ?
+                0 : nominator / denominator;
+//          trace("progress: %.6f i:%d n_eval:%d state.tokens.size():%d\n",
+//                 progress, i, n_eval, (int)state.tokens.size());
+            info(state);
+            if (llama.progress) { llama.progress(llama.info.progress); }
+        }
+        state.n_past += n;
+    }
+    llama.info.progress = 1.0;
+    if (report_progress && llama.progress) { llama.progress(1.0); }
+    return 0;
 }
 
 static void insert_user_input(struct state &state, std::string &input) {
@@ -688,10 +816,17 @@ static bool off_the_record(struct state &state, const std::string &input) {
     state.tokens.clear();
     insert_user_input(state, const_cast<std::string&>(body));
     int r = 0;
+    for (auto t : state.input) {
+        common_sampler_accept(state.smpl, t, /*accept_grammar=*/false);
+    }
+    state.tokens = std::move(state.input);
+    r = decode(state, false);
+    if (r != 0) { return 1; }
+/*
     while (state.n_consumed < (int)state.input.size() && r == 0) {
         // grab next user‐token
         llama_token t = state.input[state.n_consumed++];
-        common_sampler_accept(state.smpl, t, /*grammar=*/false);
+        common_sampler_accept(state.smpl, t, false);
         // decode into KV cache
         r = decode_batch(state, llama_batch_get_one(&t, 1));
         if (r != 0) {
@@ -702,6 +837,7 @@ static bool off_the_record(struct state &state, const std::string &input) {
         }
         state.n_past++;
     }
+*/
     std::ostringstream ss;
     for (int i = 0; i < otr_max && r == 0; i++) {
         llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
@@ -724,14 +860,15 @@ static bool off_the_record(struct state &state, const std::string &input) {
 //  llama.error("error test");  // DEBUG: uncomment to test errors to UI
     llama.output("<--done-->");
     restore_state(state);
-    llama_kv_cache_seq_rm(state.ctx,
-        /*layer:*/-1, /*from:*/kv_start, /*to:*/-1);
+//  llama_kv_cache_seq_rm(        layer: from:     to:
+    llama_kv_cache_seq_rm(state.ctx, -1, kv_start, -1);
     assert(state.tokens.size() == 0);
     assert(state.input.size() == 0);
     return r == 0;
 }
 
-static int decode_input(struct state &state) {
+static int decode_input(struct state &state) { // also handle empty input
+    if (state.input.size() == 0) { return 0; }
     double start = now();
     for (auto t : state.input) {
         common_sampler_accept(state.smpl, t, /*accept_grammar=*/false);
@@ -773,23 +910,9 @@ static bool read_user_input(struct state &state) {
     }
 }
 
-static bool generate(struct state &state,
-        const array_of_llama_tokens_t &antiprompts,
-        const int ga_n, int &ga_i) {
+static bool generate(struct state &state) {
     double start = now();
     for (;;) {
-        if (ga_n == 1) {
-            if (state.n_past + (int)state.tokens.size() >= state.n_ctx) {
-                if (infinite_text_generation_via_context_shifting(state)) {
-                    trace("Context Overflow");
-                    llama.error("Context Overflow");
-                    llama.info.time += now() - start;
-                    return false;
-                }
-            }
-        } else {
-            context_extension_via_self_extend(state, ga_i);
-        }
         const llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
         common_sampler_accept(state.smpl, id, /*accept_grammar=*/true);
         state.tokens = { id };
@@ -809,7 +932,7 @@ static bool generate(struct state &state,
             }
         }
         state.tokens.clear();
-        // push to session history & mark for save
+        // push to session history
         state.session_tokens.push_back(id);
         state.n_remain--;
         if (is_eog || state.interrupted) {
@@ -842,7 +965,7 @@ static bool generate(struct state &state,
             }
             // token‐based antiprompt
             llama_token last_tok = common_sampler_last(state.smpl);
-            for (auto &ids : antiprompts) {
+            for (auto &ids : state.antiprompts) {
                 if (ids.size() == 1 && last_tok == ids[0]) {
                     state.is_antiprompt = true;
                     if (state.params.interactive) {
@@ -855,7 +978,7 @@ static bool generate(struct state &state,
         // enforce n_keep and n_remain logic (unchanged)
         if (state.params.interactive && state.n_remain <= 0
             && state.params.n_predict >= 0) {
-            state.n_remain      = state.params.n_predict;
+            state.n_remain = state.params.n_predict;
             state.is_interacting = true;
             llama.output("<--done-->");
         }
@@ -867,7 +990,7 @@ static bool generate(struct state &state,
     }
 }
 
-static int chat(struct state &state, const char* session_id, bool existing) {
+static int init_chat(struct state &state) {
     clear(state);
     llama_kv_cache_clear(state.ctx);
     state.n_ctx = llama_n_ctx(state.ctx);
@@ -906,47 +1029,10 @@ static int chat(struct state &state, const char* session_id, bool existing) {
     // always used with "-i" and "-cnv"
     assert(state.params.conversation_mode);
     assert(state.params.interactive);
+    // number of tokens to predict
+    // (default: -1, -1 = infinity, -2 = until context filled)
+    assert(state.params.n_predict == -1); // expecting infinity
 //  dump_interactive_info(state);
-    // loading session or using system prompt (exclusive)
-    state.filename = filename(session_id);
-    if (state.filename.empty())   { return 1; }
-    if (load_session(state) != 0) { return 1; }
-    state.interrupted = false;
-    if (!state.session_tokens.empty()) {
-        if ((int)state.session_tokens.size() > state.n_ctx - 4) {
-            trace("session is too long (%d tokens, max %d)\n",
-                  (int)state.session_tokens.size(), state.n_ctx - 4);
-            llama.error("session is too long");
-            return 1;
-        }
-        llama_token last = state.session_tokens.back();
-        state.session_tokens.pop_back();
-        common_sampler_accept(state.smpl, last, /*accept_grammar=*/false);
-        state.tokens = { last };
-        if (decode(state, true) != 0) return 1;
-        state.n_past++;
-        state.session_tokens.push_back(last);
-        state.tokens.clear();
-        // remove any "future" tokens that we might have inherited from
-        // the previous session...
-//      trace("remove any `future` tokens that we might have inherited\n");
-        llama_kv_cache_seq_rm(state.ctx, -1, state.session_tokens.size(), -1);
-        // llama_kv_cache_seq_rm() removes tail after session_tokens.size()
-        state.params.n_keep = state.session_tokens.size();
-    } else {
-        llama_tokens_t system_prompt;
-        if (tokenize_prompt(state, system_prompt) != 0) { return 1; }
-        state.n_tokens_saved = (int)state.input.size();
-        state.params.n_keep = state.input.size() + add_bos;
-
-//      dump_prompt(state);
-    }
-    llama.info.session_tokens = state.n_tokens_saved;
-//  trace("generate: n_ctx = %d, n_batch = %d, n_predict = %d, n_keep = %d\n",
-//         state.n_ctx, state.params.n_batch,
-//         state.params.n_predict, state.params.n_keep);
-    // group-attention state
-    // number of grouped KV tokens so far (used only if params.grp_attn_n > 1)
     int ga_i = 0;
     const int ga_n = state.params.grp_attn_n;
     const int ga_w = state.params.grp_attn_w;
@@ -962,12 +1048,17 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         assert(state.n_ctx >= state.n_ctx_train * ga_n);
     }
     // tokenized antiprompts
-    auto antiprompts = state.antiprompt_ids;
-    antiprompts.reserve(state.params.antiprompt.size());
+    state.antiprompts = state.antiprompt_ids;
+    state.antiprompts.reserve(state.params.antiprompt.size());
     for (const std::string & antiprompt : state.params.antiprompt) {
-        antiprompts.emplace_back(::common_tokenize(state.ctx,
+        state.antiprompts.emplace_back(::common_tokenize(state.ctx,
                                     antiprompt, false, true));
     }
+    return 0;
+}
+
+static int process_system_propmt(struct state &state) {
+//  dump_prompt(state);
     if (llama_model_has_encoder(state.model)) {
         assert(false); // NO ENCODER SUPPORT YET
         const int size = state.input.size();
@@ -984,20 +1075,90 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         state.input.clear();
         state.input.push_back(decoder_start_token_id);
     }
+    if (decode_input(state) != 0) { return 1; }
+    state.n_tokens_saved = (int)state.session_tokens.size();
+    // XXX bad idea to modify state.params!
+//      state.params.n_keep = state.input.size() + add_bos;
+    state.n_sys_prompt_tokens = (int)state.session_tokens.size();
+    trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
+    return 0;
+}
+
+static int process_loaded_session(struct state &state,
+                                  const llama_tokens_t &system_prompt) {
+    if ((int)state.session_tokens.size() > state.n_ctx - 4) {
+        trace("session is too long (%d tokens, max %d)\n",
+              (int)state.session_tokens.size(), state.n_ctx - 4);
+        llama.error("session is too long"); // fatal
+        return 1;
+    }
+    trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
+    if (state.n_sys_prompt_tokens < 0) {
+        // special case, older sessions for which the system prompt
+        // token count was not saved and thus unknown. Mitigation is
+        // an assumption that session was saved with the same system
+        // prompt:
+        state.n_sys_prompt_tokens = (int)system_prompt.size();
+        trace("n_sys_prompt_tokens:= %d\n", state.n_sys_prompt_tokens);
+    }
+    llama_token last = state.session_tokens.back();
+    state.session_tokens.pop_back();
+    state.n_past = (int)state.session_tokens.size();
+    common_sampler_accept(state.smpl, last, /*accept_grammar=*/false);
+    state.tokens = { last };
+    if (decode(state, true) != 0) { return 1; }
+    state.n_past++;
+    state.session_tokens.push_back(last);
+    state.tokens.clear();
+    // remove any "future" tokens that we might have inherited from
+    // the previous session...
+//  trace("remove any `future` tokens that we might have inherited\n");
+    llama_kv_cache_seq_rm(state.ctx, -1, state.session_tokens.size(), -1);
+//  llama_kv_cache_seq_rm() removes tail after session_tokens.size()
+//  XXX BAD IDEA to modify stata.params
+//  state.params.n_keep = state.session_tokens.size();
+    return 0;
+}
+
+static int chat(struct state &state, const char* session_id, bool existing) {
+    int r = init_chat(state);
+    if (r != 0) { return r; }
+    // Always tokenize system prompt even if we are going to load session.
+    // The reason: we need to know system_prompt.size() in case meta is
+    // missing...
+    llama_tokens_t system_prompt;
+    if (tokenize_prompt(state, system_prompt) != 0) { return 1; }
+   // loading session or using system prompt (exclusive)
+    state.filename = filename(session_id);
+    if (state.filename.empty())   { return 1; }
+    if (load_session(state) != 0) { return 1; }
+    if (state.session_tokens.empty()) {
+        // this is new session - need to decode system prompt:
+        state.input = std::move(system_prompt);
+        r = process_system_propmt(state);
+    } else { // NOT EMPTY: state.session_tokens
+        r = process_loaded_session(state, system_prompt);
+    }
+    if (r != 0) { return r; }
+    llama.info.session_tokens = state.n_tokens_saved;
+//  trace("generate: n_ctx = %d, n_batch = %d, n_predict = %d, n_keep = %d\n",
+//         state.n_ctx, state.params.n_batch,
+//         state.params.n_predict, state.params.n_keep);
+    // group-attention state
+    // number of grouped KV tokens so far (used only if params.grp_attn_n > 1)
 //  trace("state.n_remain: %d\n", (int)state.n_remain);
-    // session is loaded or system prompt is tokenized into state.input
-    // we need to start with is_interacting = true to wait for user input
-    // after processing the input
+    state.interrupted = false;
     state.is_interacting = true;
-    while ((state.n_remain != 0 && !state.is_antiprompt)
-           || state.params.interactive) {
-        if (decode_input(state) != 0) { return 1; }
-        if (state.is_interacting) {
-            if (!read_user_input(state)) { break; }
+    bool done = false;
+    while (state.is_interacting && !done) {
+        if (!read_user_input(state)) {
+            done = true;
+        } else {
             assert(!state.is_interacting);
-            continue;  // back to decode_input()
+            if (decode_input(state) != 0) { return 1; }
+            if (!generate(state)) { done = true; }
+            trace("session_tokens: %d\n", (int)state.session_tokens.size());
         }
-        if (!generate(state, antiprompts, ga_n, ga_i)) { break; }
     }
 //  trace("saving final output of %d tokens\n",
 //        (int)state.session_tokens.size());
