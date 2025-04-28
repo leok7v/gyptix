@@ -71,7 +71,6 @@ struct state {
     int  n_past                 {0}; // total tokens currently in KV‑cache
     int  ga_i                   {0};
     bool has_chat_template      {false};
-    bool is_interacting         {false};
     bool need_insert_eot        {false};
     bool interrupted            {false};
 };
@@ -229,14 +228,12 @@ static void clear(struct state &state) {
     state.input.clear();
     state.session_tokens.clear();
     state.n_tokens_saved       = 0;
-    state.is_interacting       = false;
     state.n_ctx                = 0;
     state.mode                 = -1; // unknown
     state.n_sys_prompt_tokens  = 0;
     state.n_past               = 0;
     state.ga_i                 = 0;
     state.has_chat_template    = false;
-    state.is_interacting       = false;
     state.need_insert_eot      = false;
 }
 
@@ -268,9 +265,9 @@ static void load_meta(struct state &state) {
 
 static int load_session(struct state &state) {
     const char* fn = state.filename.c_str();
-    trace("attempting to load saved session from '%s'\n", fn);
+//  trace("attempting to load saved session from '%s'\n", fn);
     if (!file_exists(state.filename)) {
-        trace("file does not exist, will create: %s\n", fn);
+//      trace("file does not exist, will create: %s\n", fn);
     } else if (file_is_empty(state.filename)) {
         trace("session file is empty. A new session will be initialized.\n");
     } else { // The file exists and is not empty
@@ -289,8 +286,8 @@ static int load_session(struct state &state) {
         state.n_tokens_saved = n_token_count_out;
         state.n_sys_prompt_tokens = -1;
         load_meta(state);
-        trace("loaded a session %d tokens (sys prompt: %d)\n",
-               (int)state.session_tokens.size(), state.n_sys_prompt_tokens);
+//      trace("loaded a session %d tokens (sys prompt: %d)\n",
+//             (int)state.session_tokens.size(), state.n_sys_prompt_tokens);
     }
     return 0;
 }
@@ -310,16 +307,16 @@ static void save_meta(const struct state &state) {
 static void save_session(struct state &state) {
     size_t n = (int)state.session_tokens.size();
     assert(n <= state.n_ctx - 4);
-    trace("session_tokens.size(): %d n_tokens_saved: %d\n",
-          (int)n, (int)state.n_tokens_saved);
+//  trace("session_tokens.size(): %d n_tokens_saved: %d\n",
+//        (int)n, (int)state.n_tokens_saved);
     assert(n >= state.n_tokens_saved);
     if (n > state.n_tokens_saved) {
         const char* fn = state.filename.c_str();
-        trace("saving %d tokens to '%s'\n", (int)n, fn);
+//      trace("saving %d tokens to %s\n", (int)n, fn);
         bool b = llama_state_save_file(state.ctx, fn,
                                        state.session_tokens.data(), n);
         if (b) {
-            trace("saved %d tokens to %s\n", (int)n, fn);
+//          trace("saved %d tokens to %s\n", (int)n, fn);
             state.n_tokens_saved = n;
             llama.info.logits_bytes = filesize(fn);
             save_meta(state);
@@ -328,7 +325,7 @@ static void save_session(struct state &state) {
             llama.error("failed to save chat state");
         }
     } else {
-        trace("session did not change: won't be saved\n");
+//      trace("session did not change and won't be saved\n");
     }
 }
 
@@ -530,71 +527,39 @@ static void context_extension_via_self_extend(struct state &state) {
     }
 }
 
-/*
-    infinite_text_generation_via_context_shifting()
-    Theory of operation
-
+/*  shift()
+    infinite text generation via context shifting
     When the model’s past‑token count exceeds its context window:
-    – If context shifting is enabled, we drop half of the excess tokens
-      beyond the first keep, then recompute logits on the remaining
-      context in batches so generation can continue with a “slid” window.
-
-    Each run:
-    • Compute how many tokens lie beyond the kept prompt (n_left).
-    • Discard half of those (n_discard).
-    • Remove them from the KV‑cache.
-    • Shift the tail of the context back into view by adding negative
-      offset (–n_discard).
-    • Update n_past accordingly.
-
-    state.params.ctx_shift   whether automatic context shifting is on
-    state.params.n_predict   the overall generation budget
-    keep                     number of tokens to preserve at front
-    state.n_past             total tokens currently in KV‑cache
-    n_left                   = state.n_past – keep, tokens beyond keep
-    n_discard                = n_left / 2, half the excess to drop
-    keep                     = keep + n_discard, new split point
+    drop half of the excess tokens beyond the first keep.
 */
 
-static bool infinite_text_generation_via_context_shifting(struct state &state) {
+static void shift(struct state &state) {
     assert(0 <= state.mode && state.mode <= 2);
-    // called only when (state.n_past + batch) >= state.n_ctx - 4
-    // if we run out of context:
-    // - take the n_sys_prompt_tokens first tokens from the original prompt
-    // - take half of the last (n_ctx - keep) tokens and
-    //                          recompute the logits in batches
-    // return true if we cannot shift
     assert(state.params.ctx_shift);
-    if (!state.params.ctx_shift){
-        trace("context full and context shift is disabled => stopping\n");
-        return true;
-    }
     assert(state.params.n_predict == -1); // expected inifinite
-    if (state.params.n_predict == -2) {
-        trace("context full and n_predict == -%d => stopping\n",
-              state.params.n_predict);
-        return true;
-    }
     const int tokens = (int)state.tokens.size();
-    const int keep = state.n_sys_prompt_tokens;
     assert(tokens > 0);
-    // +1 space for at least one extra token after decode:
+    const int keep = state.n_sys_prompt_tokens;
+    // Compute how many tokens lie beyond the kept prompt (n_left).
+    // +1 for at least one extra token after decode:
     const int overflow = (state.n_past + tokens + 1) - keep;
-    if (overflow <= 0) { return false; }
-#ifndef LLAMA_DISCARD_HALF //
-    const int discard = (overflow + 1) / 2; // how many to drop
-#else // true sliding window
-    const int discard = std::min(overflow, tokens);
-#endif
+    if (overflow <= 0) { return; }
+    // true sliding window is way too expensive
+//  int discard = std::min(overflow, tokens); // true sliding window
+    int discard = (overflow + 1) / 2; // how many to drop
     assert(discard > 0);
+    // don't discart too much:
+    if (discard > state.n_ctx / 4) { discard = state.n_ctx / 4; }
     trace("shifting: total: %d keep: %d discard: %d\n",
           state.n_past + tokens, keep, discard);
-    // 1) drop [keep .. old n_past)
+    // Remove them from the KV‑cache.
     llama_kv_cache_seq_rm(
       state.ctx, /*seq_id*/ 0,
       /*p0*/      keep,
       /*p1*/      keep + discard
     );
+    // Shift the tail of the context back into view by adding
+    // negative offset (–discard).
     llama_kv_cache_seq_add(
       state.ctx, /*seq_id*/ 0,
       /*p0*/      keep + discard,
@@ -615,24 +580,16 @@ static bool infinite_text_generation_via_context_shifting(struct state &state) {
         state.n_tokens_saved = keep; // everything after changed
         trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
     }
-    return false;
 }
 
-static bool group_attention(struct state &state) {
+static void group_attention(struct state &state) {
     if (state.params.grp_attn_n == 1) {
         // future KV cache size after decoding of tokens
         const int kv = state.n_past + (int)state.tokens.size();
-        if (kv >= state.n_ctx - 4) {
-            if (infinite_text_generation_via_context_shifting(state)) {
-                trace("Context Overflow");
-                llama.error("Context Overflow");
-                return false;
-            }
-        }
+        if (kv >= state.n_ctx - 4) { shift(state); }
     } else {
         context_extension_via_self_extend(state);
     }
-    return true;
 }
 
 static int decode_batch(struct state &state, struct llama_batch batch) {
@@ -777,10 +734,7 @@ static bool generate(struct state &state) {
         state.session_tokens.push_back(id);
         if (is_eog || state.interrupted) {
             llama.output("<--done-->");
-            state.is_interacting = true;
-            if (is_eog) {
-                save_session(state);
-            }
+            save_session(state);
             llama.info.time += now() - start;
             return true; // done
         }
@@ -869,7 +823,7 @@ static int process_system_propmt(struct state &state) {
     if (decode_input(state) != 0) { return 1; }
     state.n_tokens_saved = (int)state.session_tokens.size();
     state.n_sys_prompt_tokens = (int)state.session_tokens.size();
-    trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
+//  trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
     return 0;
 }
 
@@ -881,14 +835,14 @@ static int process_loaded_session(struct state &state,
         llama.error("session is too long"); // fatal
         return 1;
     }
-    trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
+//  trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
     if (state.n_sys_prompt_tokens < 0) {
         // special case, older sessions for which the system prompt
         // token count was not saved and thus unknown. Mitigation is
         // an assumption that session was saved with the same system
         // prompt:
         state.n_sys_prompt_tokens = system_prompt_tokens;
-        trace("n_sys_prompt_tokens:= %d\n", state.n_sys_prompt_tokens);
+//      trace("n_sys_prompt_tokens:= %d\n", state.n_sys_prompt_tokens);
     }
     llama_token last = state.session_tokens.back();
     state.session_tokens.pop_back();
@@ -989,7 +943,6 @@ static bool read_user_input(struct state &state) {
             // will do llama.input() again
         } else {
             insert_user_input(state, text);
-            state.is_interacting = false;
             return true;
         }
     }
@@ -1020,18 +973,16 @@ static int chat(struct state &state, const char* session_id, bool existing) {
 //         state.n_ctx, state.params.n_batch,
 //         state.params.n_predict);
     state.interrupted = false;
-    state.is_interacting = true;
     bool done = false;
-    while (state.is_interacting && !done) {
+    while (!done) {
         if (!read_user_input(state)) {
             done = true;
         } else {
-            assert(!state.is_interacting);
             if (decode_input(state) != 0) { return 1; }
             if (!generate(state)) { done = true; }
-            trace("messages: %d session_tokens: %d\n",
-                (int)state.messages.size(),
-                (int)state.session_tokens.size());
+//          trace("messages: %d session_tokens: %d\n",
+//              (int)state.messages.size(),
+//              (int)state.session_tokens.size());
         }
     }
 //  trace("saving final output of %d tokens\n",
