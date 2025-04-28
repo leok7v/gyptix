@@ -448,6 +448,16 @@ private func background(_ enter: Bool) {
     gyptix.info.background = enter ? 1 : 0;
 }
 
+func gyptix_init(_ platform: String, _ version: String, _ build: String) {
+    platform.withCString { p in
+        version.withCString { v in
+            build.withCString { b in
+                gyptix.start(p, v, b);
+            }
+        }
+    }
+}
+
 func startup() {
     UserDefaults.standard.set(is_debugger_attached() || is_debug_build(),
                               forKey: "WebKitDeveloperExtras")
@@ -456,7 +466,7 @@ func startup() {
     let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
     print("\(version) (\(build))")
     #if os(macOS)
-        gyptix.set_platform("macOS");
+        gyptix_init("macOS", version, build)
     #else
         var p = ""
         if #available(iOS 14, *) {
@@ -477,7 +487,7 @@ func startup() {
                 default:     p = "iPhone"
             }
         }
-        gyptix.set_platform(p)
+        gyptix_init(p, version, build)
     #endif
     if #available(iOS 14, *) {
         gyptix.info.cpu = Int32(ProcessInfo.processInfo.processorCount)

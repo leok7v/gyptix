@@ -6,7 +6,9 @@ extern "C" {
 #endif
 
 struct gyptix_info {
-    char   platform[128];       // "iPad", "iPhone", "macOS"...
+    char   platform[64];        // "iPad", "iPhone", "macOS"...
+    char   version[64];         // 25.04.30
+    char   build[64];           // 250430
     char   git_hash[64];        // short hash
     int    background;          // bool: did application enter background
     int    is_iOS_app_on_mac;   // bool
@@ -23,7 +25,7 @@ struct gyptix_info {
 
 struct gyptix {
     struct gyptix_info info;
-    void (*set_platform)(const char* platform);
+    void (*start)(const char* platform, const char* version, const char* build);
     void (*load)(const char* model);
     void (*run)(const char* id, int create_new);
     int  (*is_running)(void);

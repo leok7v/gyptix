@@ -5,31 +5,44 @@
 extern "C" {
 #endif
 
-struct llama_if {
-    struct {
-        int    context_tokens; // > 0 before input
-        int    session_tokens; // > 0 before input
-        double generated;      // number of tokens generated over lifetime
-        double progress;       // 0..1 prompt decoding progress (slow)
-        double average_token;  // number of UTF-16 characters per token
-        double tps;            // tokens per second
-        double logits_bytes;   // size of saved session file in bytes
-        double sum;            // sum character of all generated tokens
-        double time;           // sum of generation time
-    } info;
-    int   (*load)(int argc, char** argv);
-    int   (*run)(const char* session, bool create_new);
-    void  (*fini)(void);
-    // supplied by caller:
-    bool  (*in_background)(void);
-    void  (*wait_foreground)(void); // waits for app to become foreground
-    char* (*input)(void); // returns malloc()ed string
-    bool  (*output)(const char* s); // returns false on interrupt
-    void  (*error)(const char* message);
-    void  (*progress)(double progress);  // input decoding progress 0..1
+typedef struct llama llama_t;
+
+struct llama_callbacks;
+
+typedef struct llama_callbacks llama_callbacks_t;
+
+struct llama_callbacks {
+    bool  (*in_background)(llama_t* llm, llama_callbacks_t* that);
+    void  (*wait_foreground)(llama_t* llm, llama_callbacks_t* that);
+    char* (*input)(llama_t* llm, llama_callbacks_t* that); // must be free() by caller
+     // returns false on interrupt
+    bool  (*output)(llama_t* llm, llama_callbacks_t* that, const char* s);
+    void  (*error)(llama_t* llm, llama_callbacks_t* that, const char* message); 
+    // input decoding progress 0..1
+    void  (*progress)(llama_t* llm, llama_callbacks_t* that, double progress);
 };
 
-extern struct llama_if llama;
+struct llama_info {
+    int    context_tokens; // > 0 before input
+    int    session_tokens; // > 0 before input
+    double generated;      // number of tokens generated over lifetime
+    double progress;       // 0..1 prompt decoding progress (slow)
+    double average_token;  // number of UTF-16 characters per token
+    double tps;            // tokens per second
+    double logits_bytes;   // size of saved session file in bytes
+    double sum;            // sum character of all generated tokens
+    double time;           // sum of generation time
+};
+
+struct llama_if {
+    llama_t*          (*create)(int argc, char** argv,
+                                llama_callbacks_t* callbacks);
+    int               (*run)(llama_t* llm, const char* session, bool create_new);
+    const llama_info* (*info)(llama_t* llm);
+    void              (*dispose)(llama_t* llm);
+};
+
+extern struct llama_if llama_if;
 
 #ifdef __cplusplus
 } // extern "C"

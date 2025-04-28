@@ -39,6 +39,7 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  cond = PTHREAD_COND_INITIALIZER;
 static pthread_t       thread;
 
+static llama_t*    llm;
 static char*       question;
 static std::string answer;
 static std::string message; // last error message
@@ -195,11 +196,13 @@ If you do not know the answer, simply say you do not know.
 }
 
 static const char* prompts_dir() {
-    static const char *cwd = get_cwd();
-    static char prompts[4 * 1024];
-    strcpy(prompts, cwd);
-    strcat(prompts, "/prompts");
-    return prompts;
+    static std::string cwd;
+    static std::string prompts;
+    if (prompts.length() == 0) {
+        if (cwd.length() == 0) { cwd = get_cwd(); }
+        prompts = cwd + "/prompts";
+    }
+    return prompts.c_str();
 }
 
 static void list() {
@@ -226,10 +229,270 @@ static void list() {
     closedir(dir);
 }
 
+static void remove_file(const char* filename) {
+    if (remove(filename) != 0) {
+        perror(filename);
+    } else {
+        trace("removed: %s\n", filename);
+    }
+}
+
+static void remove_chat(const char* id) {
+//  trace("remove: %s\n", id);
+    std::string fn = std::string(prompts_dir()) + "/" + std::string(id);
+    remove_file(fn.c_str());
+    remove_file((fn + ".meta").c_str());
+}
+
+static void erase(void) {
+    const char* prompts = prompts_dir();
+    DIR *dir = opendir(prompts);
+    if (!dir) {
+        perror("opendir");
+        return;
+    }
+    struct dirent *entry;
+    char path[4 * 1024];
+    while ((entry = readdir(dir))) {
+        if (strcmp(entry->d_name, ".") != 0 &&
+            strcmp(entry->d_name, "..") != 0) {
+            snprintf(path, sizeof(path), "%s/%s", prompts, entry->d_name);
+            if (unlink(path) != 0) {
+                perror("unlink");
+            }
+        }
+    }
+    closedir(dir);
+}
+
+static int load_model(const char* model);
+
+static void* worker(void* p) {
+    const char* model = (const char*)p;
+    (void)load_model(model); // nowhere to report failure
+    free(p);
+    return NULL;
+}
+
+static void wakeup(void) {
+    pthread_mutex_lock(&lock);
+    event = 1;
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&lock);
+}
+
+static void ask(const char* s) {
+    if (running) {
+        pthread_mutex_lock(&lock);
+        assert(question == NULL);
+        question = strdup(s);
+        pthread_mutex_unlock(&lock);
+        wakeup();
+//      trace("question := ... ; wakeup()\n");
+        while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
+        if (question == NULL) {
+            answering = true;
+//          trace("answering := true\n");
+        }
+    }
+}
+
+static int is_answering() { return (int)answering; }
+static int is_running()   { return (int)running; }
+
+static void error(llama_t* llama, llama_callbacks_t* that, const char* text) {
+    pthread_mutex_lock(&lock);
+    message = text;
+    pthread_mutex_unlock(&lock);
+}
+
+static void progress(llama_t* llama, llama_callbacks_t* that, double v) {
+//  trace("progress: %.6f\n", v);
+}
+
+static const char* stat(void) {
+    // because stat() can be called very early:
+    static struct llama_info zero;
+    const  struct llama_info* i = llm ? llama_if.info(llm) : NULL;
+    const  struct llama_info &info = i ? *i : zero;
+    static char json[4 * 1024]; // average json length is < 500 so far
+    snprintf(json, countof(json) - 1,
+        "{\n"
+        "  \"context_tokens\": %d,\n"
+        "  \"session_tokens\": %d,\n"
+        "  \"generated\": %.0f,\n"
+        "  \"progress\": %.6f,\n"
+        "  \"average_token\": %.3f,\n"
+        "  \"tps\": %.3f,\n"
+        "  \"logits_bytes\": %.0f,\n"
+        "  \"sum\": %.0f,\n"
+        "  \"time\": %.6f,\n"
+        "  \"platform\": \"%s\",\n"
+        "  \"version\": \"%s\",\n"
+        "  \"build\": \"%s\",\n"
+        "  \"git_hash\": \"%s\",\n"
+        "  \"ram\": %.0f,\n"
+        "  \"storage\": %.0f,\n"
+        "  \"gpu\": {\n"
+        "    \"recommended_max_working_set_size\": %.0f,\n"
+        "    \"has_unified_memory\": %d\n"
+        "  },\n"
+        "  \"is_iOS_app_on_mac\": %d,\n"
+        "  \"is_mac_catalyst_app\": %d,\n"
+        "  \"cpu\": %d,\n"
+        "  \"active_cpu\": %d\n"
+        "}\n",
+        /* llama.info */
+        info.context_tokens,
+        info.session_tokens,
+        info.generated,
+        info.progress,
+        info.average_token,
+        info.tps,
+        info.logits_bytes,
+        info.sum,
+        info.time,
+        /* gyptix.info */
+        gyptix.info.platform,
+        gyptix.info.version,
+        gyptix.info.build,
+        gyptix.info.git_hash,
+        gyptix.info.ram,
+        gyptix.info.storage,
+        gyptix.info.gpu.recommended_max_working_set_size,
+        gyptix.info.gpu.has_unified_memory,
+        gyptix.info.is_iOS_app_on_mac,
+        gyptix.info.is_mac_catalyst_app,
+        gyptix.info.cpu,
+        gyptix.info.active_cpu
+    );
+//  trace("\n%s\n", json);
+//  trace("json.length: %d\n", (int)strlen(json));
+    return json;
+}
+
+static const char* poll(const char* i) {
+    pthread_mutex_lock(&lock);
+    if (strcmp(i, "<--interrupt-->") == 0) {
+        interrupted = true;
+    }
+    char* s = NULL;
+    if (message.length() > 0) {
+        auto t = "<--error-->" + message + "</--error-->";
+        s = strdup(t.c_str());
+        message = "";
+    } else if (answer.length() == 0 && (!answering || !running)) {
+//      trace("output.length() == 0 && answering: %d\n", answering);
+        s = strdup("<--done-->");
+    } else if (answer.length() > 0 && validUTF8(answer)) {
+        s = strdup(answer.c_str());
+        answer = "";
+    } else {
+        s = strdup("");
+    }
+    pthread_mutex_unlock(&lock);
+    return s;
+}
+
+static char* input(llama_t* llama, llama_callbacks_t* that) {
+    char* s = NULL;
+    for (;;) {
+        pthread_mutex_lock(&lock);
+        while (!event) { pthread_cond_wait(&cond, &lock); }
+        event = 0;
+        s = question;
+        question = NULL;
+        pthread_mutex_unlock(&lock);
+//      trace("question := NULL\n");
+        if (quit || s != NULL) { break; }
+    }
+    return s;
+}
+
+static bool output(llama_t* llama, llama_callbacks_t* that, const char* s) {
+    pthread_mutex_lock(&lock);
+    if (strcmp(s, "<--done-->") == 0) {
+        answering = false;
+    } else {
+        answer += s;
+    }
+    bool result = !interrupted;
+    if (interrupted) {
+        interrupted = false;
+    }
+    pthread_mutex_unlock(&lock);
+    return result;
+}
+
+static bool in_background(llama_t* llama, llama_callbacks_t* that) {
+    return gyptix.info.background != 0;
+}
+
+static void wait_foreground(llama_t* llama, llama_callbacks_t* that) {
+    for (;;) {
+        if (!gyptix.info.background) { return; }
+        const long timeout = 1000LL * 1000LL * 1000LL; // 1 second
+        sleep_for_ns(timeout);
+    }
+}
+
+static void load(const char* model) {
+    if (thread == nullptr) {
+        pthread_create(&thread, NULL, worker, (void*)strdup(model));
+    }
+}
+
+static void run(const char* id, int create_new) {
+    session_id = strdup(id);
+    existing = !create_new;
+    ask("<--end-->"); // end previous session
+    answering = false; // because no one will be polling right after run
+    wakeup();
+//  trace("running: %s\n", id);
+}
+
+static void inactive(void) {
+//  trace("TODO: we can unload model here to make it easier on OS\n");
+}
+
+static void stop(void) {
+    quit = true;
+    if (thread != nullptr) {
+        interrupted = true;
+        wakeup();
+        pthread_join(thread, NULL);
+        pthread_mutex_destroy(&lock);
+        pthread_cond_destroy(&cond);
+        thread = nullptr;
+    }
+}
+
+static void start(const char* p, const char* v, const char* b) {
+    monotonic_time_start();
+    #pragma macro_push(sp)
+    #define sp(s, ...) snprintf(s, countof(s) - 1, __VA_ARGS__)
+    sp(gyptix.info.platform, "%s", p);
+    sp(gyptix.info.version,  "%s", v);
+    sp(gyptix.info.build,    "%s", b);
+    sp(gyptix.info.git_hash, "%s", GIT_HASH);
+    // keep the traces below on to set timeline basis in trace()
+    trace(".platform: %s\n", p);
+    trace(".git_hash: %s\n", gyptix.info.git_hash);
+    #pragma macro_pop(sp)
+}
+
 static int load_and_run(int argc, char** argv) {
-    int r = llama.load(argc, argv);
+    static llama_callbacks callbacks = {
+        .in_background = in_background,
+        .wait_foreground = wait_foreground,
+        .input = input,
+        .output = output,
+        .error = error,
+        .progress = progress,
+    };
+    llm = llama_if.create(argc, argv, &callbacks);
 //  trace("llama.load() %s\n", r == 0 ? "done" : "failed");
-    if (r != 0) {
+    if (llm == nullptr) {
         running = false;
         trace("running := false\n");
         return 1;
@@ -250,7 +513,7 @@ static int load_and_run(int argc, char** argv) {
         running = true;
 //      trace("running := true\n");
 //      list();
-        int r = llama.run(id, existing);
+        int r = llama_if.run(llm, id, existing);
         free(id);
         running = false;
 //      trace("running := false\n");
@@ -260,7 +523,7 @@ static int load_and_run(int argc, char** argv) {
         }
     }
     pthread_mutex_lock(&lock);
-    llama.fini();
+    llama_if.dispose(llm);
     pthread_mutex_unlock(&lock);
     return 0;
 }
@@ -330,252 +593,13 @@ static int load_model(const char* model) {
     return r;
 }
 
-static void remove_chat(const char* id) {
-//  trace("remove: %s\n", id);
-    static char filename[4 * 1024];
-    snprintf(filename, sizeof(filename) - 1, "%s/%s", prompts_dir(), id);
-//  trace("remove: %s\n", filename);
-    if (remove(filename) != 0) {
-        perror(filename);
-    } else {
-//      trace("remove: %s REMOVED\n", filename);
-    }
-}
-
-static void erase(void) {
-    const char* prompts = prompts_dir();
-    DIR *dir = opendir(prompts);
-    if (!dir) {
-        perror("opendir");
-        return;
-    }
-    struct dirent *entry;
-    char path[4 * 1024];
-    while ((entry = readdir(dir))) {
-        if (strcmp(entry->d_name, ".") != 0 &&
-            strcmp(entry->d_name, "..") != 0) {
-            snprintf(path, sizeof(path), "%s/%s", prompts, entry->d_name);
-            if (unlink(path) != 0) {
-                perror("unlink");
-            }
-        }
-    }
-    closedir(dir);
-}
-
-static void* worker(void* p) {
-    const char* model = (const char*)p;
-    (void)load_model(model); // nowhere to report failure
-    free(p);
-    return NULL;
-}
-
-static void wakeup(void) {
-    pthread_mutex_lock(&lock);
-    event = 1;
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&lock);
-}
-
-static void ask(const char* s) {
-    if (running) {
-        pthread_mutex_lock(&lock);
-        assert(question == NULL);
-        question = strdup(s);
-        pthread_mutex_unlock(&lock);
-        wakeup();
-//      trace("question := ... ; wakeup()\n");
-        while (question != NULL && running) { sleep_for_ns(1000 * 1000); }
-        if (question == NULL) {
-            answering = true;
-//          trace("answering := true\n");
-        }
-    }
-}
-
-static int is_answering() { return (int)answering; }
-static int is_running()   { return (int)running; }
-
-static void error(const char* text) {
-    pthread_mutex_lock(&lock);
-    message = text;
-    pthread_mutex_unlock(&lock);
-}
-
-static void progress(double v) {
-//  trace("progress: %.6f\n", v);
-}
-
-static const char* stat(void) {
-    static char json[4 * 1024]; // average json length is < 500 so far
-    snprintf(json, countof(json),
-        "{\n"
-        "  \"context_tokens\": %d,\n"
-        "  \"session_tokens\": %d,\n"
-        "  \"generated\": %.0f,\n"
-        "  \"progress\": %.6f,\n"
-        "  \"average_token\": %.3f,\n"
-        "  \"tps\": %.3f,\n"
-        "  \"logits_bytes\": %.0f,\n"
-        "  \"sum\": %.0f,\n"
-        "  \"time\": %.6f,\n"
-        "  \"platform\": \"%s\",\n"
-        "  \"git_hash\": \"%s\",\n"
-        "  \"ram\": %.0f,\n"
-        "  \"storage\": %.0f,\n"
-        "  \"gpu\": {\n"
-        "    \"recommended_max_working_set_size\": %.0f,\n"
-        "    \"has_unified_memory\": %d\n"
-        "  },\n"
-        "  \"is_iOS_app_on_mac\": %d,\n"
-        "  \"is_mac_catalyst_app\": %d,\n"
-        "  \"cpu\": %d,\n"
-        "  \"active_cpu\": %d\n"
-        "}\n",
-        /* llama.info */
-        llama.info.context_tokens,
-        llama.info.session_tokens,
-        llama.info.generated,
-        llama.info.progress,
-        llama.info.average_token,
-        llama.info.tps,
-        llama.info.logits_bytes,
-        llama.info.sum,
-        llama.info.time,
-        /* gyptix.info */
-        gyptix.info.platform,
-        gyptix.info.git_hash,
-        gyptix.info.ram,
-        gyptix.info.storage,
-        gyptix.info.gpu.recommended_max_working_set_size,
-        gyptix.info.gpu.has_unified_memory,
-        gyptix.info.is_iOS_app_on_mac,
-        gyptix.info.is_mac_catalyst_app,
-        gyptix.info.cpu,
-        gyptix.info.active_cpu
-    );
-//  trace("\n%s\n", json);
-//  trace("json.length: %d\n", (int)strlen(json));
-    return json;
-}
-
-static const char* poll(const char* i) {
-    pthread_mutex_lock(&lock);
-    if (strcmp(i, "<--interrupt-->") == 0) {
-        interrupted = true;
-    }
-    char* s = NULL;
-    if (message.length() > 0) {
-        auto t = "<--error-->" + message + "</--error-->";
-        s = strdup(t.c_str());
-        message = "";
-    } else if (answer.length() == 0 && (!answering || !running)) {
-//      trace("output.length() == 0 && answering: %d\n", answering);
-        s = strdup("<--done-->");
-    } else if (answer.length() > 0 && validUTF8(answer)) {
-        s = strdup(answer.c_str());
-        answer = "";
-    } else {
-        s = strdup("");
-    }
-    pthread_mutex_unlock(&lock);
-    return s;
-}
-
-static char* input(void) {
-    char* s = NULL;
-    for (;;) {
-        pthread_mutex_lock(&lock);
-        while (!event) { pthread_cond_wait(&cond, &lock); }
-        event = 0;
-        s = question;
-        question = NULL;
-        pthread_mutex_unlock(&lock);
-//      trace("question := NULL\n");
-        if (quit || s != NULL) { break; }
-    }
-    return s;
-}
-
-static bool output(const char* s) {
-    pthread_mutex_lock(&lock);
-    if (strcmp(s, "<--done-->") == 0) {
-        answering = false;
-    } else {
-        answer += s;
-    }
-    bool result = !interrupted;
-    if (interrupted) {
-        interrupted = false;
-    }
-    pthread_mutex_unlock(&lock);
-    return result;
-}
-
-static bool in_background(void) { return gyptix.info.background != 0; }
-
-static void wait_foreground(void) {
-    for (;;) {
-        if (!gyptix.info.background) { return; }
-        const long timeout = 1000LL * 1000LL * 1000LL; // 1 second
-        sleep_for_ns(timeout);
-    }
-}
-
-static void load(const char* model) {
-    llama.input    = input;
-    llama.output   = output;
-    llama.error    = error;
-    llama.progress = progress;
-    llama.in_background   = in_background;
-    llama.wait_foreground = wait_foreground;
-    if (thread == nullptr) {
-        pthread_create(&thread, NULL, worker, (void*)strdup(model));
-    }
-}
-
-static void run(const char* id, int create_new) {
-    session_id = strdup(id);
-    existing = !create_new;
-    ask("<--end-->"); // end previous session
-    answering = false; // because no one will be polling right after run
-    wakeup();
-//  trace("running: %s\n", id);
-}
-
-static void inactive(void) {
-//  trace("TODO: we can unload model here to make it easier on OS\n");
-}
-
-static void stop(void) {
-    quit = true;
-    if (thread != nullptr) {
-        interrupted = true;
-        wakeup();
-        pthread_join(thread, NULL);
-        pthread_mutex_destroy(&lock);
-        pthread_cond_destroy(&cond);
-        thread = nullptr;
-    }
-}
-
-static void set_platform(const char* p) {
-    snprintf(gyptix.info.platform, countof(gyptix.info.platform) - 1,
-             "%s", p);
-    snprintf(gyptix.info.git_hash, countof(gyptix.info.git_hash) - 1,
-             "%s", GIT_HASH);
-    // keep the traces below on to set timeline basis in trace()
-    trace(".platform: %s\n", p);
-    trace(".git_hash: %s\n", gyptix.info.git_hash);
-}
-
 struct gyptix gyptix = {
-    .set_platform = set_platform,
-    .load = load,
-    .run = run,
-    .ask = ask,
-    .poll = poll,
-    .stat = stat,
+    .start = start,
+    .load  = load,
+    .run   = run,
+    .ask   = ask,
+    .poll  = poll,
+    .stat  = stat,
     .is_answering = is_answering,
     .is_running = is_running,
     .remove = remove_chat,

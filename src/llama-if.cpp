@@ -49,16 +49,18 @@ enum {
 static const char* modes[] = { "input", "generating", "otr" };
 
 struct state {
-    ggml_backend_reg_t           ggml_reg         {nullptr};
-    struct ggml_threadpool     * threadpool       {nullptr};
-    struct ggml_threadpool     * threadpool_batch {nullptr};
-    common_init_result           llama_init;
-    std::string                  filename;
-    llama_context              * ctx   {nullptr};
-    const llama_model          * model {nullptr};
-    common_sampler             * smpl  {nullptr};
-    const llama_vocab          * vocab {nullptr};
+    llama_callbacks_t*           callbacks;
+    struct llama_info            info;
     common_params                params;
+    common_init_result           llama_init;
+    ggml_backend_reg_t           ggml_reg         {nullptr};
+    struct ggml_threadpool*      threadpool       {nullptr};
+    struct ggml_threadpool*      threadpool_batch {nullptr};
+    std::string                  filename;
+    llama_context*               ctx   {nullptr};
+    const llama_model*           model {nullptr};
+    common_sampler*              smpl  {nullptr};
+    const llama_vocab*           vocab {nullptr};
     common_chat_templates        templates;
     std::vector<common_chat_msg> messages;
     llama_tokens_t               tokens;
@@ -74,6 +76,33 @@ struct state {
     bool need_insert_eot        {false};
     bool interrupted            {false};
 };
+
+static void error(struct state &state, const char* message) {
+    state.callbacks->error((llama_t*)&state, state.callbacks,
+                          "failed to create prompts folder: %s\n");
+}
+
+static bool in_background(struct state &state) {
+    return state.callbacks->in_background((llama_t*)&state, state.callbacks);
+}
+
+static void wait_foreground(struct state &state) {
+    state.callbacks->wait_foreground((llama_t*)&state, state.callbacks);
+}
+
+static void progress(struct state &state, double v) {
+    if (state.callbacks->progress) {
+        state.callbacks->progress((llama_t*)&state, state.callbacks, v);
+    }
+}
+
+static bool output(struct state &state, const char* s) {
+    return state.callbacks->output((llama_t*)&state, state.callbacks, s);
+}
+
+static const char* input(struct state &state) {
+    return state.callbacks->input((llama_t*)&state, state.callbacks);
+}
 
 static void print_usage(int argc, char ** argv) {
     (void)argc; (void)argv;
@@ -127,24 +156,6 @@ static int parse_params(struct state &state, int argc, char* argv[]) {
     return 0;
 }
 
-static int load(struct state &state) {
-    state.model = nullptr;
-    state.ctx = nullptr;
-    state.smpl = nullptr;
-    state.llama_init = common_init_from_params(state.params);
-    state.model = state.llama_init.model.get();
-    state.ctx = state.llama_init.context.get();
-    if (state.model == NULL) {
-        trace("error: unable to load model\n");
-        llama.error("unable to load model");
-        return 1;
-    }
-    state.vocab = llama_model_get_vocab(state.model);
-    state.templates = common_chat_templates_from_model(state.model,
-                                state.params.chat_template);
-    return 0;
-}
-
 static int ggml_init(struct state &state) {
 //  trace("llama threadpool init, n_threads = %d\n",
 //        (int)state.params.cpuparams.n_threads);
@@ -191,7 +202,7 @@ static int64_t extract_id(const std::string &input, const std::string &prefix) {
     return 0;
 }
 
-static std::string& prompt_cache_folder() {
+static std::string& prompts_cache_folder(struct state &state) {
     static std::string prompts;
     if (prompts.empty()) {
         const char* cwd = get_cwd();
@@ -199,15 +210,15 @@ static std::string& prompt_cache_folder() {
 //      trace("%s\n", prompts.c_str());
         if (mkdir(prompts.c_str(), S_IRWXU) != 0 && errno != EEXIST) {
             trace("failed to create prompts folder: %s\n", prompts.c_str());
-            llama.error("failed to create prompts folder: %s\n");
+            error(state, "failed to create prompts folder: %s\n");
             prompts = "";
         }
     }
     return prompts;
 }
 
-static std::string filename(const char* session) {
-    std::string& prompts = prompt_cache_folder();
+static std::string filename(struct state &state, const char* session) {
+    std::string& prompts = prompts_cache_folder(state);
     if (prompts.empty()) { return ""; }
     return prompts + "/" + std::string(session);
 }
@@ -281,7 +292,7 @@ static int load_session(struct state &state) {
             return 1;
         }
         assert(n_token_count_out > 0);
-        llama.info.logits_bytes = filesize(fn);
+        state.info.logits_bytes = filesize(fn);
         state.session_tokens.resize(n_token_count_out); // truncate
         state.n_tokens_saved = n_token_count_out;
         state.n_sys_prompt_tokens = -1;
@@ -318,11 +329,11 @@ static void save_session(struct state &state) {
         if (b) {
 //          trace("saved %d tokens to %s\n", (int)n, fn);
             state.n_tokens_saved = n;
-            llama.info.logits_bytes = filesize(fn);
+            state.info.logits_bytes = filesize(fn);
             save_meta(state);
         } else {
             trace("error: failed to save session\n");
-            llama.error("failed to save chat state");
+            error(state, "failed to save chat state");
         }
     } else {
 //      trace("session did not change and won't be saved\n");
@@ -369,7 +380,7 @@ static int tokenize_prompt(struct state &state, llama_tokens_t &p) {
                   string_from(state.ctx, p).c_str());
         } else {
             trace("input is empty\n");
-            llama.error("missing system prompt");
+            error(state, "missing system prompt");
             return 1;
         }
     }
@@ -421,20 +432,20 @@ static void dump_prompt(const struct state &state) {
 
 static void info(struct state &state) {
     const int n = (int)state.session_tokens.size();
-    const double g = llama.info.generated;
-    llama.info.context_tokens = state.n_ctx;
-    llama.info.session_tokens = n;
-    llama.info.tps = llama.info.time < __DBL_EPSILON__ ?
-        0 :  g / llama.info.time;
-    llama.info.average_token = n == 0 ? 0 : llama.info.sum / (double)g;
+    const double g = state.info.generated;
+    state.info.context_tokens = state.n_ctx;
+    state.info.session_tokens = n;
+    state.info.tps = state.info.time < __DBL_EPSILON__ ?
+        0 :  g / state.info.time;
+    state.info.average_token = n == 0 ? 0 : state.info.sum / (double)g;
 /*
     trace("context_tokens: %d session_tokens: %d logits: %.1fMB\n",
-          llama.info.context_tokens, n,
-          llama.info.logits_bytes / (1024.0 * 1024.0));
+          state.info.context_tokens, n,
+          state.info.logits_bytes / (1024.0 * 1024.0));
     trace("generated: %.0f tps: %.1f avg: %.1f progress: %f time: %.3fs\n",
-          llama.info.generated, llama.info.tps,
-          llama.info.average_token, llama.info.progress,
-          llama.info.time);
+          state.info.generated, state.info.tps,
+          state.info.average_token, state.info.progress,
+          state.info.time);
 */
 }
 
@@ -593,7 +604,7 @@ static void group_attention(struct state &state) {
 }
 
 static int decode_batch(struct state &state, struct llama_batch batch) {
-    while (llama.in_background()) { llama.wait_foreground(); }
+    while (in_background(state)) { wait_foreground(state); }
     for (;;) {
         assert(batch.n_tokens > 0); // because llama_decode() failes otherwise
         group_attention(state);
@@ -602,12 +613,12 @@ static int decode_batch(struct state &state, struct llama_batch batch) {
             return 0;
         } else {
             trace("llama_decode() %d\n", r);
-            if (!llama.in_background()) {
-                llama.error("failed to decode token"); // fatal in foreground
+            if (!in_background(state)) {
+                error(state, "failed to decode token"); // fatal in foreground
                 return r;
             }
         }
-        while (llama.in_background()) { llama.wait_foreground(); }
+        while (in_background(state)) { wait_foreground(state); }
     }
 }
 
@@ -635,21 +646,21 @@ static int decode(struct state &state) {
             // TODO: non-fatal warning here
             return r;
         }
-        llama.info.generated += n;
+        state.info.generated += n;
         if (report_progress) {
             const double nominator = (double)(i + n);
             const double denominator = (double)state.tokens.size();
-            llama.info.progress = denominator == 0 ?
+            state.info.progress = denominator == 0 ?
                 0 : nominator / denominator;
 //          trace("progress: %.6f i:%d n_eval:%d state.tokens.size():%d\n",
 //                 progress, i, n_eval, (int)state.tokens.size());
             info(state);
-            if (llama.progress) { llama.progress(llama.info.progress); }
+            progress(state, state.info.progress);
         }
         state.n_past += n;
     }
-    llama.info.progress = 1.0;
-    if (report_progress && llama.progress) { llama.progress(1.0); }
+    state.info.progress = 1.0;
+    if (report_progress) { progress(state, 1.0); }
     return 0;
 }
 
@@ -701,7 +712,7 @@ static int decode_input(struct state &state) { // also handle empty input
         state.tokens.end()
     );
     state.tokens.clear();
-    llama.info.time += now() - start;
+    state.info.time += now() - start;
     return 0;
 }
 
@@ -715,8 +726,8 @@ static bool generate(struct state &state) {
         state.tokens = { id };
         int r = decode(state);
         if (r != 0) {
-            llama.info.time += now() - start;
-            llama.error("Error: failed to decode tokens");
+            state.info.time += now() - start;
+            error(state, "Error: failed to decode tokens");
             return false;
         }
         // end‐of‐generation handling
@@ -725,17 +736,18 @@ static bool generate(struct state &state) {
             std::string s = common_token_to_piece(state.ctx, id,
                                                   state.params.special);
             if (s.length() > 0) {
-                state.interrupted = !llama.output(s.c_str());
-                llama.info.sum += s.length();
+                state.interrupted = !output(state, s.c_str());
+                state.info.sum += s.length();
             }
         }
         state.tokens.clear();
         // push to session history
         state.session_tokens.push_back(id);
         if (is_eog || state.interrupted) {
-            llama.output("<--done-->");
+            output(state, "<--done-->");
             save_session(state);
-            llama.info.time += now() - start;
+            state.info.time += now() - start;
+            state.interrupted = false;
             return true; // done
         }
     }
@@ -746,11 +758,11 @@ static int init_chat(struct state &state) {
     llama_kv_cache_clear(state.ctx);
     state.n_ctx = llama_n_ctx(state.ctx);
     int n_ctx_train = llama_model_n_ctx_train(state.model);
-    llama.info.context_tokens = state.n_ctx;
+    state.info.context_tokens = state.n_ctx;
     if (state.n_ctx > n_ctx_train) {
         trace("model was trained on only %d context tokens (%d specified)\n",
                n_ctx_train, state.n_ctx);
-        llama.error("context is too large");
+        error(state, "context is too large");
         return 1;
     }
     const bool add_bos = llama_vocab_get_add_bos(state.vocab);
@@ -772,7 +784,7 @@ static int init_chat(struct state &state) {
     state.smpl = common_sampler_init(state.model, state.params.sampling);
     if (!state.smpl) {
         trace("%failed to initialize sampling subsystem\n");
-        llama.error("failed to initialize sampling subsystem");
+        error(state, "failed to initialize sampling subsystem");
         return 1;
     } else {
 //      trace("seed: %u\n",     common_sampler_get_seed(state.smpl));
@@ -832,7 +844,7 @@ static int process_loaded_session(struct state &state,
     if ((int)state.session_tokens.size() > state.n_ctx - 4) {
         trace("session is too long (%d tokens, max %d)\n",
               (int)state.session_tokens.size(), state.n_ctx - 4);
-        llama.error("session is too long"); // fatal
+        error(state, "session is too long"); // fatal
         return 1;
     }
 //  trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
@@ -851,7 +863,7 @@ static int process_loaded_session(struct state &state,
     state.tokens = { last };
     state.mode = mode_input;
     if (decode(state) != 0) {
-        llama.error("Error: failed to decode session last token");
+        error(state, "failed to decode session last token");
         return 1;
     }
     state.n_past++;
@@ -911,10 +923,10 @@ static bool off_the_record(struct state &state, const std::string &input) {
         }
     }
     std::string s = ss.str();
-    llama.output(s.c_str());
-    llama.info.sum += s.length();
-//  llama.error("error test");  // DEBUG: uncomment to test errors to UI
-    llama.output("<--done-->");
+    output(state, s.c_str());
+    state.info.sum += s.length();
+//  error(state, "error test");  // DEBUG: uncomment to test errors to UI
+    output(state, "<--done-->");
     assert(r == 0);
     r = init_chat(state);
     assert(r == 0);
@@ -929,12 +941,12 @@ static bool read_user_input(struct state &state) {
     for (;;) {
 //      trace("waiting for llama.input()\n");
         info(state);
-        const char* str = llama.input();
+        const char* str = input(state);
         bool end = !str || strcmp(str, "<--end-->") == 0;
         std::string text = end ? "" : str;
         free((void*)str);
         if (end) {
-            llama.output("<--done-->");
+            output(state, "<--done-->");
 //          trace("line is null or <--end-->\n");
             return false;
         }
@@ -957,7 +969,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
     llama_tokens_t system_prompt;
     if (tokenize_prompt(state, system_prompt) != 0) { return 1; }
    // loading session or using system prompt (exclusive)
-    state.filename = filename(session_id);
+    state.filename = filename(state, session_id);
     if (state.filename.empty())   { return 1; }
     if (load_session(state) != 0) { return 1; }
     if (state.session_tokens.empty()) {
@@ -968,7 +980,7 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         r = process_loaded_session(state, (int)system_prompt.size());
     }
     if (r != 0) { return r; }
-    llama.info.session_tokens = state.n_tokens_saved;
+    state.info.session_tokens = state.n_tokens_saved;
 //  trace("generate: n_ctx = %d, n_batch = %d, n_predict = %d, \n",
 //         state.n_ctx, state.params.n_batch,
 //         state.params.n_predict);
@@ -1003,32 +1015,45 @@ static void ggml_free(struct state &state) {
     ggml_threadpool_free_fn(state.threadpool_batch);
 }
 
-static struct state *context;
-
-int llama_load(int argc, char* argv[]) {
-    context = new struct state();
-    if (!context) {
-        return 1;
+static llama_t* llama_create(int argc, char* argv[],
+                      llama_callbacks_t* callbacks) {
+    struct state* p = new struct state();
+    if (p == nullptr) { return NULL; }
+    struct state &state = *p;
+    state.callbacks = callbacks;
+    if (parse_params(state, argc, argv) != 0) {
+        delete p;
+        return NULL;
     }
-    if (parse_params(*context, argc, argv) != 0) {
-        return 1;
+    state.model = nullptr;
+    state.ctx  = nullptr;
+    state.smpl = nullptr;
+    state.llama_init = common_init_from_params(state.params);
+    state.model = state.llama_init.model.get();
+    state.ctx   = state.llama_init.context.get();
+    if (state.model == NULL) {
+        trace("error: unable to load model\n");
+        delete p;
+        return NULL;
     }
-    if (load(*context) != 0) {
-        return 1;
+    state.vocab = llama_model_get_vocab(state.model);
+    state.templates = common_chat_templates_from_model(state.model,
+                                state.params.chat_template);
+    if (ggml_init(state) != 0) {
+        delete p;
+        return NULL;
     }
-    if (ggml_init(*context) != 0) {
-        return 1;
-    }
-    return 0;
+    return (llama_t*)p;
 }
 
-int llama_run(const char* session, bool existing) {
+static int llama_run(llama_t* llm, const char* session, bool existing) {
+    struct state &state = *(struct state*)llm;
     int r = 0;
     #if DEBUG // do not catch exceptions in debug
-        r = chat(*context, session, existing);
+        r = chat(state, session, existing);
     #else
         try {
-            r = chat(*context, session, existing);
+            r = chat(state, session, existing);
         } catch (...) {
             fprintf(stderr, "exception in chat()\n");
             // Oops...
@@ -1037,18 +1062,22 @@ int llama_run(const char* session, bool existing) {
     return r;
 }
 
-void llama_fini(void) {
-    ggml_free(*context);
-    delete context;
+static const struct llama_info* llama_info(llama_t* llm) {
+    struct state &state = *(struct state*)llm;
+    return &state.info;
 }
 
-struct llama_if llama = {
-    .load = llama_load,
-    .run  = llama_run,
-    .fini = llama_fini,
-    .input    = 0,
-    .output   = 0,
-    .progress = 0,
+static void llama_dispose(llama_t* llm) {
+    struct state *state = (struct state*)llm;
+    ggml_free(*state);
+    delete state;
+}
+
+struct llama_if llama_if = {
+    .create  = llama_create,
+    .run     = llama_run,
+    .info    = llama_info,
+    .dispose = llama_dispose,
 };
 
 /*

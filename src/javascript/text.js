@@ -97,21 +97,23 @@ export const substitutions = (text) => {
     return text
 }
 
-export const long_title = (s) => {
-    s = substitutions(s)
+export const long_title = s0 => {
+    let s = substitutions(s0)
     let r = ""
-    const lines = s.trim().split("\n")
-    for (let i = 0; i < lines.length; i++) {
-        let s = lines[i].trim().replace(/[".]/g, "")
-        // "Title: AI Translators: Capturing Nuance, Albeit Limitations"
-        // remove "title" or "Title:" case-insensitive
-        s = s.replace(/^\.?title:?\s*/i, '').trim()
-        if (s.length >= 4) {
-            r = s
+    for (let line of s.trim().split("\n")) {
+        let t = line.trim()
+          .replace(/['".]/g, '')   // strip ', ", .
+          .replace(/[#*_~]+/g, '') // strip markdown chars
+          // remove leading “title” (case-insensitive)
+          // with optional dot/spaces/colon
+          .replace(/^\s*\.?\s*title\s*:?\s*/i, '')
+          .trim()
+        if (t.length >= 4) { 
+            r = t
             break
         }
     }
-    return r
+    return capitalize(r)
 }
 
 // en_dash: '\u2013' == '–'
@@ -150,5 +152,5 @@ export const short_title = (s, maximum) => {
         }
     }
 //  console.log(`out: "${out}":${out.length}`)
-    return out
+    return capitalize(out)
 }

@@ -5,7 +5,11 @@
 extern "C" {
 #endif
 
-extern double trace_start_time;
+void monotonic_time_start(void);
+
+double monotonic_time_now(void); // in seconds
+
+double monotonic_time_since_start(void); // since monotonic_time_start
 
 void _trace_(const char *filename, int line,
              const char *func, const char *format, ...);

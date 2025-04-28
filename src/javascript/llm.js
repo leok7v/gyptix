@@ -66,7 +66,9 @@ const completed = (state) => {
     done(state)
 }
 
-export const update_info = () => Object.assign(info, backend.stat())
+export const update_info = () => {
+    Object.assign(info, backend.stat())
+}
 
 const poll_stats = (state) => {
     const now = performance.now()

@@ -1096,6 +1096,7 @@ export const run = () => { // called DOMContentLoaded
     suggestions.show()
     update_buttons()
     
+    llm.update_info()
     console.log(`\n` +
         `info.platform: ${llm.info.platform}\n` +
         `info.git_hash: ${llm.info.git_hash}\n`

@@ -297,7 +297,7 @@ export const show_error = (error, done) => {
     const backticks = "\n```\n"
     mbx('# **Error**' + two_lines_gap +
       backticks + error.replaceAll(": ", ":\n") + backticks + one_line_gap +
-      '<p>hash: ' + llm.info.git_hash + '</p>' +
+      `<p>${llm.info.version} ${llm.info.build} ${llm.info.git_hash}</p>` +
       '<p>Please copy and email to:<p>' +
       '<p><a href="mailto:gyptix@gmail.com">gyptix@gmail.com</a></p>' +
       '<p></p>',
