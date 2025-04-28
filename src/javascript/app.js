@@ -283,6 +283,7 @@ export const run = () => { // called DOMContentLoaded
     const rebuild_list = () => history.generate(list, search, list_item)
     
     const spawn_new_conversation = () => {
+        interrupted = false
         suggestions.show()
         // already have new empty chat?
         if (chat && chat.messages && chat.messages.length === 0) {
@@ -314,6 +315,7 @@ export const run = () => { // called DOMContentLoaded
         placeholder()
         layout_and_render().then(() => backend.run('+' + id))
         load_timestamp = util.timestamp()
+        update_buttons()
     }
     
     const recent = () => { // most recent chat -> current
