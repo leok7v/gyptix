@@ -96,9 +96,12 @@ export const run = () => { // called DOMContentLoaded
     }
 
     const oops = () => {
-        modal.toast("<p>Oops<br>" +
-                    "**Fatal Error:**<br>Cannot run model.", 5000)
-        setTimeout(() => { backend.quit() }, 5100)
+        modal.show_error('**Fatal**:  \n' +
+            ' AI backend engine failed.  \n' +
+            ' Application will terminate.  \n' +
+            ' Try to update or restart.  \n',
+            () => backend.quit()
+        )
     }
     
     let check_running = null
@@ -424,8 +427,12 @@ export const run = () => { // called DOMContentLoaded
             return
         }
         const prompt =
-            "[otr:32]Write concise title for the preceding conversation.\n" +
-            "Reply only with the title in plain-text.\n[/otr]"
+            "[otr:32]Reply with a brief and concise title for " +
+            "what we are talking about. " +
+            "Include only the title text in your reply.\n[/otr]"
+//          "[otr:32]Write concise title for the preceding conversation.\n" +
+//          "Reply only with the title in plain-text.\n[/otr]"
+
         model.start(prompt,
             model => { }, // per-token callback
             model => { // completion callback
@@ -609,6 +616,8 @@ export const run = () => { // called DOMContentLoaded
             clear_selection()
             suggestions.show()
         })
+//      throw new Error('test') // DEBUG
+//      oops() // DEBUG
     }
 
     const start_input = () => {

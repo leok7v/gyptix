@@ -2,6 +2,7 @@
 
 import * as backend from "./backend.js"
 import * as detect  from "./detect.js"
+import * as llm     from "./llm.js"
 import * as marked  from "./marked.js"
 
 const get = id => document.getElementById(id)
@@ -291,12 +292,13 @@ const mailto = (email, subject, body) => {
     window.location.href = link
 }
 
-const show_error = (error) => {
+export const show_error = (error, done) => {
     console.log("app_error: \n" + error || '')
     const backticks = "\n```\n"
     mbx('# **Error**' + two_lines_gap +
       backticks + error.replaceAll(": ", ":\n") + backticks + one_line_gap +
-      'Please copy and email to: ' +
+      '<p>hash: ' + llm.info.git_hash + '</p>' +
+      '<p>Please copy and email to:<p>' +
       '<p><a href="mailto:gyptix@gmail.com">gyptix@gmail.com</a></p>' +
       '<p></p>',
     (action) => {
@@ -305,6 +307,7 @@ const show_error = (error) => {
             mailto("gyptix@gmail.com", "Feedback", error)
         }
         localStorage.removeItem("app.last_error")
+        if (done) { done() }
     },
     "Copy", "Ignore")
 }
