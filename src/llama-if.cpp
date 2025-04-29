@@ -66,13 +66,11 @@ struct state {
     common_chat_templates        templates;
     std::vector<common_chat_msg> messages;
     llama_tokens_t               tokens;
-//  llama_tokens_t               input;
     llama_tokens_t               session_tokens;
     size_t n_tokens_saved       {0}; // last saved session_tokens.size()
     int  n_ctx                  {0};
     int  mode                  {-1}; // unknown
     int  n_sys_prompt_tokens    {0}; // keep at the head off session_tokens
-    int  n_past                 {0}; // total tokens currently in KV‑cache
     int  ga_i                   {0};
     bool has_chat_template      {false};
     bool need_insert_eot        {false};
@@ -241,13 +239,11 @@ static double filesize(const char* fn) {
 static void clear(struct state &state) {
     state.messages.clear();
     state.tokens.clear();
-//  state.input.clear();
     state.session_tokens.clear();
     state.n_tokens_saved       = 0;
     state.n_ctx                = 0;
     state.mode                 = -1; // unknown
     state.n_sys_prompt_tokens  = 0;
-    state.n_past               = 0;
     state.ga_i                 = 0;
     state.has_chat_template    = false;
     state.need_insert_eot      = false;
@@ -482,7 +478,6 @@ static void info(struct state &state) {
     original context size.
 */
 
-
 static void context_extension_via_self_extend(struct state &state) {
     /*
      ga_i   the current “group‑attention” index or offset into the past context.
@@ -511,35 +506,38 @@ static void context_extension_via_self_extend(struct state &state) {
     int &ga_i = state.ga_i;
     const int ga_n = state.params.grp_attn_n;
     const int ga_w = state.params.grp_attn_w;
-    while (state.n_past >= ga_i + ga_w) {
+    while (state.session_tokens.size() >= ga_i + ga_w) {
+        const int n = (int)state.session_tokens.size();
         const int ib = (ga_n * ga_i) / ga_w;
         const int bd = (ga_w / ga_n) * (ga_n - 1);
         const int dd = (ga_w / ga_n) - ib * bd - ga_w;
         trace("shift: [%6d, %6d] + %6d -> [%6d, %6d]\n",
-                ga_i, state.n_past, ib * bd, ga_i + ib * bd,
-                state.n_past + ib * bd);
+                ga_i, n, ib * bd, ga_i + ib * bd,
+                n + ib * bd);
         trace("div:   [%6d, %6d] / %6d -> [%6d, %6d]\n",
                 ga_i + ib * bd, ga_i + ib * bd + ga_w, ga_n,
                 (ga_i + ib * bd)/ga_n, (ga_i + ib * bd + ga_w)/ga_n);
         trace("shift: [%6d, %6d] + %6d -> [%6d, %6d]\n",
-                ga_i + ib * bd + ga_w, state.n_past + ib * bd, dd,
-                ga_i + ib * bd + ga_w + dd, state.n_past + ib * bd + dd);
-        llama_kv_cache_seq_add(state.ctx, 0, ga_i, state.n_past, ib * bd);
+                ga_i + ib * bd + ga_w, n + ib * bd, dd,
+                ga_i + ib * bd + ga_w + dd, n + ib * bd + dd);
+        llama_kv_cache_seq_add(state.ctx, 0, ga_i, n, ib * bd);
         // replicates ib × bd tokens’ worth of KV entries, moving them
-        // from positions [ga_i, ga_i+…] into the end at state.n_past.
+        // from positions [ga_i, ga_i+…] into the end at n.
         llama_kv_cache_seq_div(state.ctx, 0, ga_i + ib * bd,
                                ga_i + ib * bd + ga_w, ga_n);
         // within the newly‑added window of size ga_w, it downsamples
         // every ga_n‑th KV entry (i.e. group‑attention division),
         // effectively compressing that slice by a factor of ga_n
         llama_kv_cache_seq_add(state.ctx, 0, ga_i + ib * bd + ga_w,
-                               state.n_past + ib * bd, dd);
+                               n + ib * bd, dd);
         // makes one final tiny shift of dd entries so all tokens remain
         // aligned after the division.
-        state.n_past -= bd;  // context shrinks by the discarded block
+//      n -= bd;  // context shrinks by the discarded block
+        assert(bd < n);
+        state.session_tokens.erase(state.session_tokens.begin(),
+                                    state.session_tokens.begin() + bd);
         ga_i += ga_w / ga_n; // move to next group‑window
-        trace("n_past_old = %d, n_past = %d, ga_i = %d\n\n",
-              state.n_past + bd, state.n_past, ga_i);
+        trace("ga_i = %d\n", ga_i);
     }
 }
 
@@ -558,7 +556,8 @@ static void shift(struct state &state) {
     const int keep = state.n_sys_prompt_tokens;
     // Compute how many tokens lie beyond the kept prompt (n_left).
     // +1 for at least one extra token after decode:
-    const int overflow = (state.n_past + tokens + 1) - keep;
+    const int past = (int)state.session_tokens.size();
+    const int overflow = (past + tokens + 1) - keep;
     if (overflow <= 0) { return; }
     // true sliding window is way too expensive
 //  int discard = std::min(overflow, tokens); // true sliding window
@@ -567,7 +566,7 @@ static void shift(struct state &state) {
     // don't discart too much:
     if (discard > state.n_ctx / 4) { discard = state.n_ctx / 4; }
     trace("shifting: total: %d keep: %d discard: %d\n",
-          state.n_past + tokens, keep, discard);
+          past + tokens, keep, discard);
     // Remove them from the KV‑cache.
     llama_kv_cache_seq_rm(
       state.ctx, /*seq_id*/ 0,
@@ -579,12 +578,12 @@ static void shift(struct state &state) {
     llama_kv_cache_seq_add(
       state.ctx, /*seq_id*/ 0,
       /*p0*/      keep + discard,
-      /*p1*/      state.n_past,
+      /*p1*/      past,
       /*delta*/  -discard
     );
     // shrink n_past by exactly what we dropped
-    state.n_past -= discard;
-    trace("after shift: n_past=%d\n", state.n_past);
+//  state.n_past -= discard;
+    trace("after shift: n_past=%d\n", past - discard);
     // Now trim session_tokens to match the shorter context window:
     // erase the same block of tokens [keep .. keep+n_discard)
     if (state.mode != mode_otr && // off the record does not affect session
@@ -595,13 +594,16 @@ static void shift(struct state &state) {
         );
         state.n_tokens_saved = keep; // everything after changed
         trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
+        assert((int)state.session_tokens.size() == past - discard);
+        assert((int)state.session_tokens.size() < state.n_ctx);
     }
 }
 
 static void group_attention(struct state &state) {
     if (state.params.grp_attn_n == 1) {
         // future KV cache size after decoding of tokens
-        const int kv = state.n_past + (int)state.tokens.size();
+        const int kv = (int)state.session_tokens.size() +
+                       (int)state.tokens.size();
         if (kv >= state.n_ctx - 4) { shift(state); }
     } else {
         context_extension_via_self_extend(state);
@@ -637,15 +639,22 @@ static void set_seq_id(struct llama_batch &batch,
                        struct seq_id_arrays &a, llama_seq_id seq_id = 0) {
     if (seq_id != 0) {
         // because token can belong to multiple seqences at the same time:
-        a.seq_n_of_ids.assign(batch.n_tokens, 1);
-        a.seq_data.assign(batch.n_tokens, seq_id);
+        a.seq_n_of_ids.assign(batch.n_tokens, 2);
+        a.seq_data.resize(batch.n_tokens * 2);
         a.seq_id_array.resize(batch.n_tokens);
         for (int i = 0; i < batch.n_tokens; i++) {
+            a.seq_data[i * 2 + 0] = 0;       // always default seq_id 0
+            a.seq_data[i * 2 + 1] = seq_id;  // additional seq_id
             a.seq_id_array[i] = &a.seq_data[i];
         }
         batch.n_seq_id = a.seq_n_of_ids.data();
         batch.seq_id   = a.seq_id_array.data();
     }
+}
+
+static void clear_seq_id(struct llama_batch &batch) {
+    batch.n_seq_id = NULL;
+    batch.seq_id   = NULL;
 }
 
 static int decode(struct state &state, llama_seq_id seq_id = 0) {
@@ -667,6 +676,7 @@ static int decode(struct state &state, llama_seq_id seq_id = 0) {
         auto batch = llama_batch_get_one(&state.tokens[i], n);
         set_seq_id(batch, seq_id_arrays, seq_id);
         int r = decode_batch(state, batch);
+        clear_seq_id(batch);
         if (r != 0) {
             trace("error: failed to decode tokens error: %d "
                   "mode: %s i: %d size:%d\n",
@@ -685,10 +695,25 @@ static int decode(struct state &state, llama_seq_id seq_id = 0) {
             info(state);
             progress(state, state.info.progress);
         }
-        state.n_past += n;
     }
     state.info.progress = 1.0;
     if (report_progress) { progress(state, 1.0); }
+
+// zzzz
+const int kv = (int)state.session_tokens.size() +
+               (int)state.tokens.size();
+int tc = llama_get_kv_cache_token_count(state.ctx);
+if (state.mode != mode_otr) {
+    if (kv != tc) {
+        trace("kv_cache_token_count: %d session_tokens: %d tokens: %d\n",
+              tc, state.session_tokens.size(), state.tokens.size());
+    }
+    assert(kv == tc);
+} else {
+    trace("kv_cache_token_count: %d session_tokens: %d tokens: %d\n",
+          tc, state.session_tokens.size(), state.tokens.size());
+}
+// zzzz
     return 0;
 }
 
@@ -898,9 +923,12 @@ static int process_loaded_session(struct state &state,
         state.n_sys_prompt_tokens = system_prompt_tokens;
 //      trace("n_sys_prompt_tokens:= %d\n", state.n_sys_prompt_tokens);
     }
+#if 0
+    // zzz DO WE REALLY NEED TO DECODE LAST TOKEN AGAIN?!
+    // I think we do NOT, it was leftovers from main.cpp stateful loop
     llama_token last = state.session_tokens.back();
     state.session_tokens.pop_back();
-    state.n_past = (int)state.session_tokens.size();
+    llama_kv_cache_seq_rm(state.ctx, -1, state.session_tokens.size(), -1);
     common_sampler_accept(state.smpl, last, /*accept_grammar=*/false);
     state.tokens = { last };
     state.mode = mode_input;
@@ -910,6 +938,7 @@ static int process_loaded_session(struct state &state,
     }
     state.session_tokens.push_back(last);
     state.tokens.clear();
+#endif
     // remove any "future" tokens that we might have inherited from
     // the previous session...
 //  trace("remove any `future` tokens that we might have inherited\n");
@@ -942,13 +971,12 @@ static bool off_the_record(struct state &state, const std::string &s) {
     int limit = state.n_ctx - 4;
     std::string text = otr(state, s, limit);
     if (text.length() == 0) { return false; }
-    int saved_n_past = state.n_past;
     assert(state.messages.size() > 0); // must already have messages
     assert(state.tokens.size() == 0);
     trace("text:\n%s\n\n", text.c_str());
     trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
     int k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
+    trace("kv_cache_token_count: %d\n", k);
     state.mode = mode_otr;
     llama_tokens_t input = input_with_template(state, text);
     int r = decode_input(state, input, otr_seqid);
@@ -966,7 +994,6 @@ static bool off_the_record(struct state &state, const std::string &s) {
                   "i: %d otr_max: %d\n", r, i, (int)limit);
             break;
         }
-        state.n_past++;
         ss << common_token_to_piece(state.ctx, id, false); // special: false
         if (llama_vocab_is_eog(state.vocab, id)) {
             break;
@@ -981,7 +1008,7 @@ static bool off_the_record(struct state &state, const std::string &s) {
 //  fatal(state, "fatal error");
     output(state, "<--done-->");
 #ifdef LLAMA_RND_OTR_REWIND // failed attempt:
-/*
+    /*
     Even if you reset everything outside,
     inside the transformer blocks,
     the attention scores already "saw" that OTR text.
@@ -990,23 +1017,32 @@ static bool off_the_record(struct state &state, const std::string &s) {
     Transformers have memory through attention patterns,
     and you cannot fully "unsee" something that has already been decoded.
     Not unless you rewind everything, not just KV cache.
-*/
-    state.n_past = saved_n_past;
+    Prompt:
+    Show me all the sentences with the words "TASK" and "SINGLE"
+    After title generation:
+    off_the_record(
+    "TASK: Write a SINGLE, 3-word TITLE that sums up the entire conversation so far.\n
+     Return only with TITLE—no quotes, no extra text."
+    shows the presence of the OTR sentence in transformer
+    */
     // clear all generated kv sequences fromn cache:
-    trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
+    const int n = (int)state.session_tokens.size();
+    trace("state.session_tokens.size(): %d\n", n);
     k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
+    trace("kv_cache_token_count: %d\n", k);
     llama_kv_cache_seq_rm(state.ctx, otr_seqid, 0, -1); // all kv entries
-    llama_kv_cache_seq_rm(state.ctx, -1, state.session_tokens.size(), -1);
+    llama_kv_cache_seq_rm(state.ctx, -1, n, -1);
     k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
-    state.ctx->kv_self.n = saved_n_past;
-    for (int i = saved_n_past; i < state.ctx->kv_self.size; ++i) {
-        state.ctx->kv_self.cells[i].seq_id.clear();
+    trace("kv_cache_token_count: %d\n", k);
+    state.ctx->kv_self.n = n;
+    for (int i = 0; i < state.ctx->kv_self.size; i++) {
+        state.ctx->kv_self.cells[i].seq_id.erase(otr_seqid);
     }
     llama_kv_cache_defrag(state.ctx); // slow and optional
     llama_kv_cache_update(state.ctx); // slow and optional
     common_sampler_reset(state.smpl); // unnecessary since it is always done before decoding
+    k = llama_get_kv_cache_token_count(state.ctx);
+    trace("kv_cache_token_count: %d\n", k);
     return 0;
 #else
     // reload session
@@ -1019,7 +1055,7 @@ static bool off_the_record(struct state &state, const std::string &s) {
     assert(r == 0);
     trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
     k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
+    trace("kv_cache_token_count: %d\n", k);
     return r == 0;
 #endif
 }
