@@ -97,18 +97,27 @@ export const substitutions = (text) => {
     return text
 }
 
-export const long_title = s0 => {
-    let s = substitutions(s0)
+// zzz
+// Debug with lines in response:
+// AI: "Title: 'AI & Humans: Redefining Truth'\n
+// AI: 'AI & Humans: Redefining Truth\n
+//
+
+
+export const long_title = s => {
+    s = substitutions(s)
+//  s = `AI: "Title: 'AI & Humans: Redefining Truth'\n` +
+//      `AI: 'AI & Humans: Redefining Truth\n`
     let r = ""
     for (let line of s.trim().split("\n")) {
         let t = line.trim()
-          .replace(/['".]/g, '')   // strip ', ", .
-          .replace(/[#*_~]+/g, '') // strip markdown chars
-          // remove leading “title” (case-insensitive)
-          // with optional dot/spaces/colon
-          .replace(/^\s*\.?\s*title\s*:?\s*/i, '')
+          // strip everything up to and including “title:”
+          .replace(/^.*?title\s*:?\s*/i, '')
+          // drop any leftover enclosing quotes, periods, markdown
+          .replace(/['".]/g, '')
+          .replace(/[#*_~]+/g, '')
           .trim()
-        if (t.length >= 4) { 
+        if (t.length >= 4) {
             r = t
             break
         }
@@ -122,6 +131,7 @@ export const long_title = s0 => {
 const punctuation = ',:;\u2013\u2014'
 
 export const short_title = (s, maximum) => {
+    console.log(`s: ${s}`)
     for (let i = 0; i < punctuation.length; i++) {
         const ix = s.indexOf(punctuation.charAt(i))
         if (ix >= 4) { s = s.slice(0, ix).trim() }
