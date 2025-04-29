@@ -3,6 +3,8 @@
 #include "console.h"
 #include "log.h"
 #include "sampling.h"
+#include "llama-kv-cache.h"
+#include "llama-context.h"
 #include "llama-cpp.h"
 #include "llama-if.h"
 #include "getcwd.h"
@@ -625,7 +627,28 @@ static int decode_batch(struct state &state, struct llama_batch batch) {
     }
 }
 
-static int decode(struct state &state) {
+struct seq_id_arrays {
+    std::vector<int32_t>       seq_n_of_ids;
+    std::vector<llama_seq_id*> seq_id_array;
+    std::vector<llama_seq_id>  seq_data;
+};
+
+static void set_seq_id(struct llama_batch &batch,
+                       struct seq_id_arrays &a, llama_seq_id seq_id = 0) {
+    if (seq_id != 0) {
+        // because token can belong to multiple seqences at the same time:
+        a.seq_n_of_ids.assign(batch.n_tokens, 1);
+        a.seq_data.assign(batch.n_tokens, seq_id);
+        a.seq_id_array.resize(batch.n_tokens);
+        for (int i = 0; i < batch.n_tokens; i++) {
+            a.seq_id_array[i] = &a.seq_data[i];
+        }
+        batch.n_seq_id = a.seq_n_of_ids.data();
+        batch.seq_id   = a.seq_id_array.data();
+    }
+}
+
+static int decode(struct state &state, llama_seq_id seq_id = 0) {
 //  trace("tokens.size(): %d\n", (int)state.tokens.size());
     assert(0 <= state.mode && state.mode <= 2);
     int max_size = state.n_ctx - 4;
@@ -635,12 +658,14 @@ static int decode(struct state &state) {
         state.tokens.resize(max_size);
         trace("input too long: skipped %d tokens", skipped_tokens);
     }
+    struct seq_id_arrays seq_id_arrays;
     bool report_progress = state.mode == mode_generating &&
         (int)state.tokens.size() > state.params.n_batch * 4;
     for (int i = 0; i < (int)state.tokens.size(); i += state.params.n_batch) {
         int n = (int)state.tokens.size() - i;
         if (n > state.params.n_batch) { n = state.params.n_batch; }
         auto batch = llama_batch_get_one(&state.tokens[i], n);
+        set_seq_id(batch, seq_id_arrays, seq_id);
         int r = decode_batch(state, batch);
         if (r != 0) {
             trace("error: failed to decode tokens error: %d "
@@ -667,53 +692,65 @@ static int decode(struct state &state) {
     return 0;
 }
 
-static llama_tokens_t insert_user_input(struct state &state, std::string &text) {
-    bool format = state.params.enable_chat_template;
-    std::string user_input = format
-        ? add_and_format(state, "user", std::move(text))
-        : std::move(text);
+static llama_tokens_t input_with_template(struct state &state,
+        const std::string &text) {
     // user_inp: something like:
     // "\n<|start_of_role|>user<|end_of_role|>buffer<|end_of_text|>\n
     //    <|start_of_role|>assistant<|end_of_role|>\n"
     // TODO: one inconvenient of current chat template
     // implementation is that we can't distinguish between
     // user input and special tokens (prefix/postfix)
+    const bool templated = state.params.enable_chat_template;
+    assert(templated);
     const auto &pfx = state.params.input_prefix;
     const auto &sfx = state.params.input_suffix;
     const auto line_pfx = common_tokenize(state.ctx, pfx, false, true);
-    const auto line_inp = common_tokenize(state.ctx, user_input, false, format);
+    const auto line_inp = common_tokenize(state.ctx, text, false, templated);
     const auto line_sfx = common_tokenize(state.ctx, sfx, false, true);
-//  trace("input tokens: %s\n", string_from(state.ctx, line_inp).c_str());
-    // if user stop generation mid-way, add EOT to finish model's last response
     llama_tokens_t input;
-    if (state.need_insert_eot && format) {
-        llama_token eot = llama_vocab_eot(state.vocab);
-        input.push_back(eot == LLAMA_TOKEN_NULL ? llama_vocab_eos(state.vocab) : eot);
-    }
     input.insert(input.end(), line_pfx.begin(), line_pfx.end());
     input.insert(input.end(), line_inp.begin(), line_inp.end());
     input.insert(input.end(), line_sfx.begin(), line_sfx.end());
+    if (state.need_insert_eot && templated) {
+        llama_token eot = llama_vocab_eot(state.vocab);
+        input.push_back(eot == LLAMA_TOKEN_NULL ?
+                        llama_vocab_eos(state.vocab) : eot);
+    }
+    return input;
+}
+
+static llama_tokens_t insert_user_input(struct state &state,
+        const std::string &text) {
+    bool format = state.params.enable_chat_template;
+    std::string user_input = format
+        ? add_and_format(state, "user", std::move(text))
+        : std::move(text);
+//  trace("input tokens: %s\n", string_from(state.ctx, line_inp).c_str());
+    // if user stop generation mid-way, add EOT to finish model's last response
+    llama_tokens_t input = input_with_template(state, text);
 //  trace("input: %d\n", (int)input.size());
     return input;
 }
 
-static int decode_input(struct state &state, llama_tokens_t &input) {
+static void insert_tokens(struct state &state) {
+    state.session_tokens.insert(
+        state.session_tokens.end(),
+        state.tokens.begin(),
+        state.tokens.end()
+    );
+}
+
+static int decode_input(struct state &state, llama_tokens_t &input,
+                        llama_seq_id seq_id = 0) {
     if (input.size() == 0) { return 0; }
-    state.mode = mode_input;
     common_sampler_reset(state.smpl);
     double start = now();
     for (auto t : input) {
         common_sampler_accept(state.smpl, t, /*accept_grammar=*/false);
     }
     state.tokens = std::move(input);
-    int r = decode(state);
+    int r = decode(state, seq_id);
     if (r != 0) { return r; }
-    state.session_tokens.insert(
-        state.session_tokens.end(),
-        state.tokens.begin(),
-        state.tokens.end()
-    );
-    state.tokens.clear();
     state.info.time += now() - start;
     return 0;
 }
@@ -834,7 +871,10 @@ static int process_system_propmt(struct state &state, llama_tokens_t &input) {
         input.clear();
         input.push_back(decoder_start_token_id);
     }
+    state.mode = mode_input;
     if (decode_input(state, input) != 0) { return 1; }
+    insert_tokens(state);
+    state.tokens.clear();
     state.n_tokens_saved = (int)state.session_tokens.size();
     state.n_sys_prompt_tokens = (int)state.session_tokens.size();
 //  trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
@@ -868,7 +908,6 @@ static int process_loaded_session(struct state &state,
         fatal(state, "Failed to decode session last token.");
         return 1;
     }
-    state.n_past++;
     state.session_tokens.push_back(last);
     state.tokens.clear();
     // remove any "future" tokens that we might have inherited from
@@ -880,56 +919,97 @@ static int process_loaded_session(struct state &state,
     return 0;
 }
 
-static bool off_the_record(struct state &state, const std::string &text) {
-    if (text.rfind("[otr", 0) != 0) { return false; }
+static std::string otr(struct state &state, const std::string &s, int &limit) {
+    static std::string empty;
+    if (s.rfind("[otr", 0) != 0) { return empty; }
     assert(state.messages.size() > 0); // must already have messages
     assert(state.tokens.size() == 0);
-    int otr_max = state.n_ctx - 4;
-    size_t colon = text.find(':');
-    size_t close = text.find(']');
+    size_t colon = s.find(':');
+    size_t close = s.find(']');
     assert(close != std::string::npos);
     if (colon != std::string::npos && colon < close) {
-        otr_max = std::stoi(text.substr(colon+1, close-(colon+1)));
+        limit = std::stoi(s.substr(colon+1, close-(colon+1)));
     }
     size_t start = close + 1;
-    size_t end   = text.rfind("[/otr]");
+    size_t end   = s.rfind("[/otr]");
     assert(end  != std::string::npos);
-    std::string body = text.substr(start, end - start);
-//  trace("body: %s\n", body.c_str());
+    return s.substr(start, end - start);
+}
+
+static const llama_seq_id otr_seqid = 0; // 42;
+
+static bool off_the_record(struct state &state, const std::string &s) {
+    int limit = state.n_ctx - 4;
+    std::string text = otr(state, s, limit);
+    if (text.length() == 0) { return false; }
+    int saved_n_past = state.n_past;
+    assert(state.messages.size() > 0); // must already have messages
+    assert(state.tokens.size() == 0);
+    trace("text:\n%s\n\n", text.c_str());
+    trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
+    int k = llama_get_kv_cache_token_count(state.ctx);
+    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
     state.mode = mode_otr;
-    llama_tokens_t input = insert_user_input(state, body);
-    for (auto t : input) {
-        common_sampler_accept(state.smpl, t, false); // grammar: false
-    }
-    state.tokens = std::move(input);
-    int r = decode(state);
+    llama_tokens_t input = input_with_template(state, text);
+    int r = decode_input(state, input, otr_seqid);
     if (r != 0) { return 1; }
-    // not inserting decoded tokens into session, just throw them away:
+    // do not insert decoded tokens into session, throw them away:
     state.tokens.clear();
     std::ostringstream ss;
-    for (int i = 0; i < otr_max && r == 0; i++) {
+    for (int i = 0; i < limit && r == 0; i++) {
         llama_token id = common_sampler_sample(state.smpl, state.ctx, -1);
         common_sampler_accept(state.smpl, id, true); // grammar: true
         state.tokens = {id};
-        r = decode(state);
+        r = decode(state, otr_seqid);
         if (r != 0) {
             trace("warning: failed to decode tokens error: %d "
-                  "i: %d otr_max: %d\n", r, i, (int)otr_max);
+                  "i: %d otr_max: %d\n", r, i, (int)limit);
             break;
         }
         state.n_past++;
-        ss << common_token_to_piece(state.ctx, id, /*special:*/false);
+        ss << common_token_to_piece(state.ctx, id, false); // special: false
         if (llama_vocab_is_eog(state.vocab, id)) {
             break;
         }
     }
-    std::string s = ss.str();
-    output(state, s.c_str());
-    state.info.sum += s.length();
+    std::string t = ss.str();
+    output(state, t.c_str());
+    trace("title:\n%s\n\n", t.c_str());
+    state.info.sum += t.length();
     // DEBUG: uncomment to test errors to UI
 //  error(state, "error test");
 //  fatal(state, "fatal error");
     output(state, "<--done-->");
+#ifdef LLAMA_RND_OTR_REWIND // failed attempt:
+/*
+    Even if you reset everything outside,
+    inside the transformer blocks,
+    the attention scores already "saw" that OTR text.
+    The model weights evolved through it.
+
+    Transformers have memory through attention patterns,
+    and you cannot fully "unsee" something that has already been decoded.
+    Not unless you rewind everything, not just KV cache.
+*/
+    state.n_past = saved_n_past;
+    // clear all generated kv sequences fromn cache:
+    trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
+    k = llama_get_kv_cache_token_count(state.ctx);
+    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
+    llama_kv_cache_seq_rm(state.ctx, otr_seqid, 0, -1); // all kv entries
+    llama_kv_cache_seq_rm(state.ctx, -1, state.session_tokens.size(), -1);
+    k = llama_get_kv_cache_token_count(state.ctx);
+    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
+    state.ctx->kv_self.n = saved_n_past;
+    for (int i = saved_n_past; i < state.ctx->kv_self.size; ++i) {
+        state.ctx->kv_self.cells[i].seq_id.clear();
+    }
+    llama_kv_cache_defrag(state.ctx); // slow and optional
+    llama_kv_cache_update(state.ctx); // slow and optional
+    common_sampler_reset(state.smpl); // unnecessary since it is always done before decoding
+    return 0;
+#else
+    // reload session
     assert(r == 0);
     r = init_chat(state);
     assert(r == 0);
@@ -937,7 +1017,11 @@ static bool off_the_record(struct state &state, const std::string &text) {
     assert(r == 0);
     process_loaded_session(state, state.n_sys_prompt_tokens);
     assert(r == 0);
+    trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
+    k = llama_get_kv_cache_token_count(state.ctx);
+    trace("kv_cache_token_count: %d n_past: %d\n", k, state.n_past);
     return r == 0;
+#endif
 }
 
 static llama_tokens_t read_user_input(struct state &state) {
@@ -996,7 +1080,10 @@ static int chat(struct state &state, const char* session_id, bool existing) {
         input = read_user_input(state);
         done = input.empty();
         if (!done) {
+            state.mode = mode_input;
             if (decode_input(state, input) != 0) { return 1; }
+            insert_tokens(state);
+            state.tokens.clear();
             if (!generate(state)) { done = true; }
 //          trace("messages: %d session_tokens: %d\n",
 //              (int)state.messages.size(),
