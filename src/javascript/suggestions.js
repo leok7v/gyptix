@@ -88,14 +88,96 @@ export const init = cfg => {
            'class="suggestions_container"></div>'
 }
 
+const cycle_test = (iterations = 1000000) => {
+    const categoryCounts = {}
+    const promptCounts = {}
+    categories.forEach(c => {
+        categoryCounts[c.category] = 0
+        promptCounts[c.category] = new Array(c.prompts.length)
+            .fill(0)
+    })
+    const dispTest = [
+        { category: null, prompts: [], cix: 0 },
+        { category: null, prompts: [], cix: 0 }
+    ]
+    let testIx = 0
+    for (let n = 0; n < iterations; n++) {
+        let c = categories[Math.floor(Math.random() *
+            categories.length)]
+        const last = dispTest[(testIx + 1) % 2].category
+        while (c.category === last) {
+            const alt = categories[Math.floor(Math.random() *
+                categories.length)]
+            if (alt.category !== last) {
+                c = alt
+                break
+            }
+        }
+        const i = Math.floor(Math.random() * c.prompts.length)
+        categoryCounts[c.category]++
+        promptCounts[c.category][i]++
+        dispTest[testIx] = {
+            category: c.category,
+            prompts: c.prompts,
+            cix: i
+        }
+        testIx = (testIx + 1) % 2
+    }
+    console.log("=== Category Distribution ===")
+    for (const cat in categoryCounts) {
+        console.log(cat + ": " + categoryCounts[cat])
+    }
+    console.log()
+    console.log("=== Prompt Distribution per Category ===")
+    for (const cat in promptCounts) {
+        console.log("Category " + cat + ":")
+        promptCounts[cat].forEach((cnt, idx) => {
+            console.log("  prompt[" + idx + "]: " + cnt)
+        })
+    }
+}
+
+let cycle_test_once = false;
+
 export const cycle = () => {
+//  if (!cycle_test_once) { cycle_test(); cycle_test_once = true; }
+    let c = categories[Math.floor(Math.random() * categories.length)]
+    const last = disp[(ix + 1) % 2].category;
+    while (c.category === last) {
+        const alt = categories[Math.floor(Math.random() * categories.length)]
+        if (alt.category !== last) { c = alt }
+    }
+    let i = Math.floor(Math.floor(Math.random() * c.prompts.length))
+    let p = c.prompts[i]
+    let box = disp[ix].div
+    let title = box.querySelector(".suggestion_title")
+    let text = box.querySelector(".suggestion_text span")
+    title.style.transition = "opacity 0.3s ease"
+    text.style.transition = "opacity 0.3s ease"
+    title.style.opacity = 0
+    text.style.opacity = 0
+    title.innerHTML = `${c.category}`
+    text.textContent = p
+    title.style.opacity = 1
+    text.style.opacity = 1
+    disp[ix] = { category: c.category,
+                  prompts: c.prompts,
+                  cix: i, div: box }
+    ix = (ix + 1) % disp.length
+}
+
+export const xxx_cycle = () => {
     if (!disp.length) { return }
+    let ts = new Date() // randomize seed based on last digits of millisecond
+    let sum = 0
+    for (let i = 0; i < ts % 100; i++) { sum += Math.random() }
+    if (sum < 0) { console.log("impossible") }
     let c = shuffle(categories.slice())[0]
     let a = disp[(ix + 1) % 2].category.category
     while (c.category === a) { // avoid two same categories
         c = shuffle(categories.slice())[0]
     }
-    let i = Math.floor(Math.random() * c.prompts.length)
+    let i = Math.floor(Math.floor(Math.random() * c.prompts.length))
     let p = c.prompts[i]
     let box = disp[ix].div
     let title = box.querySelector(".suggestion_title")
