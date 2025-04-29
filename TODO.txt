@@ -35,6 +35,10 @@
 // https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-32B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-32B-Q8_0.gguf
 // 34.8GB
 
+// https://huggingface.co/tensorblock/DeepSeek-V3-1B-Test-GGUF
+// https://huggingface.co/tensorblock/DeepSeek-V3-1B-Test-GGUF/blob/main/DeepSeek-V3-1B-Test-Q8_0.gguf
+// 1.12GB
+
 // Gemma 3
 // https://huggingface.co/collections/unsloth/gemma-3-67d12b7e8816ec6efa7e4e5b
 

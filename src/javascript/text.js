@@ -119,7 +119,7 @@ export const long_title = s0 => {
 // en_dash: '\u2013' == '–'
 // em_dash: '\u2014' == '—'
 
-const punctuation = ':;\u2013\u2014'
+const punctuation = ',:;\u2013\u2014'
 
 export const short_title = (s, maximum) => {
     for (let i = 0; i < punctuation.length; i++) {

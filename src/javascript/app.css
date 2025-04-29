@@ -550,6 +550,17 @@ button.square { font-weight: bold; }
 
 button:hover { background-color: var(--background-button-hover); }
 
+.small-button, .small-button:hover {
+    min-width: fit-content;
+    min-height: 1rem;
+    width: fit-content;
+    height: 1rem;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
 .item button:hover { background-color: transparent; }
 
 #info, #shred {

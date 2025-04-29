@@ -4,6 +4,7 @@ import * as backend from "./backend.js"
 import * as detect  from "./detect.js"
 import * as llm     from "./llm.js"
 import * as marked  from "./marked.js"
+import * as ui      from "./ui.js"
 
 const get = id => document.getElementById(id)
 
@@ -136,6 +137,45 @@ const message_box = (centered, markdown, done, actions) => {
     modal.style.display = "block"
     error_box(content, markdown, html)
     modal_on()
+}
+
+const warning_box = (markdown) => {
+    const html = marked.parse(markdown)
+    const panel = full_page(detect.iOS ? "11pt" : "10pt")
+    panel.style.justifyContent = "center"
+    panel.style.alignItems = "center"
+    const box = document.createElement("div") // box
+    box.style.display = "flex"
+    box.style.flexDirection = "column"
+    box.style.justifyContent = "center"
+    box.style.alignItems = "center"
+    box.style.backgroundColor = "var(--background-message-box)"
+    box.style.maxWidth = "40rem"
+    box.style.border = "1px solid #888"
+    box.style.borderRadius = "0.5rem"
+    box.style.backgroundColor = "red"
+    box.style.padding = "0.5rem"
+    const content = document.createElement("div")
+    content.style.overflowY = "auto"
+    content.style.padding = "0"
+    content.style.width = "100%"
+    content.style.textAlign = "center"
+    content.style.justifyContent = "center"
+    content.innerHTML = html
+    content.style.color = "white"
+    box.appendChild(content)
+    const close = document.createElement("button") // close button
+    close.classList.add('small-button')
+    close.innerText = '×'
+    box.appendChild(close)
+    panel.appendChild(box)
+    const modal = get("modal")
+    modal.style.backgroundColor = 
+        "color-mix(in srgb, var(--background-color), transparent 10%)"
+    modal.innerHTML = ""
+    modal.appendChild(panel)
+    ui.show(modal)
+    modal.addEventListener("click", () => ui.hide(modal), { once: true });
 }
 
 // ask|mbx = (markdown, done, ...) =>
@@ -291,6 +331,8 @@ const mailto = (email, subject, body) => {
     const link = `mailto:${to}?subject=${s}&body=${b}`
     window.location.href = link
 }
+
+export const warning = (message) => { warning_box(message) }
 
 export const show_error = (error, done) => {
     console.log("app_error: \n" + error || '')

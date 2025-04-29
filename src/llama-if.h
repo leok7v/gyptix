@@ -18,6 +18,7 @@ struct llama_callbacks {
      // returns false on interrupt
     bool  (*output)(llama_t* llm, llama_callbacks_t* that, const char* s);
     void  (*error)(llama_t* llm, llama_callbacks_t* that, const char* message); 
+    void  (*fatal)(llama_t* llm, llama_callbacks_t* that, const char* message); 
     // input decoding progress 0..1
     void  (*progress)(llama_t* llm, llama_callbacks_t* that, double progress);
 };

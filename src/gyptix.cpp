@@ -33,6 +33,8 @@ enum {
     event_interrupt = 4
 };
 
+static std::string FATAL = "FATAL: ";
+
 static int event = 0;
 
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -306,6 +308,12 @@ static void error(llama_t* llama, llama_callbacks_t* that, const char* text) {
     pthread_mutex_unlock(&lock);
 }
 
+static void fatal(llama_t* llama, llama_callbacks_t* that, const char* text) {
+    pthread_mutex_lock(&lock);
+    message = FATAL + text;
+    pthread_mutex_unlock(&lock);
+}
+
 static void progress(llama_t* llama, llama_callbacks_t* that, double v) {
 //  trace("progress: %.6f\n", v);
 }
@@ -377,7 +385,12 @@ static const char* poll(const char* i) {
         interrupted = true;
     }
     char* s = NULL;
-    if (message.length() > 0) {
+    if (message.length() > 0 && message.find(FATAL) == 0) {
+        message.erase(0, FATAL.length());
+        auto t = "<--fatal-->" + message + "</--fatal-->";
+        s = strdup(t.c_str());
+        message = "";
+    } else if (message.length() > 0) {
         auto t = "<--error-->" + message + "</--error-->";
         s = strdup(t.c_str());
         message = "";
@@ -483,11 +496,12 @@ static void start(const char* p, const char* v, const char* b) {
 
 static int load_and_run(int argc, char** argv) {
     static llama_callbacks callbacks = {
-        .in_background = in_background,
+        .in_background   = in_background,
         .wait_foreground = wait_foreground,
-        .input = input,
+        .input  = input,
         .output = output,
-        .error = error,
+        .error  = error,
+        .fatal  = fatal,
         .progress = progress,
     };
     llm = llama_if.create(argc, argv, &callbacks);

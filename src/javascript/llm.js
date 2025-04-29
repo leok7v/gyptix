@@ -88,11 +88,16 @@ const poll = (state) => {
     //       prompt processing for sizable prompts
     poll_stats(state)
     const tokens = backend.poll()
-    if (tokens.startsWith('<--error-->') && tokens.endsWith('</--error-->')) {
+    if (tokens.startsWith('<--fatal-->') && tokens.endsWith('</--fatal-->')) {
+        const message = tokens.slice( // strip off the tags
+            '<--fatal-->'.length, -('</--fatal-->'.length)
+        )
+        modal.fatal_error(message)
+    } else if (tokens.startsWith('<--error-->') && tokens.endsWith('</--error-->')) {
         const message = tokens.slice( // strip off the tags
             '<--error-->'.length, -('</--error-->'.length)
         )
-        modal.fatal_error(message)
+        modal.warning(message)
     } else if (tokens === "<--done-->") {
 //      log("<--done-->")
         clearInterval(state.polling)

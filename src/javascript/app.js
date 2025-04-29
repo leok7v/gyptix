@@ -429,11 +429,16 @@ export const run = () => { // called DOMContentLoaded
             return
         }
         const prompt =
-            "[otr:32]Reply with a brief and concise title for " +
-            "what we are talking about. " +
-            "Include only the title text in your reply.\n[/otr]"
+//          "[otr:32]Reply with a brief and concise title for " +
+//          "what we are talking about. " +
+//          "Include only the title text in your reply.\n[/otr]"
+            
 //          "[otr:32]Write concise title for the preceding conversation.\n" +
 //          "Reply only with the title in plain-text.\n[/otr]"
+
+            "[otr:32]TASK: Write a SINGLE, 3-word TITLE that " +
+            "sums up the entire conversation so far.\n" +
+            "Return only with TITLE—no quotes, no extra text.\n[/otr]"
 
         model.start(prompt,
             model => { }, // per-token callback

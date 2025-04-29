@@ -78,8 +78,11 @@ struct state {
 };
 
 static void error(struct state &state, const char* message) {
-    state.callbacks->error((llama_t*)&state, state.callbacks,
-                          "failed to create prompts folder: %s\n");
+    state.callbacks->error((llama_t*)&state, state.callbacks, message);
+}
+
+static void fatal(struct state &state, const char* message) {
+    state.callbacks->fatal((llama_t*)&state, state.callbacks, message);
 }
 
 static bool in_background(struct state &state) {
@@ -210,7 +213,7 @@ static std::string& prompts_cache_folder(struct state &state) {
 //      trace("%s\n", prompts.c_str());
         if (mkdir(prompts.c_str(), S_IRWXU) != 0 && errno != EEXIST) {
             trace("failed to create prompts folder: %s\n", prompts.c_str());
-            error(state, "failed to create prompts folder: %s\n");
+            fatal(state, "Failed to create prompts folder.");
             prompts = "";
         }
     }
@@ -333,7 +336,7 @@ static void save_session(struct state &state) {
             save_meta(state);
         } else {
             trace("error: failed to save session\n");
-            error(state, "failed to save chat state");
+            error(state, "Failed to save chat.");
         }
     } else {
 //      trace("session did not change and won't be saved\n");
@@ -380,7 +383,7 @@ static int tokenize_prompt(struct state &state, llama_tokens_t &p) {
                   string_from(state.ctx, p).c_str());
         } else {
             trace("input is empty\n");
-            error(state, "missing system prompt");
+            fatal(state, "System prompt is missing.");
             return 1;
         }
     }
@@ -613,8 +616,8 @@ static int decode_batch(struct state &state, struct llama_batch batch) {
             return 0;
         } else {
             trace("llama_decode() %d\n", r);
-            if (!in_background(state)) {
-                error(state, "failed to decode token"); // fatal in foreground
+            if (!in_background(state)) { // fatal in foreground
+                fatal(state, "Failed to decode token.");
                 return r;
             }
         }
@@ -727,7 +730,7 @@ static bool generate(struct state &state) {
         int r = decode(state);
         if (r != 0) {
             state.info.time += now() - start;
-            error(state, "Error: failed to decode tokens");
+            fatal(state, "Failed to generate text tokens.");
             return false;
         }
         // end‐of‐generation handling
@@ -762,7 +765,7 @@ static int init_chat(struct state &state) {
     if (state.n_ctx > n_ctx_train) {
         trace("model was trained on only %d context tokens (%d specified)\n",
                n_ctx_train, state.n_ctx);
-        error(state, "context is too large");
+        fatal(state, "Context is too large.");
         return 1;
     }
     const bool add_bos = llama_vocab_get_add_bos(state.vocab);
@@ -784,7 +787,7 @@ static int init_chat(struct state &state) {
     state.smpl = common_sampler_init(state.model, state.params.sampling);
     if (!state.smpl) {
         trace("%failed to initialize sampling subsystem\n");
-        error(state, "failed to initialize sampling subsystem");
+        fatal(state, "Failed to initialize sampling subsystem.");
         return 1;
     } else {
 //      trace("seed: %u\n",     common_sampler_get_seed(state.smpl));
@@ -844,7 +847,7 @@ static int process_loaded_session(struct state &state,
     if ((int)state.session_tokens.size() > state.n_ctx - 4) {
         trace("session is too long (%d tokens, max %d)\n",
               (int)state.session_tokens.size(), state.n_ctx - 4);
-        error(state, "session is too long"); // fatal
+        fatal(state, "Session is too long.");
         return 1;
     }
 //  trace("n_sys_prompt_tokens: %d\n", state.n_sys_prompt_tokens);
@@ -863,7 +866,7 @@ static int process_loaded_session(struct state &state,
     state.tokens = { last };
     state.mode = mode_input;
     if (decode(state) != 0) {
-        error(state, "failed to decode session last token");
+        fatal(state, "Failed to decode session last token.");
         return 1;
     }
     state.n_past++;
@@ -925,7 +928,9 @@ static bool off_the_record(struct state &state, const std::string &input) {
     std::string s = ss.str();
     output(state, s.c_str());
     state.info.sum += s.length();
-//  error(state, "error test");  // DEBUG: uncomment to test errors to UI
+    // DEBUG: uncomment to test errors to UI
+//  error(state, "error test");
+//  fatal(state, "fatal error");
     output(state, "<--done-->");
     assert(r == 0);
     r = init_chat(state);
