@@ -698,22 +698,21 @@ static int decode(struct state &state, llama_seq_id seq_id = 0) {
     }
     state.info.progress = 1.0;
     if (report_progress) { progress(state, 1.0); }
-
-// zzzz
-const int kv = (int)state.session_tokens.size() +
-               (int)state.tokens.size();
-int tc = llama_get_kv_cache_token_count(state.ctx);
-if (state.mode != mode_otr) {
-    if (kv != tc) {
+/*
+    const int kv = (int)state.session_tokens.size() +
+                   (int)state.tokens.size();
+    int tc = llama_get_kv_cache_token_count(state.ctx);
+    if (state.mode != mode_otr) {
+        if (kv != tc) {
+            trace("kv_cache_token_count: %d session_tokens: %d tokens: %d\n",
+                  tc, state.session_tokens.size(), state.tokens.size());
+        }
+        assert(kv == tc);
+    } else {
         trace("kv_cache_token_count: %d session_tokens: %d tokens: %d\n",
               tc, state.session_tokens.size(), state.tokens.size());
     }
-    assert(kv == tc);
-} else {
-    trace("kv_cache_token_count: %d session_tokens: %d tokens: %d\n",
-          tc, state.session_tokens.size(), state.tokens.size());
-}
-// zzzz
+*/
     return 0;
 }
 
@@ -924,7 +923,7 @@ static int process_loaded_session(struct state &state,
 //      trace("n_sys_prompt_tokens:= %d\n", state.n_sys_prompt_tokens);
     }
 #if 0
-    // zzz DO WE REALLY NEED TO DECODE LAST TOKEN AGAIN?!
+    // TODO: DO WE REALLY NEED TO DECODE LAST TOKEN AGAIN?!
     // I think we do NOT, it was leftovers from main.cpp stateful loop
     llama_token last = state.session_tokens.back();
     state.session_tokens.pop_back();
@@ -973,10 +972,10 @@ static bool off_the_record(struct state &state, const std::string &s) {
     if (text.length() == 0) { return false; }
     assert(state.messages.size() > 0); // must already have messages
     assert(state.tokens.size() == 0);
-    trace("text:\n%s\n\n", text.c_str());
-    trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
+//  trace("text:\n%s\n\n", text.c_str());
+//  trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
     int k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d\n", k);
+//  trace("kv_cache_token_count: %d\n", k);
     state.mode = mode_otr;
     llama_tokens_t input = input_with_template(state, text);
     int r = decode_input(state, input, otr_seqid);
@@ -1001,7 +1000,7 @@ static bool off_the_record(struct state &state, const std::string &s) {
     }
     std::string t = ss.str();
     output(state, t.c_str());
-    trace("title:\n%s\n\n", t.c_str());
+//  trace("title:\n%s\n\n", t.c_str());
     state.info.sum += t.length();
     // DEBUG: uncomment to test errors to UI
 //  error(state, "error test");
@@ -1053,9 +1052,9 @@ static bool off_the_record(struct state &state, const std::string &s) {
     assert(r == 0);
     process_loaded_session(state, state.n_sys_prompt_tokens);
     assert(r == 0);
-    trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
+//  trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
     k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d\n", k);
+//  trace("kv_cache_token_count: %d\n", k);
     return r == 0;
 #endif
 }

@@ -97,17 +97,8 @@ export const substitutions = (text) => {
     return text
 }
 
-// zzz
-// Debug with lines in response:
-// AI: "Title: 'AI & Humans: Redefining Truth'\n
-// AI: 'AI & Humans: Redefining Truth\n
-//
-
-
 export const long_title = s => {
     s = substitutions(s)
-//  s = `AI: "Title: 'AI & Humans: Redefining Truth'\n` +
-//      `AI: 'AI & Humans: Redefining Truth\n`
     let r = ""
     for (let line of s.trim().split("\n")) {
         let t = line.trim()
@@ -131,7 +122,7 @@ export const long_title = s => {
 const punctuation = ',:;\u2013\u2014'
 
 export const short_title = (s, maximum) => {
-    console.log(`s: ${s}`)
+//  console.log(`s: ${s}`)
     for (let i = 0; i < punctuation.length; i++) {
         const ix = s.indexOf(punctuation.charAt(i))
         if (ix >= 4) { s = s.slice(0, ix).trim() }

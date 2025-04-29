@@ -166,36 +166,6 @@ export const cycle = () => {
     ix = (ix + 1) % disp.length
 }
 
-export const xxx_cycle = () => {
-    if (!disp.length) { return }
-    let ts = new Date() // randomize seed based on last digits of millisecond
-    let sum = 0
-    for (let i = 0; i < ts % 100; i++) { sum += Math.random() }
-    if (sum < 0) { console.log("impossible") }
-    let c = shuffle(categories.slice())[0]
-    let a = disp[(ix + 1) % 2].category.category
-    while (c.category === a) { // avoid two same categories
-        c = shuffle(categories.slice())[0]
-    }
-    let i = Math.floor(Math.floor(Math.random() * c.prompts.length))
-    let p = c.prompts[i]
-    let box = disp[ix].div
-    let title = box.querySelector(".suggestion_title")
-    let text = box.querySelector(".suggestion_text span")
-    title.style.transition = "opacity 0.3s ease"
-    text.style.transition = "opacity 0.3s ease"
-    title.style.opacity = 0
-    text.style.opacity = 0
-    title.innerHTML = `${c.category}`
-    text.textContent = p
-    title.style.opacity = 1
-    text.style.opacity = 1
-    disp[ix] = { category: c.category,
-                  prompts: c.prompts,
-                  cix: i, div: box }
-    ix = (ix + 1) % disp.length
-}
-
 export const show = () => {
     if (disp.length === 0) build()
     cycle()
