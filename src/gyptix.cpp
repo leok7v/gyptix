@@ -314,8 +314,9 @@ static void fatal(llama_t* llama, llama_callbacks_t* that, const char* text) {
     pthread_mutex_unlock(&lock);
 }
 
-static void progress(llama_t* llama, llama_callbacks_t* that, double v) {
+static bool progress(llama_t* llama, llama_callbacks_t* that, double v) {
 //  trace("progress: %.6f\n", v);
+    return interrupted;
 }
 
 static const char* stat(void) {

@@ -81,7 +81,8 @@ export const run = () => { // called DOMContentLoaded
         const empty = s === ""
 //      console.log(`empty: ${empty} polling: ${model.polling} interrupted: ${interrupted}`)
         const show_clear = !empty && !model.polling && suggested
-        const show_carry = !show_clear && interrupted
+        const show_carry = !show_clear && interrupted &&
+                            chat.messages.length > 0
         ui.show_hide(show_clear, clear)
         ui.show_hide(show_carry, carry)
         ui.show_hide(model.polling, stop)
@@ -402,6 +403,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const trim_interrupted = () => {
+        if (chat.messages.length == 0) { return }
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
         let i = last_msg.text.lastIndexOf('.')
@@ -526,8 +528,8 @@ export const run = () => { // called DOMContentLoaded
 
     const ask = (t, hidden) => { // 't': text
         interrupted = false
-        ui.hide(carry, clear)
-        if (!current || !t) { return }
+        ui.hide(carry, clear, send)
+        if (!chat || !t) { return }
         if (!backend.is_running()) { return }
         let h = hidden ? hidden : false
         chat.messages.push({ sender: "user", text: t, hidden: h })
@@ -536,6 +538,8 @@ export const run = () => { // called DOMContentLoaded
         render_messages()
         setTimeout(scrollable.scroll_to_bottom, 500)
         model.progress = (state) => widgets.progress(llm.info.progress)
+        ui.hide(send)
+        ui.show(stop)
         layout_and_render().then(() => { // render before asking
             scrollable.autoscroll = true
 //          console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
@@ -547,6 +551,7 @@ export const run = () => { // called DOMContentLoaded
                 count: 0,
                 cycle: 1
             }
+            console.log(`model.start(${t})`)
             model.start(t,
                 model => {
 //                  console.log(model.tokens)
@@ -603,6 +608,8 @@ export const run = () => { // called DOMContentLoaded
             return;
         }
         // if we did not achive running state in 10 seconds since load time
+        console.log(`backend.is_running() ${backend.is_running()}`);
+        console.log(`backend.is_answering() ${backend.is_answering()}`);
         if (backend.is_running() && !backend.is_answering() && s !== "") {
             collapsed()
             ui.hide(carry, clear)
@@ -681,7 +688,7 @@ export const run = () => { // called DOMContentLoaded
         const ks = Object.keys(localStorage).filter(k => k.startsWith("chat."))
         ks.forEach(k => localStorage.removeItem(k))
         backend.erase()
-        current = null
+        current = chat.id
         rebuild_list()
         spawn_new_conversation()
     }

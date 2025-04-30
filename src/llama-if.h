@@ -19,8 +19,8 @@ struct llama_callbacks {
     bool  (*output)(llama_t* llm, llama_callbacks_t* that, const char* s);
     void  (*error)(llama_t* llm, llama_callbacks_t* that, const char* message); 
     void  (*fatal)(llama_t* llm, llama_callbacks_t* that, const char* message); 
-    // input decoding progress 0..1
-    void  (*progress)(llama_t* llm, llama_callbacks_t* that, double progress);
+    // input decoding progress 0..1 returns true on interrupt
+    bool  (*progress)(llama_t* llm, llama_callbacks_t* that, double progress);
 };
 
 struct llama_info {
@@ -28,7 +28,7 @@ struct llama_info {
     int    session_tokens; // > 0 before input
     double generated;      // number of tokens generated over lifetime
     double progress;       // 0..1 prompt decoding progress (slow)
-    double average_token;  // number of UTF-16 characters per token
+    double average_token;  // average number of UTF-16 glyphs per token
     double tps;            // tokens per second
     double logits_bytes;   // size of saved session file in bytes
     double sum;            // sum character of all generated tokens

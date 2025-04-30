@@ -251,8 +251,8 @@ ol ol {
 .user {
     background: var(--background-user);
     margin: 1em;
-    padding: 0.125em 1em;
-    border-radius: 0.25em;
+    padding: 0.5em 1em;
+    border-radius: 0.5em;
     max-width: 100%;
     word-wrap: break-word;
     overflow-wrap: break-word;

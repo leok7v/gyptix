@@ -3,6 +3,7 @@
 export const word_count = s => s.trim().split(/\s+/).filter(Boolean).length
 
 export const capitalize = (s) => {
+    if (!s || s.length == 0) { return "" }
     const cp = s.codePointAt(0)
     const fc = String.fromCodePoint(cp)
     return fc.toLocaleUpperCase() + s.slice(fc.length)
