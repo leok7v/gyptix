@@ -96,10 +96,10 @@ func dispatch_get(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
     var dispatched: Bool = true
     var s : String = "" // reply
     switch path {
+        case "erase":        check(path); s = call(erase())
         case "initialized":  check(path); s = call(initialized())
         case "is_running":   check(path); s = call(is_running())
         case "is_answering": check(path); s = call(is_answering())
-        case "erase":        check(path); s = call(erase())
         case "quit":         check(path); s = call(quit())
         default:             dispatched = false
     }
@@ -125,14 +125,15 @@ func dispatch_post(_ path: String, _ t: WKURLSchemeTask, _ u: URL) -> Bool {
     var s: String = ""  // response
 //  print("dispatch_post: " + path + " request: " + r)
     switch path {
-        case "log":             print("\(r)")
-        case "run":             check(path); s = call(run(r))
         case "ask":             check(path); s = call(ask(r))
-        case "poll":            check(path); s = call(poll(r))
-        case "info":            check(path); s = call(stat(r))
-        case "remove":          check(path); s = call(remove(r))
         case "download":        check(path); s = call(download(r))
         case "download_remove": check(path); s = call(download_remove(r))
+        case "haptic":          check(path); s = call(haptic(r))
+        case "info":            check(path); s = call(stat(r))
+        case "log":             print("\(r)")
+        case "poll":            check(path); s = call(poll(r))
+        case "remove":          check(path); s = call(remove(r))
+        case "run":             check(path); s = call(run(r))
         default:                dispatched = false
     }
     if dispatched { send_response(u, t, s) }

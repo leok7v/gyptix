@@ -42,6 +42,10 @@ export const ask = (value) => { // returns error message or null on OK
     }
 }
 
+export const haptic = (args) => {
+    post("./haptic", args)
+}
+
 export const run = id => {
     post("./run", id)
 }

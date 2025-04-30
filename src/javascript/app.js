@@ -551,7 +551,7 @@ export const run = () => { // called DOMContentLoaded
                 count: 0,
                 cycle: 1
             }
-            console.log(`model.start(${t})`)
+//          console.log(`model.start(${t})`)
             model.start(t,
                 model => {
 //                  console.log(model.tokens)
@@ -592,8 +592,12 @@ export const run = () => { // called DOMContentLoaded
     
     const hide_menu = () => ui.hide(menu)
     
+    const haptic_click = () =>
+        backend.haptic("transient:true,intensity:0.95,sharpness:0.0")
+    
     toggle.onclick = e => {
         e.preventDefault()
+        haptic_click()
         ui.toggle_theme()
     }
     
@@ -608,8 +612,8 @@ export const run = () => { // called DOMContentLoaded
             return;
         }
         // if we did not achive running state in 10 seconds since load time
-        console.log(`backend.is_running() ${backend.is_running()}`);
-        console.log(`backend.is_answering() ${backend.is_answering()}`);
+//      console.log(`backend.is_running() ${backend.is_running()}`);
+//       console.log(`backend.is_answering() ${backend.is_answering()}`);
         if (backend.is_running() && !backend.is_answering() && s !== "") {
             collapsed()
             ui.hide(carry, clear)
@@ -618,12 +622,14 @@ export const run = () => { // called DOMContentLoaded
             set_title('')
             set_input_placeholder('')
             input.blur()
+            haptic_click()
             layout_and_render().then( () => ask(s) )
         }
     }
 
     const clear_click = (e) => {
         e.preventDefault()
+        haptic_click();
         input.innerHTML = ''
         placeholder()
         layout_and_render().then(() => {
@@ -663,6 +669,7 @@ export const run = () => { // called DOMContentLoaded
     
     stop.onclick = e => {
         e.preventDefault()
+        haptic_click();
         ui.hide(stop)
         let s = input.innerText.trim()
         if (model.polling) { interrupt() }
@@ -671,12 +678,14 @@ export const run = () => { // called DOMContentLoaded
     carry.onclick = e => {
         if (model.polling) { return } // still polling cannot continue
         e.preventDefault()
+        haptic_click();
         ui.hide(carry)
         ask("carry on", true) // hidden
     }
     
     spawn.onclick = e => {
         e.preventDefault()
+        haptic_click();
         collapsed()
         if (backend.is_running() && !backend.is_answering()) {
             spawn_new_conversation()
@@ -684,6 +693,7 @@ export const run = () => { // called DOMContentLoaded
     }
     
     const erase = () => {
+        haptic_click()
         collapsed()
         const ks = Object.keys(localStorage).filter(k => k.startsWith("chat."))
         ks.forEach(k => localStorage.removeItem(k))
@@ -742,6 +752,7 @@ export const run = () => { // called DOMContentLoaded
     
     expand.onclick = e => {
         e.preventDefault()
+        haptic_click();
         if (is_expanded) { collapsed() } else { expanded() }
     }
     
@@ -854,13 +865,7 @@ export const run = () => { // called DOMContentLoaded
         }
         let s = input.innerText.trim()
         if (detect.macOS && s !== "" && e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault()
-            input.innerHTML = ""
-            ui.hide(send)
-            layout_and_render().then(() => {
-                clear_selection()
-                ask(s)
-            })
+            send_click(e);
         }
         if (s.length > 0 && last_key_down_time !== 0) {
             setTimeout(() => {
@@ -977,12 +982,14 @@ export const run = () => { // called DOMContentLoaded
     
     get("inc").onclick = e => {
         e.preventDefault()
+        haptic_click()
         hide_menu()
         widgets.increase_font_size()
     }
 
     get("dec").onclick = e => {
         e.preventDefault()
+        haptic_click()
         hide_menu()
         widgets.decrease_font_size()
     }
@@ -1077,6 +1084,7 @@ export const run = () => { // called DOMContentLoaded
     
     get("info").onclick = e => {
         e.preventDefault()
+        haptic_click()
         collapsed()
         licenses()
     }

@@ -253,9 +253,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
-#endif
-
-#if !os(iOS) // os(macOS)
+#else // !os(iOS) -> os(macOS)
 
 class WindowDelegate: NSObject, NSWindowDelegate {
     static let shared = WindowDelegate()
@@ -518,6 +516,7 @@ func startup() {
         }
     }
     #if os(iOS)
+
     NotificationCenter.default.addObserver(
         forName: UIApplication.didEnterBackgroundNotification,
         object: nil,
@@ -533,13 +532,18 @@ func startup() {
     ) { _ in
         background(false)
     }
+
     BGTaskScheduler.shared.register(forTaskWithIdentifier:
         "io.github.gyptix.refresh", using: nil) { task in
         // nothing for now
     }
+
     BGTaskScheduler.shared.register(forTaskWithIdentifier:
         "io.github.gyptix.process", using: nil) { task in
         // nothing for now
     }
+    
+    haptic_test()
+    
     #endif
 }

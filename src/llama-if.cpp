@@ -651,10 +651,10 @@ static int decode(struct state &state) {
     // only report progress for input because generating is not in batches
     bool report_progress = state.mode == mode_input &&
         n > state.params.n_batch * 4;
-    if (state.mode == mode_input) {
-        trace("report_progress: %d n_batch: %d tokens: %d\n",
-              report_progress, state.params.n_batch, n);
-    }
+//  if (state.mode == mode_input) {
+//      trace("report_progress: %d n_batch: %d tokens: %d\n",
+//            report_progress, state.params.n_batch, n);
+//  }
     for (int i = 0; i < n; i += state.params.n_batch) {
         int k = n - i;
         if (k > state.params.n_batch) { k = state.params.n_batch; }

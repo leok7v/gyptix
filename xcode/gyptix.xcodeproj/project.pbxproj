@@ -78,6 +78,7 @@
 		B3AA963E2DAF31ED00D676BD /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AA963D2DAF31ED00D676BD /* MetalKit.framework */; };
 		B3AA96402DAF31FF00D676BD /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AA963F2DAF31FF00D676BD /* Network.framework */; };
 		B3AA96422DAF320700D676BD /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AA96412DAF320700D676BD /* WebKit.framework */; };
+		B3AB23872DC2DE5F00592592 /* Haptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AB23862DC2DE5F00592592 /* Haptic.swift */; };
 		B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */ = {isa = PBXBuildFile; fileRef = B3B29CA82D4E8E57006F04CE /* logo-256x256.png */; };
 		B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3F92D4AB3C300A2D406 /* eula.md */; };
 		B3B3F4052D4AB3C300A2D406 /* licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = B3B3F3FB2D4AB3C300A2D406 /* licenses.md */; };
@@ -229,6 +230,7 @@
 		B3AA963D2DAF31ED00D676BD /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
 		B3AA963F2DAF31FF00D676BD /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/Network.framework; sourceTree = DEVELOPER_DIR; };
 		B3AA96412DAF320700D676BD /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
+		B3AB23862DC2DE5F00592592 /* Haptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptic.swift; sourceTree = "<group>"; };
 		B3B29CA82D4E8E57006F04CE /* logo-256x256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo-256x256.png"; sourceTree = "<group>"; };
 		B3B3F3F62D4AB3C300A2D406 /* about.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = about.md; sourceTree = "<group>"; };
 		B3B3F3F72D4AB3C300A2D406 /* app.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = app.css; sourceTree = "<group>"; };
@@ -476,6 +478,7 @@
 			children = (
 				B35FDE032DAB91A80068738F /* Downloads.swift */,
 				B3E04BD02D84816800C6C67B /* Dispatch.swift */,
+				B3AB23862DC2DE5F00592592 /* Haptic.swift */,
 				B3A4828F2D5035DC00FCE4A5 /* Gyptix.swift */,
 				B3A482922D5035DC00FCE4A5 /* WebView.swift */,
 			);
@@ -726,6 +729,7 @@
 				B3B4F66A2DB61EA200EEE9F7 /* trace.c in Sources */,
 				B34A04642D458A880010D066 /* ggml-cpu-aarch64.cpp in Sources */,
 				B34A04682D458A880010D066 /* ggml-opt.cpp in Sources */,
+				B3AB23872DC2DE5F00592592 /* Haptic.swift in Sources */,
 				B3B76A512DB6C30A003799D6 /* llama-legacy.cpp in Sources */,
 				B34A046F2D458A880010D066 /* ggml.c in Sources */,
 				B34A04702D458A880010D066 /* ggml-alloc.c in Sources */,
