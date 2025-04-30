@@ -258,7 +258,9 @@ export const toast = (s, to) => {
 export const fatal_error = (message) => {
     const error = `# Fatal Error:${two_lines_gap}`+
                   `** ${message} **${two_lines_gap}` +
-                  "Application cannot continue and will close now."
+                  `Cannot continue and ` +
+                  `will close.${two_lines_gap}` +
+    `<p>${llm.info.version} ${llm.info.build} ${llm.info.git_hash}</p>`
     mbx(error, () => backend.quit(), "Close")
 }
 
