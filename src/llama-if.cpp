@@ -60,7 +60,7 @@ struct state {
     struct ggml_threadpool*      threadpool_batch {nullptr};
     std::string                  filename;
     llama_context*               ctx   {nullptr};
-    const llama_model*           model {nullptr};
+    llama_model*                 model {nullptr};
     common_sampler*              smpl  {nullptr};
     const llama_vocab*           vocab {nullptr};
     common_chat_templates        templates;
@@ -964,6 +964,8 @@ static std::string otr(struct state &state, const std::string &s, int &limit) {
     return s.substr(start, end - start);
 }
 
+#undef LLAMA_RND_OTR_REWIND
+
 static const llama_seq_id otr_seqid = 0; // 42;
 
 static bool off_the_record(struct state &state, const std::string &s) {
@@ -972,6 +974,18 @@ static bool off_the_record(struct state &state, const std::string &s) {
     if (text.length() == 0) { return false; }
     assert(state.messages.size() > 0); // must already have messages
     assert(state.tokens.size() == 0);
+#ifdef LLAMA_RND_OTR_REWIND
+    size_t size = llama_state_get_size(state.ctx); // ~16MB
+    uint8_t* saved = (uint8_t*)malloc(size);
+    size_t bytes = saved == NULL ? 0 :
+                   llama_state_get_data(state.ctx, saved, size);
+    if (!saved || bytes != size) {
+        fatal(state, "Out of memory");
+        output(state, "<--done-->");
+        return false;
+    }
+    trace("saved llama state: %.1f MB\n", size / (1024.0 * 1024.0));
+#endif
 //  trace("text:\n%s\n\n", text.c_str());
 //  trace("state.session_tokens.size(): %d\n", (int)state.session_tokens.size());
     int k = llama_get_kv_cache_token_count(state.ctx);
@@ -1024,27 +1038,14 @@ static bool off_the_record(struct state &state, const std::string &s) {
      Return only with TITLE—no quotes, no extra text."
     shows the presence of the OTR sentence in transformer
     */
-    // clear all generated kv sequences fromn cache:
-    const int n = (int)state.session_tokens.size();
-    trace("state.session_tokens.size(): %d\n", n);
-    k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d\n", k);
-    llama_kv_cache_seq_rm(state.ctx, otr_seqid, 0, -1); // all kv entries
-    llama_kv_cache_seq_rm(state.ctx, -1, n, -1);
-    k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d\n", k);
-    state.ctx->kv_self.n = n;
-    for (int i = 0; i < state.ctx->kv_self.size; i++) {
-        state.ctx->kv_self.cells[i].seq_id.erase(otr_seqid);
-    }
-    llama_kv_cache_defrag(state.ctx); // slow and optional
-    llama_kv_cache_update(state.ctx); // slow and optional
-    common_sampler_reset(state.smpl); // unnecessary since it is always done before decoding
-    k = llama_get_kv_cache_token_count(state.ctx);
-    trace("kv_cache_token_count: %d\n", k);
+    auto cparams = common_context_params_to_llama(state.params);
+    llama_context* new_context = llama_init_from_model(state.model, cparams);
+    llama_state_set_data(new_context, saved, size);
+    state.ctx = new_context;
+    free(saved);
     return 0;
 #else
-    // reload session
+    // reload session takes ~250ms in Release on MacBook Air M3:
     assert(r == 0);
     r = init_chat(state);
     assert(r == 0);
