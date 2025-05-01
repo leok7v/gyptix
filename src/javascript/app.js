@@ -75,11 +75,26 @@ export const run = () => { // called DOMContentLoaded
 
     const is_input_focused = () => document.activeElement === input
 
+    const hide_menu = () => ui.hide(menu)
+    
+    const haptic_click = () => {
+        if (!detect.macOS) {
+            backend.haptic("transient:true,intensity:0.95,sharpness:0.0")
+        }
+    }
+    
+    const haptic_carriage_return = () => { // old mechanical typewriter style
+        if (!detect.macOS) {
+            backend.haptic(
+            "transient:false,intensity:0.125,sharpness:0.125,duration:0.125;" +
+            "transient:true,intensity:0.25,sharpness:1.0,relative:0.125")
+        }
+    }
+
     const update_buttons = () => {
         let s = input.innerText
         if (s === '\n') { s = "" } // empty div has '\n'
         const empty = s === ""
-//      console.log(`empty: ${empty} polling: ${model.polling} interrupted: ${interrupted}`)
         const show_clear = !empty && !model.polling && suggested
         const show_carry = !show_clear && interrupted &&
                             chat.messages.length > 0
@@ -104,6 +119,7 @@ export const run = () => { // called DOMContentLoaded
             () => backend.quit()
         )
     }
+    
     
     let check_running = null
     let check_running_timestamp = util.timestamp()
@@ -204,12 +220,6 @@ export const run = () => { // called DOMContentLoaded
         }
     }
     
-    const haptic_carriage_return = () => { // old mechanical typewriter style
-        backend.haptic(
-            "transient:false,intensity:0.125,sharpness:0.125,duration:0.125;" +
-            "transient:true,intensity:0.25,sharpness:1.0,relative:0.125")
-    }
-
     const append_chunk = (chunk, context) => {
         if (!chat || !chat.messages || chat.messages.length === 0) { return }
         const last_index = chat.messages.length - 1
@@ -601,11 +611,6 @@ export const run = () => { // called DOMContentLoaded
         menu.style.left = x + "px"
         menu.style.top  = y + "px"
     }
-    
-    const hide_menu = () => ui.hide(menu)
-    
-    const haptic_click = () =>
-        backend.haptic("transient:true,intensity:0.95,sharpness:0.0")
     
     toggle.onclick = e => {
         e.preventDefault()
