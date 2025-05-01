@@ -543,7 +543,7 @@ func startup() {
         // nothing for now
     }
     
-    haptic_test()
+//  haptic_test()
     
     #endif
 }

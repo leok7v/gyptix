@@ -203,8 +203,14 @@ export const run = () => { // called DOMContentLoaded
             if (c > 2 || d.length > 64) { requestAnimationFrame(interrupt) }
         }
     }
+    
+    const haptic_carriage_return = () => { // old mechanical typewriter style
+        backend.haptic(
+            "transient:false,intensity:0.125,sharpness:0.125,duration:0.125;" +
+            "transient:true,intensity:0.25,sharpness:1.0,relative:0.125")
+    }
 
-    const append_chunk = (chunk) => {
+    const append_chunk = (chunk, context) => {
         if (!chat || !chat.messages || chat.messages.length === 0) { return }
         const last_index = chat.messages.length - 1
         const last_msg = chat.messages[last_index]
@@ -219,6 +225,11 @@ export const run = () => { // called DOMContentLoaded
                     console.error(error)
                 } else {
                     last_child.innerHTML = html
+                    if (last_child.scrollHeight > context.scroll_height) {
+                        haptic_carriage_return()
+                        context.scroll_height = last_child.scrollHeight
+//                      console.log(`scroll_height ${context.scroll_height}`)
+                    }
                 }
                 if (markdown.queue.length > 0) {
                     requestAnimationFrame(() => markdown.post("", processed))
@@ -521,7 +532,7 @@ export const run = () => { // called DOMContentLoaded
                 context.cycle = cycle_titles(context.cycle)
                 context.last = performance.now()
             }
-            append_chunk(model.tokens)
+            append_chunk(model.tokens, context)
             check_for_repetitions_and_stop()
         }
     }
@@ -549,7 +560,8 @@ export const run = () => { // called DOMContentLoaded
             let context = {
                 last: performance.now(),
                 count: 0,
-                cycle: 1
+                cycle: 1,
+                scroll_height: 0,
             }
 //          console.log(`model.start(${t})`)
             model.start(t,
@@ -1017,6 +1029,7 @@ export const run = () => { // called DOMContentLoaded
     suggest.innerHTML = suggestions.init({
         data: prompts.data,
         callback: s => {
+            haptic_click()
             interrupted = false
             suggested = true
             input.innerText = s.prompt
