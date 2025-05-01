@@ -48,4 +48,11 @@ scripts/run.sh
 ```
 open xcode/gyptix.xcodeproj
 ```
+  
+_To Avoid Annoying warnings from Apple:_  
 
+xCode Edit Scheme -> Arguments -> Environment Variables  
+```
+Name:                  Value:
+OS_ACTIVITY_MODE       disable
+```
