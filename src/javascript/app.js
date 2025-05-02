@@ -620,11 +620,20 @@ export const run = () => { // called DOMContentLoaded
         ui.toggle_theme()
     }
     
+    const sanizited_prompt = () => { // removes all HTML tags
+        const d = document.createElement('div')
+        d.innerHTML = input.innerText.trim()
+        return d.textContent || ''
+    }
+
     const send_click = (e) => {
         if (!backend.is_running()) { return }
-        e.preventDefault()
         llm.update_info()
-        let s = input.innerText.trim()
+        let s = sanizited_prompt().trim()
+        if (s === '') { return }
+        e.preventDefault()
+        // always append trailing '\n'
+        if (s && !s.endsWith('\n')) { s += '\n' }
         const context_tokens = parseInt(llm.info.context_tokens) || 4096
         if (s.length > context_tokens) {
             modal.toast("Prompt is too long", 5555)
