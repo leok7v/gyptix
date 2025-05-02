@@ -512,7 +512,8 @@ export const run = () => { // called DOMContentLoaded
         update_buttons()
         scrollable.autoscroll = false
 //      console.log(`scrollable.autoscroll := ${scrollable.autoscroll}`)
-        if (interrupted) { setTimeout(trim_interrupted, 250) }
+//      TODO: remove trim_interrupted() because it's a bad idea
+//      if (interrupted) { setTimeout(trim_interrupted, 250) }
 //      console.log(`chat.title: ${chat.title} bot_messages_total_length: ${bot_messages_total_length()}`)
         if (chat.title !== "" || bot_messages_total_length() < 256) {
             history.save_chat(chat)
@@ -543,6 +544,7 @@ export const run = () => { // called DOMContentLoaded
                 context.last = performance.now()
             }
             append_chunk(model.tokens, context)
+//          TODO: remove check_for_repetitions_and_stop() because it's a bad idea
             check_for_repetitions_and_stop()
         }
     }
