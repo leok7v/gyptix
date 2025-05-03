@@ -545,7 +545,7 @@ export const run = () => { // called DOMContentLoaded
             }
             append_chunk(model.tokens, context)
 //          TODO: remove check_for_repetitions_and_stop() because it's a bad idea
-            check_for_repetitions_and_stop()
+//          check_for_repetitions_and_stop()
         }
     }
 
