@@ -543,6 +543,15 @@ static int load_and_run(int argc, char** argv) {
     return 0;
 }
 
+// search for LLM_CHAT_TEMPLATES
+// known chat templates
+// https://huggingface.co/second-state/SmolLM-135M-Instruct-GGUF
+// "chatml"
+// Granite:
+// "granite"
+// gemma-3-1b-it-Q8_0.gguf
+// "gemma"
+
 static int load_model(const char* model) {
     if (strstr(model, "file://") == model) { model += 7; }
     static char arg0[1024];
@@ -570,7 +579,7 @@ static int load_model(const char* model) {
     argv[argc++] = (char*)"-1"; // number of tokens to predict: infinity
     if (strcmp(gyptix.info.platform, "macOS") == 0) {
         argv[argc++] = (char*)"--ctx-size"; // default: 4096 (too small)
-        argv[argc++] = (char*)"0"; // from training 128K for granite
+        argv[argc++] = (char*)"32768"; // granite training 128K too big
     } else {
         // iPhone and iPad
         // 16384 crashes iPhone GPU hard
