@@ -16,11 +16,13 @@ let origin = "gyptix://"
 public // JavaScript app "gyptix://./app.js"
 let app = "app" // experiments: app1, app2, app3
 
-let gguf = "granite-3.1-1b-a400m-instruct-Q8_0.gguf" // model
+// model:
+let gguf = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"
+// let gguf = "smollm2-360m-instruct-q8_0.gguf"
+// let gguf = "gemma-3-1b-it-Q8_0.gguf"
 
 var js_ready = false
 var web_view: WKWebView?
-//var keyboard: CGRect = .zero // keyboard frame
 let timing = false
 let gpu: MTLDevice? = MTLCreateSystemDefaultDevice()
 
