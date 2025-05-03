@@ -211,3 +211,110 @@ func download_remove(_ url: String) -> String {
     }
     return r
 }
+
+/*
+
+[
+  {
+    "name": "Deepseek R1 Distill Llama - 8B",
+    "description": "A distilled version of DeepSeek‑R1 based on Llama 8B for efficient reasoning.",
+    "url": "https://huggingface.co/unsloth/DeepSeek-R1-Distill-Llama-8B-GGUF/resolve/main/DeepSeek-R1-Distill-Llama-8B-Q8_0.gguf"
+  },
+  {
+    "name": "Deepseek R1 Distill Qwen - 1.5B",
+    "description": "A distilled version of the famous deep‑reasoning R1 model created by DeepSeek.",
+    "url": "https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-1.5B-Q8_0.gguf"
+  },
+  {
+    "name": "Deepseek R1 Distill Qwen - 7B",
+    "description": "A distilled version of DeepSeek‑R1 with 7 B parameters for lightweight deployments.",
+    "url": "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q8_0gguf"
+  },
+  {
+    "name": "Deepseek R1 Distill Qwen - 14B",
+    "description": "A distilled version of DeepSeek‑R1 with 14 B parameters for efficient reasoning.",
+    "url": "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-14B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-14B-Q8_0.gguf"
+  },
+  {
+    "name": "Deepseek R1 Distill Qwen - 32B",
+    "description": "A distilled version of DeepSeek‑R1 with 32 B parameters for advanced reasoning.",
+    "url": "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-32B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-32B-Q4_K_M.gguf"
+  },
+
+  {
+    "name": "Gemma 3 - 1B",
+    "description": "The Gemma 3 model with 1 B parameter, created by Google.",
+    "url": "https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q8_0.gguf"
+  },
+  {
+    "name": "Gemma 3 - 4B",
+    "description": "The Gemma 3 model with 4 B parameters, created by Google.",
+    "url": "https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q8_0.gguf"
+  },
+  {
+    "name": "Gemma 3 - 12B",
+    "description": "The Gemma 3 model with 12 B parameters, created by Google.",
+    "url": "https://huggingface.co/ggml-org/gemma-3-12b-it-GGUF/resolve/main/gemma-3-12b-it-Q8_0.gguf"
+  },
+  {
+    "name": "Gemma 3 - 27B",
+    "description": "The Gemma 3 model with 27 B parameters, created by Google.",
+    "url": "https://huggingface.co/ggml-org/gemma-3-27b-it-GGUF/resolve/main/gemma-3-27b-it-Q4_K_M.gguf"
+  },
+  
+  {
+    "name": "Meta Llama 3.2 - 1B",
+    "description": "Very small and fast chat model; runs well on most mobile devices.",
+    "url": "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q8_0.gguf"
+  },
+  {
+    "name": "Meta Llama 3.2 - 3B",
+    "description": "Small and fast model created by Meta.",
+    "url": "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q8_0.gguf"
+  },
+  {
+    "name": "Meta Llama 3.1 - 8B",
+    "description": "Top‑performing medium‑sized open‑source model.",
+    "url": "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q8_0.gguf"
+  },
+  {
+    "name": "Meta Llama 3.3 - 70B",
+    "description": "Very large and very high‑quality chat model.",
+    "url": "https://huggingface.co/bartowski/Llama-3.3-70B-Instruct-GGUF/resolve/main/Llama-3.3-70B-Instruct-Q4_K_L.gguf"
+  },
+  
+  {
+    "name": "Microsoft Phi 4 - 14B",
+    "description": "Great medium‑size model.",
+    "url": "https://huggingface.co/unsloth/phi-4-GGUF/resolve/main/phi-4-Q8_0.gguf"
+  },
+  {
+    "name": "Microsoft Phi 3.5 Mini - 4B",
+    "description": "Small, good‑quality chat model.",
+    "url": "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q8_0.gguf"
+  },
+  
+  {
+    "name": "SmolLM2 - 135M",
+    "description": "SmolLM2 compact language created by HuggingFace",
+    "url": "https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q8_0.gguf"
+  },
+  {
+    "name": "SmolLM2 - 360M",
+    "description": "SmolLM2 compact language created by HuggingFace",
+    "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/resolve/main/smollm2-360m-instruct-q8_0.gguf"
+  },
+  {
+    "name": "SmolLM2 - 1.7B (Q8_0)",
+    "description": "SmolLM2 compact language created by HuggingFace",
+    "url": "https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/main/SmolLM2-1.7B-Instruct-Q8_0.gguf"
+  },
+  {
+    "name": "SmolLM2 - 1.7B (f16)",
+    "description": "SmolLM2 compact language created by HuggingFace",
+    "url": "https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/main/SmolLM2-1.7B-Instruct-f16.gguf"
+  },
+  
+]
+
+*/
