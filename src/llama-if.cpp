@@ -17,6 +17,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -352,20 +353,26 @@ static std::string tokens_to_string(const struct state &state,
     return ss.str();
 }
 
+static std::string lfs(const std::string &s) {
+    return std::regex_replace(s, std::regex("\n"), "\\n");
+}
+
 static std::string add_and_format(struct state &state, const std::string & role,
                                   const std::string & content) {
+//  trace("role: '%s'\n", role.c_str());
+//  trace("content: '%s'\n", lfs(content).c_str());
     common_chat_msg message{role, content};
     std::string formatted = common_chat_format_single(
         *state.templates.template_default,
         state.messages, message, role == "user",
         state.params.use_jinja);
-    state.messages.push_back({role, content});
-//  trace("formatted: '%s'\n", formatted.c_str());
+    state.messages.push_back(message);
+//  trace("formatted: '%s'\n", lfs(formatted).c_str());
     return formatted;
 }
 
 static int tokenize_prompt(struct state &state, llama_tokens_t &p) {
-//  trace("tokenize system prompt\n");
+//  trace("system prompt: \"%s\"\n", lfs(state.params.prompt).c_str());
     // format the system prompt in conversation mode
     // (fallback to default if empty)
     auto prompt = state.params.enable_chat_template
@@ -387,7 +394,7 @@ static int tokenize_prompt(struct state &state, llama_tokens_t &p) {
         }
     }
     // we will not save sessions that only contain system prompt
-//  trace("prompt: \"%s\"\n", prompt.c_str());
+//  trace("prompt: \"%s\"\n", lfs(prompt).c_str());
 //  trace("tokens: %s\n", string_from(state.ctx, p).c_str());
     return 0;
 }
@@ -738,7 +745,7 @@ static llama_tokens_t insert_user_input(struct state &state,
         : std::move(text);
 //  trace("input tokens: %s\n", string_from(state.ctx, line_inp).c_str());
     // if user stop generation mid-way, add EOT to finish model's last response
-    llama_tokens_t input = input_with_template(state, text);
+    llama_tokens_t input = input_with_template(state, user_input);
 //  trace("input: %d\n", (int)input.size());
     return input;
 }
