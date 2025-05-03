@@ -19,6 +19,10 @@
 // https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-1.5B-Q8_0.gguf
 // 1.89GB
 
+// https://huggingface.co/tensorblock/DeepSeek-R1-Distill-Llama-3B-GGUF
+// https://huggingface.co/tensorblock/DeepSeek-R1-Distill-Llama-3B-GGUF/blob/main/DeepSeek-R1-Distill-Llama-3B-Q8_0.gguf
+// 3.42GB
+
 // https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF
 // https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q8_0.gguf
 // 8.1GB
