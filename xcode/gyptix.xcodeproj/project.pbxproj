@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B304E1882DB40D380081FC1C /* llm.js in Resources */ = {isa = PBXBuildFile; fileRef = B304E1872DB40D380081FC1C /* llm.js */; };
+		B30C3F342DC6AAD40034E7C1 /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */ = {isa = PBXBuildFile; fileRef = B30C3F332DC6AAD40034E7C1 /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */; };
 		B30D38DB2D458C4E00B8196B /* llama-adapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38B72D458C4E00B8196B /* llama-adapter.cpp */; };
 		B30D38DC2D458C4E00B8196B /* llama-grammar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38C32D458C4E00B8196B /* llama-grammar.cpp */; };
 		B30D38DD2D458C4E00B8196B /* unicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D38D72D458C4E00B8196B /* unicode.cpp */; };
@@ -36,7 +37,6 @@
 		B30D39102D458CDF00B8196B /* sampling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39042D458CDF00B8196B /* sampling.cpp */; };
 		B30D39172D458DA600B8196B /* llama-if.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39162D458DA600B8196B /* llama-if.cpp */; };
 		B30D39182D458DA600B8196B /* llama-build.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B30D39142D458DA600B8196B /* llama-build.cpp */; };
-		B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */ = {isa = PBXBuildFile; fileRef = B30D391C2D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */; };
 		B313D3A52D4826E400155A33 /* ggml-metal.m in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A02D4826E400155A33 /* ggml-metal.m */; };
 		B313D3A62D4826E400155A33 /* ggml-metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = B313D3A12D4826E400155A33 /* ggml-metal.metal */; };
 		B33026C52DA1F40C0082BBB5 /* app3.js in Resources */ = {isa = PBXBuildFile; fileRef = B33026C42DA1F40C0082BBB5 /* app3.js */; };
@@ -104,6 +104,7 @@
 
 /* Begin PBXFileReference section */
 		B304E1872DB40D380081FC1C /* llm.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = llm.js; sourceTree = "<group>"; };
+		B30C3F332DC6AAD40034E7C1 /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"; path = "../models/granite-3.1-1b-a400m-instruct-Q8_0.gguf"; sourceTree = SOURCE_ROOT; };
 		B30D38B62D458C4E00B8196B /* llama-adapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-adapter.h"; sourceTree = "<group>"; };
 		B30D38B72D458C4E00B8196B /* llama-adapter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "llama-adapter.cpp"; sourceTree = "<group>"; };
 		B30D38B82D458C4E00B8196B /* llama-arch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "llama-arch.h"; sourceTree = "<group>"; };
@@ -164,7 +165,6 @@
 		B30D39142D458DA600B8196B /* llama-build.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-build.cpp"; path = "../src/llama-build.cpp"; sourceTree = SOURCE_ROOT; };
 		B30D39152D458DA600B8196B /* llama-if.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llama-if.h"; path = "../src/llama-if.h"; sourceTree = SOURCE_ROOT; };
 		B30D39162D458DA600B8196B /* llama-if.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "llama-if.cpp"; path = "../src/llama-if.cpp"; sourceTree = SOURCE_ROOT; };
-		B30D391C2D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "granite-3.1-1b-a400m-instruct-Q8_0.gguf"; sourceTree = "<group>"; };
 		B313D3A02D4826E400155A33 /* ggml-metal.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ggml-metal.m"; sourceTree = "<group>"; };
 		B313D3A12D4826E400155A33 /* ggml-metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "ggml-metal.metal"; sourceTree = "<group>"; };
 		B313D3A22D4826E400155A33 /* ggml-metal-impl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ggml-metal-impl.h"; sourceTree = "<group>"; };
@@ -347,13 +347,13 @@
 			path = ../llama.cpp/common;
 			sourceTree = SOURCE_ROOT;
 		};
-		B30D39232D458EFA00B8196B /* granite-3.1-1b-a400m-instruct */ = {
+		B30D39232D458EFA00B8196B /* models */ = {
 			isa = PBXGroup;
 			children = (
-				B30D391C2D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */,
+				B30C3F332DC6AAD40034E7C1 /* granite-3.1-1b-a400m-instruct-Q8_0.gguf */,
 			);
-			name = "granite-3.1-1b-a400m-instruct";
-			path = "../models/granite-3.1-1b-a400m-instruct";
+			name = models;
+			path = ../models/models;
 			sourceTree = SOURCE_ROOT;
 		};
 		B313D3A32D4826E400155A33 /* ggml-metal */ = {
@@ -386,7 +386,7 @@
 				B3B4F6682DB61EA200EEE9F7 /* trace.h */,
 				B3B4F6692DB61EA200EEE9F7 /* trace.c */,
 				B323E3642D1CDAB2007BA38C /* Products */,
-				B30D39232D458EFA00B8196B /* granite-3.1-1b-a400m-instruct */,
+				B30D39232D458EFA00B8196B /* models */,
 				B3AA963A2DAF31DC00D676BD /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -626,7 +626,6 @@
 				B3F5905A2D6A848C008B5B7D /* modal.js in Resources */,
 				B3B29CA92D4E8E57006F04CE /* logo-256x256.png in Resources */,
 				B39546CB2DA7007B00E35252 /* app1.html in Resources */,
-				B30D39292D458EFA00B8196B /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B375A6AD2D946B0E001F9286 /* app2.html in Resources */,
 				B3A3D8392D67E455000A5839 /* suggestions.js in Resources */,
 				B3B3F3FF2D4AB3C300A2D406 /* eula.md in Resources */,
@@ -635,6 +634,7 @@
 				B3B3F4092D4AB3C300A2D406 /* about.md in Resources */,
 				B3C7C7602DB8B7810015291C /* text.js in Resources */,
 				B3994E822DA882F5002906B5 /* scroll.js in Resources */,
+				B30C3F342DC6AAD40034E7C1 /* granite-3.1-1b-a400m-instruct-Q8_0.gguf in Resources */,
 				B34C1FBF2DB18C43004E8B2C /* algo.js in Resources */,
 				B3B3F40A2D4AB3C300A2D406 /* app.js in Resources */,
 				B33E9D022D4B21FA005FEE9B /* PrivacyInfo.xcprivacy in Resources */,
